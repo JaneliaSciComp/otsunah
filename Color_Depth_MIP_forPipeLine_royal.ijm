@@ -9,9 +9,9 @@ argstr = getArgument();//Argument
 args = split(argstr,",");
 
 if (lengthOf(args)>1) {
-	Path = args[0];// full file path for Open
-	DataName = args[1];//Name for save
-	saveplace = args[2];//save directory
+    Path = args[0];// full file path for Open
+    DataName = args[1];//Name for save
+    saveplace = args[2];//save directory
 }
 
 setBatchMode(true);
@@ -106,7 +106,7 @@ function autobradjustment(briadj){
 	
 	if(autothre==1)//Fiji Original thresholding
 	run("Duplicate...", "title=test.tif");
-	
+	run("Grays");
 	bitd=bitDepth();
 	run("Properties...", "channels=1 slices=1 frames=1 unit=px pixel_width=1 pixel_height=1 voxel_depth=1");
 	getDimensions(width2, height2, channels, slices, frames);
@@ -218,7 +218,7 @@ function autobradjustment(briadj){
 	
 	fff=getTitle();
 	
-	applyvv=newArray(1,bitd,stack);
+	applyvv=newArray(1,bitd,stack,MIP);
 	applyVcalculation(applyvv);
 	applyV=applyvv[0];
 	
