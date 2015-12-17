@@ -64,7 +64,7 @@ signal_count = 0;
 neuron=newArray(channels);
 
 for (iCh=0; iCh<lengthOf(chanspec); iCh++) {
-	selectWindow(titlelist[i]);
+	selectWindow(titlelist[iCh]);
 	
 	cc = substring(chanspec,iCh,iCh+1);
 	//		col = substring(colorspec,i,i+1);
