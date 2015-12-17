@@ -78,7 +78,7 @@ for (iCh=0; iCh<lengthOf(chanspec); iCh++) {
 
 for(channelNo=0; channelNo<signal_count; channelNo++){
 	
-	selectImage(neuron[channelNo])
+	selectImage(neuron[channelNo]);
 	stack=getImageID();
 	
 	BasicMIP=newArray(bitd,0,stack);
