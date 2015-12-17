@@ -116,15 +116,20 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 				
 	TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP);
 				
+    savePrefix = saveplace+"/"+DataName+(channelNo+1);
+    print("Saving to "+savePrefix);
+
 	if(usingLUT=="royal")
-	saveAs("PNG", saveplace+DataName+channelNo+"_royal.png");
+	saveAs("PNG", savePrefix+"_royal.png");
 	
 	if(usingLUT=="PsychedelicRainBow2")
-	saveAs("PNG", saveplace+DataName+channelNo+"_PsychedelicRainBow2.png");
+	saveAs("PNG", savePrefix+"_PsychedelicRainBow2.png");
 	
 }//for(channelNo=0; channelNo<signal_count; channelNo++){
+
+print("Done");
 run("Close All");
-//"Done"
+run("Quit");
 
 ///////////////////////////////////////////////////////////////
 function autobradjustment(briadj){
