@@ -3,7 +3,7 @@
 autothre=0;//1 is FIJI'S threshold, 0 is DSLT thresholding
 multiDSLT=1;// 1 is multi step DSLT for better thresholding sensitivity
 
-//argstr="/test/C2-GMR_29H12_AE_01_02-fA01v_C081118_20081118115219609.tif,GMR_29H12,/test/GMR/,PsychedelicRainBow2,rss"//for test
+//argstr="/test/GMR_75D06_AE_01_01-fA01v_C100218_20100218105343614.lsm,GMR_75D06_AE,/test/GMR/,PsychedelicRainBow2,sr"//for test
 
 argstr = getArgument();//Argument
 args = split(argstr,",");
@@ -99,7 +99,7 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 	}//	if(AutoBRV==1){
 				
 				
-	selectWindow(origi);
+	selectImage(stack);
 	brightnessapply(applyV, bitd,lowerweight,MIPbasedThreshold,stack);
 					
 					
@@ -124,6 +124,7 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 	
 }//for(channelNo=0; channelNo<signal_count; channelNo++){
 run("Close All");
+//"Done"
 
 ///////////////////////////////////////////////////////////////
 function autobradjustment(briadj){
