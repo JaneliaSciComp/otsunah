@@ -3,16 +3,24 @@
 autothre=0;//1 is FIJI'S threshold, 0 is DSLT thresholding
 multiDSLT=1;// 1 is multi step DSLT for better thresholding sensitivity
 
-//argstr="/test/C2-GMR_29H12_AE_01_02-fA01v_C081118_20081118115219609.tif,GMR_29H12,/test/GMR/"//for test
+//argstr="/test/C2-GMR_29H12_AE_01_02-fA01v_C081118_20081118115219609.tif,GMR_29H12,/test/GMR/,PsychedelicRainBow2,rss"//for test
 
 argstr = getArgument();//Argument
 args = split(argstr,",");
 
 if (lengthOf(args)>1) {
-    Path = args[0];// full file path for Open
-    DataName = args[1];//Name for save
-    saveplace = args[2];//save directory
+	Path = args[0];// full file path for Open
+	DataName = args[1];//Name for save
+	saveplace = args[2];//save directory
+	usingLUT = args[3];//"royal" or "PsychedelicRainBow2"
+	chanspec = toLowerCase(args[4]);// channel spec
 }
+
+print("Output dir: "+saveplace);// save location
+print("Output prefix: "+DataName);//file name
+print("Image lut: "+usingLUT);
+print("Input image path: "+Path);//full file path for open data
+print("Channel spec: "+chanspec);//channel spec
 
 setBatchMode(true);
 run("Close All");
@@ -26,7 +34,7 @@ blockmode=0;//block mode for larger number of files
 colorscale=1;//adding color depth scale bar
 reverse0=0;//reverse color for front back inverted signal
 
-usingLUT = "royal";//LUT, "PsychedelicRainBow2" is for Color MIP mask search, "royal" is for better looiking
+//usingLUT = "royal";//LUT, "PsychedelicRainBow2" is for Color MIP mask search, "royal" is for better looiking
 //usingLUT="PsychedelicRainBow2";// for Mask searchable color depth MIP
 lowthreM = "Peak Histogram";//background thresholding
 startMIP=0;//MIP starting slice
@@ -39,58 +47,82 @@ MIPbasedThreshold=0;//0 is lower thresholding with 3D stack, 1 is based on MIP
 if(AutoBRV==1)
 //print("Desired mean; "+desiredmean);
 
-
 origi=getTitle();
-
 files=files+1;
 
 print(origi);
-
 bitd=bitDepth();
 totalslice=nSlices();
 
 getDimensions(width, height, channels, slices, frames);
-stack=getImageID();
 
-BasicMIP=newArray(bitd,0,stack);
-basicoperation(BasicMIP);//rename MIP.tif
+if(channels>1)
+run("Split Channels");
 
-DefMaxValue=BasicMIP[1];
-			
-if(AutoBRV==1){//to get brightness value from MIP
-	selectWindow("MIP.tif");
-	MIP=getImageID();
-	briadj=newArray(desiredmean, 0, 0, 0,lowerweight,lowthreM,autothre,DefMaxValue,MIP,stack);
-	autobradjustment(briadj);
-	applyV=briadj[2];
-	sigsize=briadj[1];
-	sigsizethre=briadj[3];
-	sigsizethre=round(sigsizethre);
-	sigsize=round(sigsize);
-}//	if(AutoBRV==1){
-			
-			
-selectWindow(origi);
-brightnessapply(applyV, bitd,lowerweight,MIPbasedThreshold,stack);
-				
-				
-if(usingLUT=="royal")
-stackconcatinate();
-			
-if(AutoBRV==0){
-	applyV=255;
-	if(bitd==16){
-		setMinAndMax(0, 65535);
-		run("8-bit");
+titlelist=getList("image.titles");
+signal_count = 0;
+neuron=newArray(channels);
+
+for (iCh=0; iCh<lengthOf(chanspec); iCh++) {
+	selectWindow(titlelist[i]);
+	
+	cc = substring(chanspec,iCh,iCh+1);
+	//		col = substring(colorspec,i,i+1);
+	if (cc == 'r') {
+		nc82=getImageID();
+	}else {
+		neuron[iCh]=getImageID();
+		signal_count=signal_count+1;
 	}
-}
-			
-TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP);
-			
+}//for (i=0; i<lengthOf(chanspec); i++) {
 
-saveAs("PNG", saveplace+DataName+"_royal.png");
-			
-
+for(channelNo=0; channelNo<signal_count; channelNo++){
+	
+	selectImage(neuron[channelNo])
+	stack=getImageID();
+	
+	BasicMIP=newArray(bitd,0,stack);
+	basicoperation(BasicMIP);//rename MIP.tif
+	
+	DefMaxValue=BasicMIP[1];
+				
+	if(AutoBRV==1){//to get brightness value from MIP
+		selectWindow("MIP.tif");
+		MIP=getImageID();
+		briadj=newArray(desiredmean, 0, 0, 0,lowerweight,lowthreM,autothre,DefMaxValue,MIP,stack);
+		autobradjustment(briadj);
+		applyV=briadj[2];
+		sigsize=briadj[1];
+		sigsizethre=briadj[3];
+		sigsizethre=round(sigsizethre);
+		sigsize=round(sigsize);
+	}//	if(AutoBRV==1){
+				
+				
+	selectWindow(origi);
+	brightnessapply(applyV, bitd,lowerweight,MIPbasedThreshold,stack);
+					
+					
+	if(usingLUT=="royal")
+	stackconcatinate();
+				
+	if(AutoBRV==0){
+		applyV=255;
+		if(bitd==16){
+			setMinAndMax(0, 65535);
+			run("8-bit");
+		}
+	}
+				
+	TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP);
+				
+	if(usingLUT=="royal")
+	saveAs("PNG", saveplace+DataName+channelNo+"_royal.png");
+	
+	if(usingLUT=="PsychedelicRainBow2")
+	saveAs("PNG", saveplace+DataName+channelNo+"_PsychedelicRainBow2.png");
+	
+}//for(channelNo=0; channelNo<signal_count; channelNo++){
 run("Close All");
 
 ///////////////////////////////////////////////////////////////
@@ -674,6 +706,7 @@ function TimeLapseColorCoder(slicesOri, applyV, width, AutoBRV, bitd, CLAHE, GFr
 	
 	if(frames>slices)
 	slices=frames;
+	
 	
 	newImage("lut_table.tif", "8-bit black", slices, 1, 1);
 	for(xxx=0; xxx<slices; xxx++){

@@ -218,7 +218,7 @@ function autobradjustment(briadj){
 	
 	fff=getTitle();
 	
-	applyvv=newArray(1,bitd,stack);
+	applyvv=newArray(1,bitd,stack, MIP);
 	applyVcalculation(applyvv);
 	applyV=applyvv[0];
 	
