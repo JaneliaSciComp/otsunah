@@ -171,14 +171,15 @@ public class Mask_Brightness_Measure implements PlugInFilter
 			
 		}
 		while(mean3<desiremean){
-			value1 = BigDecimal.ZERO;
-			
+			BigDecimal value11 = new BigDecimal("0.00");
+			BigDecimal mean22=new BigDecimal("0.00");
 	//		IJ.log("value1; "+String.valueOf(value1));
 			ipnew = newimp.getProcessor();
 			
 			double gap=desiremean-mean3;
 			
 			if(imp.getType()==imp.GRAY8){
+				maxvalue2=1;
 				if(gap>80)
 				maxvalue2=maxvalue/6;
 			}//if(imp.getType()==imp.GRAY8){
@@ -196,7 +197,7 @@ public class Mask_Brightness_Measure implements PlugInFilter
 				return;
 			}
 			
-		//	IJ.log("maxvalue; "+maxvalue2+"	 gap;	"+gap);
+	//		IJ.log("maxvalue; "+maxvalue2+"	 gap;	"+gap);
 			totalmax=totalmax+maxvalue2;
 			
 			for(int n3=0; n3<sumpx; n3++){
@@ -224,12 +225,12 @@ public class Mask_Brightness_Measure implements PlugInFilter
 					ipnew.set(n3, pixset);
 					
 					value2 = BigDecimal.valueOf(pix3);
-					value1 = value1.add(value2);//total sum brightness
+					value11 = value11.add(value2);//total sum brightness
 					
 				}//	if(pix1>200){
 			}//for(int n3=0; n3<sumpx; n3++){
-			mean2=value1.divide(sumVX, 3, BigDecimal.ROUND_HALF_UP);
-			mean3 = mean2.doubleValue();
+			mean22=value11.divide(sumVX, 3, BigDecimal.ROUND_HALF_UP);
+			mean3 = mean22.doubleValue();
 			increment=increment+1;
 			idata.setTitle(String.valueOf(totalmax));
 		}//while(mean3<desiremean){
