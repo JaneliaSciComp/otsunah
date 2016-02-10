@@ -56,13 +56,7 @@ String.resetBuffer;
 run("Close All");
 List.clear();
 		
-dotIndexLSM = -1;
-dotIndexLSM = lastIndexOf(path, ".lsm");
 
-dotIndexv3Draw = -1;
-dotIndexv3Draw = lastIndexOf(path, ".v3Draw");
-
-if(dotIndexLSM>-1 || dotIndexv3Draw>-1){
 ///// Duplication check //////////////////////////////////////////////////////////////
 	listsave=getFileList(savedir);
 	filepathcolor=0;
@@ -114,7 +108,7 @@ if(dotIndexLSM>-1 || dotIndexv3Draw>-1){
 				
 		God(savedir, noext,origi,Batch,myDir0,chanspec);
 	}
-}//LSM
+
 setBatchMode(false);
 updateDisplay();
 run("Close All");
@@ -135,7 +129,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec){
 	//	setMinAndMax(0, 4095);
 	}
 	
-	if (bitd==8 && dotIndexLSM>-1){
+	if (bitd==8){
 		setMinAndMax(0, 255);
 		run("16-bit");
 		run("Histgram stretch", "lower=0 higher=255 3d");
