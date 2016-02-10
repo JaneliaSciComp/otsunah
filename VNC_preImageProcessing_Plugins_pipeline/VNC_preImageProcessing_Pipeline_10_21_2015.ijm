@@ -120,7 +120,7 @@ updateDisplay();
 run("Close All");
 List.clear();
 "Done"
-exit();
+run("Quit");
 
 
 function God(savedir, noext,origi,Batch,myDir0,chanspec){
