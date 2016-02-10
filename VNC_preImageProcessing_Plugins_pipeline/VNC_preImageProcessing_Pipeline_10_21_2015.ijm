@@ -58,8 +58,11 @@ List.clear();
 		
 dotIndexLSM = -1;
 dotIndexLSM = lastIndexOf(path, ".lsm");
-		
-if(dotIndexLSM>-1){
+
+dotIndexv3Draw = -1;
+dotIndexv3Draw = lastIndexOf(path, ".v3Draw");
+
+if(dotIndexLSM>-1 || dotIndexv3Draw>-1){
 ///// Duplication check //////////////////////////////////////////////////////////////
 	listsave=getFileList(savedir);
 	filepathcolor=0;
