@@ -1529,7 +1529,7 @@ function addingslice(slicePosition){
 		run("Reverse");
 	}
 	
-	Rendslice=endslice+30;
+	Rendslice=endslice+40;
 	
 	if(Rendslice>slices){
 		gapEnd=Rendslice-slices;
