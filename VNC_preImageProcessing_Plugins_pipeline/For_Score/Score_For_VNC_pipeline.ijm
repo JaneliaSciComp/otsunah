@@ -332,6 +332,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	run("Merge Channels...", "c1=Temp.tif c2=Samp.tif c3=Temp.tif");
 	run("AVI... ", "compression=Uncompressed frame=25 save="+savedir+ScoreT+"_"+DataName+".avi");
 	
+	scoreT=abs(scoreT);
 	File.saveString(scoreT, filepath);
 	
 	selectWindow("RGB");
