@@ -114,6 +114,10 @@ updateDisplay();
 run("Close All");
 List.clear();
 "Done"
+
+logsum=getInfo("log");
+filepath=savedir+"VNC_pre_aligner_log.txt";
+File.saveString(logsum, filepath);
 run("Quit");
 
 
