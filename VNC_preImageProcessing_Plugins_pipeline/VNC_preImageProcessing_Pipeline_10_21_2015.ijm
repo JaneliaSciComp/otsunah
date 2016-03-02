@@ -164,35 +164,30 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec){
 	titlelist=getList("image.titles");
 	signal_count = 0;
 		
-		////Channel spec /////////////////////////////////////////////		
-		
-	for (i=0; i<lengthOf(chanspec); i++) {
+////Channel spec /////////////////////////////////////////////		
+	nc82=0;
+	for (i=0; i<lengthOf(titlelist); i++) {
 		//	wname = "C" + (i+1) + "-original";
 		selectWindow(titlelist[i]);
 			
-		cc = substring(chanspec,i,i+1);
-		//		col = substring(colorspec,i,i+1);
-		if (cc == 'r') {
-			nc82=getImageID();
-		}else {
-			
-			if(titlelist.length>1){
-				if(signal_count==0){
-					neuron=getImageID();
-					signal_count=signal_count+1;
-				}else if(signal_count==1){
-					neuron2=getImageID();
-					signal_count=signal_count+1;
-				}else if(signal_count==2){
-					neuron3=getImageID();
-					signal_count=signal_count+1;
-				}else if(signal_count==3){
-					neuron4=getImageID();
-					signal_count=signal_count+1;
-				}else if(signal_count==4){
-					neuron5=getImageID();
-						
-				}
+		if(titlelist.length>1){
+			if(nc82==0){
+				selectWindow(titlelist[titlelist.length-1]);
+				nc82=getImageID();
+			}else if(signal_count==0){
+				neuron=getImageID();
+				signal_count=signal_count+1;
+			}else if(signal_count==1){
+				neuron2=getImageID();
+				signal_count=signal_count+1;
+			}else if(signal_count==2){
+				neuron3=getImageID();
+				signal_count=signal_count+1;
+			}else if(signal_count==3){
+				neuron4=getImageID();
+				signal_count=signal_count+1;
+			}else if(signal_count==4){
+				neuron5=getImageID();
 			}
 		}
 	}//for (i=0; i<lengthOf(chanspec); i++) {
