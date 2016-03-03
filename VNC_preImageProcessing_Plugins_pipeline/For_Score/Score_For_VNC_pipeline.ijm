@@ -131,6 +131,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	selectImage(Sample);
 	rename("Samp.tif");
 	setMinAndMax(minSample, maxSample);
+	run("Apply LUT", "stack");
 	
 /// score measurement  //////////////////////		
 	run("Select All");
@@ -147,7 +148,6 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		rename("MaskSampleTitle.tif");
 	}
 	SampleDup2=getImageID();
-	
 	
 	//		setBatchMode(false);
 	//			updateDisplay();
@@ -176,12 +176,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	//					"do"
 	//				exit;
 	
-	run("16-bit");
-	run("Mask255 to 4095");
-	imageCalculator("AND create stack", "MaskSampleTitle.tif","Max.tif");//creating new stack
-	rename("ANDresult.tif");
-	ANDst=getImageID();
-	
+	selectImage(SampleDup2);
 	if(nSlices==186){
 		setSlice(1);
 		run("Delete Slice");
@@ -194,76 +189,88 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	setThreshold(lowerM*Threweight, 65535);
 	run("Convert to Mask", "method=Default background=Default black");
 	
-	run("Z Project...", "projection=[Sum Slices]");
-	getStatistics(area, meanThre, min, max, std, histogram);
-	meangap=11265.6423-meanThre;
-	close();
-	
+	oriname=getTitle();
+	run("Three D Ave");
+	ave=getTitle();
+	rename(oriname);
+	ave=parseFloat(ave);
+	meangap=60.56-ave;// 60.56 is ave of tempMask at 185 slices
 			
-	if(meangap>500){
-		while(meangap>500 && Threweight>=0.1){
+	if(meangap>3){
+		while(meangap>3 && Threweight>=0.1){
 			selectImage(ANDst2);
 			close();
 			
-			selectImage(ANDst);
+			selectImage(SampleDup2);
 			run("Duplicate...", "title=ANDresult2.tif duplicate");
 			ANDst2=getImageID();
 			
-			Threweight=Threweight-0.05;
+			Threweight=Threweight-0.03;
 			
 			setThreshold(lowerM*Threweight, 65535);
 			run("Convert to Mask", "method=Default background=Default black");
 			
-			run("Z Project...", "projection=[Sum Slices]");
-			getStatistics(area, meanThre, min, max, std, histogram);
-			meangap=11265.6423-meanThre;
-			close();
+			run("Remove Outliers...", "radius=1 threshold=50 which=Bright stack");
+			oriname=getTitle();
+			run("Three D Ave");
+			ave=getTitle();
+			rename(oriname);
+			ave=parseFloat(ave);
+			meangap=60.56-ave;
 		}
 		selectImage(ANDst2);
 		close();
 		CLEAR_MEMORY();
-	}//if(meangap>1000)
-	
-	else if(meangap<-500){
-		while(meangap<-500 && Threweight<1.6){
-			selectImage(ANDst2);
-			close();
+	}else if(meangap<-3){
+		while(meangap<-3 && Threweight<1.6){
 			
-			selectImage(ANDst);
+			if(isOpen(ANDst2)){
+				selectImage(ANDst2);
+				close();
+			}
+			
+			selectImage(SampleDup2);
 			run("Duplicate...", "title=ANDresult2.tif duplicate");
 			ANDst2=getImageID();
 			
-			Threweight=Threweight+0.05;
+			Threweight=Threweight+0.03;
 			
 			setThreshold(lowerM*Threweight, 65535);
 			run("Convert to Mask", "method=Default background=Default black");
 			
-			run("Z Project...", "projection=[Sum Slices]");
-			getStatistics(area, meanThre, min, max, std, histogram);
-			meangap=11265.6423-meanThre;
+			run("Remove Outliers...", "radius=1 threshold=50 which=Bright stack");
+			oriname=getTitle();
+			run("Three D Ave");
+			ave=getTitle();
+			rename(oriname);
+			ave=parseFloat(ave);
+			meangap=60.56-ave;
+		}
+		if(isOpen(ANDst2)){
+			selectImage(ANDst2);
 			close();
 		}
-		selectImage(ANDst2);
-		close();
 		CLEAR_MEMORY();
 	}//if(meangap>1000)
 	
-	selectImage(ANDst);
+	selectImage(SampleDup2);
 	setThreshold(lowerM*Threweight, 65535);
 	run("Convert to Mask", "method=Default background=Default black");
+	run("Remove Outliers...", "radius=1 threshold=50 which=Bright stack");
 	
 	print("3D thre also sample threshold; "+lowerM*Threweight+"  Threweight; "+Threweight+"   meangap; "+meangap);
 	
-	run("Size based Noise elimination", "ignore=229 less=9");
-	run("Minimum...", "radius=2 stack");
-	run("Maximum...", "radius=2 stack");
-	run("8-bit");
+	
+	//			run("Size based Noise elimination", "ignore=229 less=9");
+	//			run("Minimum...", "radius=2 stack");
+	//			run("Maximum...", "radius=2 stack");
+	//			run("8-bit");
 	
 	run("Z Project...", "projection=[Max Intensity]");
 	getStatistics(area, mean5, minSample, maxSample, std, histogram);
 	close();
 	
-	selectImage(ANDst);
+	//  selectImage(SampleDup2);
 			//	run("Fill Holes", "stack");
 	
 	//			setBatchMode(false);
@@ -279,17 +286,10 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		close();
 	}
 	
-	if(isOpen(SampleDup3)){
-		selectImage(SampleDup3);
-		close();
-	}
-	if(isOpen(SampleDup2)){
-		selectImage(SampleDup2);
-		close();
-	}
+
 	
 	if(secondtime==1 && mean5>0){
-		run("ObjPearsonCoeff ", "template=flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd sample=ANDresult.tif show change");
+		run("ObjPearson Coeff", "template=flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd sample=MaskSampleTitle.tif show change");
 		
 		scorearray=newArray(0, 0);
 		scoreCal(scorearray);
@@ -302,21 +302,23 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	if(scoreT==NaN)
 	scoreT=scoreT1;
 	
+	if(isOpen(SampleDup3)){
+		selectImage(SampleDup3);
+		close();
+	}
+	
 	print(scoreT+"  Score");
 	ScoreT=scoreT*1000;
 	
-	selectImage(ANDst);
-	close();
 		//		setBatchMode(false);
 		//			updateDisplay();
 		//			"do"
 		//			exit;
 		
 	if(ScoreT<0)
-	ScoreT=0;
+	ScoreT=abs(ScoreT);
 
-	ScoreT=d2s(ScoreT, 0);
-	
+	ScoreT=round(ScoreT);
 	
 	/////// test ///////////////////////////////////////////
 	selectImage(TempOri);
@@ -330,10 +332,9 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	}
 	
 	run("Merge Channels...", "c1=Temp.tif c2=Samp.tif c3=Temp.tif");
-	run("AVI... ", "compression=Uncompressed frame=25 save="+savedir+ScoreT+"_"+DataName+".avi");
+	run("AVI... ", "compression=JPEG frame=25 save="+savedir+ScoreT+"_"+DataName+".avi");
 	
-	scoreT=abs(scoreT);
-	File.saveString(scoreT, filepath);
+	File.saveString(scoreT/1000, filepath);
 	
 	selectWindow("RGB");
 	close();
@@ -362,10 +363,6 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	close();
 	print("Slice number is not 220; "+path);
 }
-if(isOpen("ANDresult.tif")){
-	selectWindow("ANDresult.tif");
-	close();
-}
 if(isOpen("Max.tif")){
 	selectWindow("Max.tif");
 	close();
@@ -387,7 +384,8 @@ if(nImages>3){// incase, if Fiji has bug. The opened images will accumulate
 "Done"
 setBatchMode(false);
 updateDisplay();
-
+run("Close All");
+run("Quit");
 
 
 
