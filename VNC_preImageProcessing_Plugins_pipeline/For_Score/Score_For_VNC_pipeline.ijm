@@ -154,22 +154,16 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	//						"do"
 	//						exit;
 	
-	run("Z Project...", "projection=[Max Intensity]");
-	rename("Max.tif");
-	AIP=getImageID();
-	secondtime=1;
-	fillGap (height2,width2,yscanUP,yscanDW,xscanLF,xscanRI);
-	ARseg=newArray(0, AIP,secondtime,Sample);
-	ARsegmentation(ARseg);
-	lowerM=ARseg[0];
-	AIP=ARseg[1];
-	secondtime=ARseg[2];
+	selectImage(SampleDup2);
+	run("Z Project...", "projection=[Average Intensity]");
+	oriname=getTitle();
+	run("Three D Ave");
+	lowerM=getTitle();
+	close();
+	lowerM=parseFloat(lowerM);
+	lowerM=round(lowerM);
 	
 	print("sample thresholding; "+lowerM);
-	selectImage(AIP);// mip
-	rename("Max.tif");
-	setThreshold(lowerM, 65535);
-	run("Make Binary");
 	
 	//	setBatchMode(false);
 	//			updateDisplay();
@@ -182,7 +176,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		run("Delete Slice");
 		print("deleted slice; "+nSlices);
 	}
-	Threweight=0.7;
+	Threweight=1;
 	run("Duplicate...", "title=ANDresult2.tif duplicate");
 	ANDst2=getImageID();
 	
@@ -195,7 +189,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	rename(oriname);
 	ave=parseFloat(ave);
 	meangap=60.56-ave;// 60.56 is ave of tempMask at 185 slices
-			
+	Bad=0; premeangap=0;
 	if(meangap>3){
 		while(meangap>3 && Threweight>=0.1){
 			selectImage(ANDst2);
@@ -217,6 +211,12 @@ if(nSlices==220){// aligned VNC should have 220 slices
 			rename(oriname);
 			ave=parseFloat(ave);
 			meangap=60.56-ave;
+			if(premeangap==meangap){
+				meangap=0;
+				print("Bad alignment");
+				Bad=1;
+			}
+			premeangap=meangap;
 		}
 		selectImage(ANDst2);
 		close();
@@ -245,6 +245,14 @@ if(nSlices==220){// aligned VNC should have 220 slices
 			rename(oriname);
 			ave=parseFloat(ave);
 			meangap=60.56-ave;
+			
+			if(premeangap==meangap){
+				meangap=0;
+				print("Bad alignment");
+				Bad=1;
+			}
+			
+			premeangap=meangap;
 		}
 		if(isOpen(ANDst2)){
 			selectImage(ANDst2);
@@ -278,8 +286,8 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	//				"do"
 	//				exit;
 				
-	selectImage(AIP);// mip
-	close();
+		//		selectImage(AIP);// mip
+		//		close();
 	
 	if(isOpen("ANDresult2.tif")){
 		selectImage("ANDresult2.tif");
@@ -288,7 +296,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	
 
 	
-	if(secondtime==1 && mean5>0){
+	if(mean5>0){
 		run("ObjPearson Coeff", "template=flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd sample=MaskSampleTitle.tif show change");
 		
 		scorearray=newArray(0, 0);
@@ -363,10 +371,10 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	close();
 	print("Slice number is not 220; "+path);
 }
-if(isOpen("Max.tif")){
-	selectWindow("Max.tif");
-	close();
-}
+	//	if(isOpen("Max.tif")){
+	//		selectWindow("Max.tif");
+	//		close();
+	//	}
 if(isOpen("MaskSampleTitle.tif")){
 	selectWindow("MaskSampleTitle.tif");
 	close();
