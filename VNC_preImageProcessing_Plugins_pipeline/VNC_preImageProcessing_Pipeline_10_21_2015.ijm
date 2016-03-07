@@ -23,18 +23,17 @@ prefix = args[1];//file name
 mode = args[2];
 path = args[3];// full file path for inport LSM
 chanspec = toLowerCase(args[4]);// channel spec
-colorspec = toUpperCase(args[5]);
-if (args.length > 6) {
-	outputs = toLowerCase(args[6]);
-}
+Xresolution = toUpperCase(args[5]);
+Yresolution = toLowerCase(args[6]);
+
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
 print("Processing mode: "+mode);
 print("Input image: "+path);//full file path for open data
 print("Channel spec: "+chanspec);//channel spec
-print("Color spec: "+colorspec);
-print("Outputs: "+outputs);
+print("X resolution: "+colorspec);
+print("Y resolution: "+outputs);
 	
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
@@ -56,58 +55,23 @@ String.resetBuffer;
 run("Close All");
 List.clear();
 		
-
-///// Duplication check //////////////////////////////////////////////////////////////
-	listsave=getFileList(savedir);
-	filepathcolor=0;
-	for(save0=0; save0<listsave.length; save0++){
-				
-		namelist=listsave[save0];
-		takeout=newArray(namelist,0);
-		C1C20102Takeout(takeout);
-		namelist = takeout[0];
-				
-		nnamelist=lengthOf(namelist);
-				
-		takeout=newArray(path,0);
-		C1C20102Takeout(takeout);
-		purenameOri = takeout[0];
-				
-		lengthNameOri = lengthOf(purenameOri);
-				
-		if(lengthNameOri<nnamelist)
-		namelist = substring(namelist, 0, lengthNameOri); // remove extension
-				
-				//	print("purenameOri; "+purenameOri+"_namelist; "+namelist);
-				
-		if(namelist==purenameOri){
-			filepathcolor=1;
-			save0=listsave.length;
-		}
-	}
-			
-	if(filepathcolor==1 && PrintSkip==1){
-		print("Skipped; "+path);
-	}
 			
 // open files //////////////////////////////////			
-	else if (filepathcolor==0){
-		CLEAR_MEMORY();
-		print("   ");
-		print(path);
-				
-		open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
-		origi=getTitle();
-		run("Out [-]");
-		run("Out [-]");
-		run("Out [-]");
-			
-		//		takeout=newArray(origi,0);
-		//		C1C20102Takeout(takeout);
-		noext = prefix;
-				
-		God(savedir, noext,origi,Batch,myDir0,chanspec);
-	}
+CLEAR_MEMORY();
+print("   ");
+print(path);
+
+open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
+origi=getTitle();
+run("Out [-]");
+run("Out [-]");
+run("Out [-]");
+
+//		takeout=newArray(origi,0);
+//		C1C20102Takeout(takeout);
+noext = prefix;
+
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution);
 
 setBatchMode(false);
 updateDisplay();
@@ -121,7 +85,7 @@ File.saveString(logsum, filepath);
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution){
 	
 	bitd=bitDepth();
 	
@@ -204,11 +168,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec){
 	
 	if(donotOperate==0){
 		getVoxelSize(vxwidth, vxheight, depth, unit1);
-		if(vxwidth==1)
-		vxwidth=0.6215;
 		
-		if(vxheight==1)
-		vxheight=0.6215;
+		vxwidth=Xresolution;
+		vxheight=Yresolution;
 		
 		run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");//setting property, voxel size 1,1,1 for later translation.
 		
