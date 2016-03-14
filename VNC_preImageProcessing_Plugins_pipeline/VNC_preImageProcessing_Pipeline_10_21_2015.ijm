@@ -14,7 +14,7 @@ PrintSkip=0;
 
 // Arguments
 
-//argstr="/test/VNC_Test/DOne/,BJD_118B09,0,/test/VNC_Test/BJD_118B09_AE_01_00-fA00v_C140415_20140417210608862.lsm,sr,gr,0"//for test
+//argstr="/test/VNC_pipeline/,tile-2030851234574893154.v3draw,0,/test/VNC_pipeline/tile-2030851234574893154.v3draw,sr,0.51,0.51"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -32,8 +32,8 @@ print("Output prefix: "+prefix);//file name
 print("Processing mode: "+mode);
 print("Input image: "+path);//full file path for open data
 print("Channel spec: "+chanspec);//channel spec
-print("X resolution: "+colorspec);
-print("Y resolution: "+outputs);
+print("X resolution: "+Xresolution);
+print("Y resolution: "+Yresolution);
 	
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
@@ -127,31 +127,38 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 		
 	titlelist=getList("image.titles");
 	signal_count = 0;
-		
+	neuronTitle=newArray(titlelist.length);
 ////Channel spec /////////////////////////////////////////////		
 	nc82=0;
-	for (i=0; i<lengthOf(titlelist); i++) {
+	for (i=titlelist.length-1; i>=0; i--) {
 		//	wname = "C" + (i+1) + "-original";
 		selectWindow(titlelist[i]);
-			
+		
 		if(titlelist.length>1){
 			if(nc82==0){
 				selectWindow(titlelist[titlelist.length-1]);
 				nc82=getImageID();
 			}else if(signal_count==0){
 				neuron=getImageID();
+				neuronTitle[0]=getTitle();
 				signal_count=signal_count+1;
+				print("neuron; "+neuron+"  "+titlelist[i]);
 			}else if(signal_count==1){
 				neuron2=getImageID();
+				print("neuron2; "+neuron2+"  "+titlelist[i]);
+				neuronTitle[1]=getTitle();
 				signal_count=signal_count+1;
 			}else if(signal_count==2){
 				neuron3=getImageID();
+				neuronTitle[2]=getTitle();
 				signal_count=signal_count+1;
 			}else if(signal_count==3){
 				neuron4=getImageID();
+				neuronTitle[3]=getTitle();
 				signal_count=signal_count+1;
 			}else if(signal_count==4){
 				neuron5=getImageID();
+				neuronTitle[4]=getTitle();
 			}
 		}
 	}//for (i=0; i<lengthOf(chanspec); i++) {
@@ -1228,15 +1235,29 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 					if(titlelist.length>1){
 						for(exportchannel=1; exportchannel<titlelist.length; exportchannel++){
 							
-							if(exportchannel==1)
-							selectImage(neuron);
+							if(exportchannel==1){
+								if(isOpen(neuron))
+								selectImage(neuron);
+								
+								if(isOpen(neuronTitle[0]))
+								selectWindow(neuronTitle[0]);
+								
+							}
 							
-							if(exportchannel==2)
-							selectImage(neuron2);
-							
-							if(exportchannel==3)
-							selectImage(neuron3);
-							
+							if(exportchannel==2){
+								if(isOpen(neuron2))
+								selectImage(neuron2);
+								
+								if(isOpen(neuronTitle[1]))
+								selectWindow(neuronTitle[1]);
+							}
+							if(exportchannel==3){
+								if(isOpen(neuron3))
+								selectImage(neuron3);
+								
+								if(isOpen(neuronTitle[2]))
+								selectWindow(neuronTitle[2]);
+							}
 							if(exportchannel==4)
 							selectImage(neuron4);
 							
@@ -1277,8 +1298,8 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 							
 							selectImage(realNeuron);
 							close();
-							selectImage(selectedNeuron);
-							close();
+					//		selectImage(selectedNeuron);
+					//		close();
 						}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
 						}//if(titlelist.length>1){
 					}//
