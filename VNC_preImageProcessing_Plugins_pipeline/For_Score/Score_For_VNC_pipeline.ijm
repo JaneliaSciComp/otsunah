@@ -342,7 +342,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	run("Merge Channels...", "c1=Temp.tif c2=Samp.tif c3=Temp.tif");
 	run("AVI... ", "compression=JPEG frame=25 save="+savedir+ScoreT+"_"+DataName+".avi");
 	
-	File.saveString(scoreT/1000, filepath);
+	File.saveString(scoreT, filepath);
 	
 	selectWindow("RGB");
 	close();
@@ -370,6 +370,8 @@ if(nSlices==220){// aligned VNC should have 220 slices
 }else{
 	close();
 	print("Slice number is not 220; "+path);
+}else{
+	print("Sample file has "+nSlices+" slices, this is not 220 slices for female template");
 }
 	//	if(isOpen("Max.tif")){
 	//		selectWindow("Max.tif");
@@ -391,8 +393,6 @@ if(nImages>3){// incase, if Fiji has bug. The opened images will accumulate
 
 "Done"
 setBatchMode(false);
-updateDisplay();
-run("Close All");
 run("Quit");
 
 
