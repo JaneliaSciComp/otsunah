@@ -370,7 +370,6 @@ if(nSlices==220){// aligned VNC should have 220 slices
 }else{
 	close();
 	print("Slice number is not 220; "+path);
-}else{
 	print("Sample file has "+nSlices+" slices, this is not 220 slices for female template");
 }
 	//	if(isOpen("Max.tif")){
