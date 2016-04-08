@@ -19,40 +19,49 @@ if (lengthOf(args)>1) {
 	path = args[0];// full file path for Open
 	DataName = args[1];//Name for save
 	savedir = args[2];//save directory
-	templocation=args[3];//template full file path
-	tempMasklocation= args[4];//template mask full file path
+	templocationF=args[3];//template full file path
+	tempMasklocationF= args[4];//template mask full file path
+	temptype= args[5];
+	templocationM=args[6];//template full file path
+	tempMasklocationM= args[7];//template mask full file path
 }
 
 print("path; "+path);
 print("DataName; "+DataName);
 print("savedir; "+savedir);
+print("temptype; "+temptype);
 
 filepath=savedir+"Hideo_OBJPearsonCoeff.txt";
 
-if(isOpen("flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd"))
-selectWindow("flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd");
+if(temptype=="Female")
+open(tempMasklocationF);
 else
-open(tempMasklocation);
+open(tempMasklocationM);
+
 OrigiMask2=getImageID();// Template Mask
+tempMaskName=getTitle();
 
 if(nSlices==220){
 	run("Make Substack...", "delete slices=11-195");
-	OrigiMask2=getImageID();// Template Mask
+	OrigiMask3=getImageID();// Template Mask
 	
-	selectWindow("flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd");
+	selectImage(OrigiMask2);
 	close();
 	CLEAR_MEMORY();
-	selectImage(OrigiMask2);
-	rename("flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd");
+	selectImage(OrigiMask3);
+	rename(tempMaskName);
+	OrigiMask2=getImageID();// Template Mask
 }
 
 
-if(isOpen("flyVNCtemplate20xA_CLAHE_16bit.nrrd"))
-selectWindow("flyVNCtemplate20xA_CLAHE_16bit.nrrd");
-else{
-	open(templocation);
-	selectWindow("flyVNCtemplate20xA_CLAHE_16bit.nrrd");
+if(temptype=="Female"){
+	open(templocationF);
+	tempAve=60.56;
+}else{
+	open(templocationM);
+	tempAve=49.18;
 }
+tempName=getTitle();
 TempOri=getImageID();
 
 setBatchMode(true);
@@ -62,12 +71,24 @@ histostretch=1;
 ///// start processing /////////////////////////////////////////////////
 		
 open(path);
+
+run("Max value");/// need new plugin
+logsum=getInfo("log");
+endlog=lengthOf(logsum);
+maxposition=lastIndexOf(logsum, "Maxvalue;");
+minposition=lastIndexOf(logsum, "  Minvalue;");
+
+maxvalue0=substring(logsum, maxposition+10, minposition);
+maxvalue0=round(maxvalue0);
+
+minvalue0=substring(logsum, minposition+11, endlog);
+minvalue0=round(minvalue0);
+
+setMinAndMax(minvalue0, maxvalue0);
 		
 if(nSlices==220){// aligned VNC should have 220 slices
 		
 	Sample=getImageID();// Sample
-	print("");
-	//print(i+"; "+list[i]);
 			
 	run("Z Project...", "projection=[Max Intensity]");
 	getStatistics(area, mean, minSample, maxSample, std, histogram);
@@ -176,7 +197,16 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		run("Delete Slice");
 		print("deleted slice; "+nSlices);
 	}
-	Threweight=1;
+	
+	if(temptype=="Female"){
+		Threweight=1;
+		incriweight=0.03;
+		maxGap=3;
+	}else{
+		Threweight=2;
+		incriweight=0.06;
+		maxGap=2;
+	}
 	run("Duplicate...", "title=ANDresult2.tif duplicate");
 	ANDst2=getImageID();
 	
@@ -188,10 +218,10 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	ave=getTitle();
 	rename(oriname);
 	ave=parseFloat(ave);
-	meangap=60.56-ave;// 60.56 is ave of tempMask at 185 slices
+	meangap=tempAve-ave;// 60.56 is ave of tempMask at 185 slices
 	Bad=0; premeangap=0;
-	if(meangap>3){
-		while(meangap>3 && Threweight>=0.1){
+	if(meangap>maxGap){
+		while(meangap>maxGap && Threweight>=0.1){
 			selectImage(ANDst2);
 			close();
 			
@@ -210,7 +240,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 			ave=getTitle();
 			rename(oriname);
 			ave=parseFloat(ave);
-			meangap=60.56-ave;
+			meangap=tempAve-ave;
 			if(premeangap==meangap){
 				meangap=0;
 				print("Bad alignment");
@@ -221,8 +251,8 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		selectImage(ANDst2);
 		close();
 		CLEAR_MEMORY();
-	}else if(meangap<-3){
-		while(meangap<-3 && Threweight<1.6){
+	}else if(meangap<-maxGap){
+		while(meangap<-maxGap && Threweight<3){
 			
 			if(isOpen(ANDst2)){
 				selectImage(ANDst2);
@@ -244,7 +274,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 			ave=getTitle();
 			rename(oriname);
 			ave=parseFloat(ave);
-			meangap=60.56-ave;
+			meangap=tempAve-ave;
 			
 			if(premeangap==meangap){
 				meangap=0;
@@ -266,38 +296,20 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	run("Convert to Mask", "method=Default background=Default black");
 	run("Remove Outliers...", "radius=1 threshold=50 which=Bright stack");
 	
-	print("3D thre also sample threshold; "+lowerM*Threweight+"  Threweight; "+Threweight+"   meangap; "+meangap);
-	
-	
-	//			run("Size based Noise elimination", "ignore=229 less=9");
-	//			run("Minimum...", "radius=2 stack");
-	//			run("Maximum...", "radius=2 stack");
-	//			run("8-bit");
+	print("3D thre sample threshold; "+lowerM*Threweight+"  Threweight; "+Threweight+"   meangap; "+meangap);
+
 	
 	run("Z Project...", "projection=[Max Intensity]");
 	getStatistics(area, mean5, minSample, maxSample, std, histogram);
 	close();
-	
-	//  selectImage(SampleDup2);
-			//	run("Fill Holes", "stack");
-	
-	//			setBatchMode(false);
-	//			updateDisplay();
-	//				"do"
-	//				exit;
-				
-		//		selectImage(AIP);// mip
-		//		close();
 	
 	if(isOpen("ANDresult2.tif")){
 		selectImage("ANDresult2.tif");
 		close();
 	}
 	
-
-	
 	if(mean5>0){
-		run("ObjPearson Coeff", "template=flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd sample=MaskSampleTitle.tif show change");
+		run("ObjPearson Coeff", "template="+tempMaskName+" sample=MaskSampleTitle.tif show change");
 		
 		scorearray=newArray(0, 0);
 		scoreCal(scorearray);
@@ -396,244 +408,6 @@ run("Quit");
 
 
 
-
-
-
-
-function ARsegmentation(ARseg){
-	AIP=ARseg[1];
-	secondtime=ARseg[2];
-	Sample=ARseg[3];
-	donotOpe=0;	startlower=1; trynum=0; step1=0; lower=0; ARshape=0; numberResults=0;
-	while(numberResults==0 && ARshape<3){
-		//		print(lower+"  No; "+trynum+"   Images; "+nImages);
-		
-		selectImage(AIP);// mip
-		run("Duplicate...", "title=DUP_AVEP.tif");
-		DUP_AVEP=getImageID();
-		
-		lower=lower+4;
-		
-		if(lower>20000 && secondtime==0){
-			if(step1==1){
-				numberResults=1;
-				print("Check data, no signals? or VNC is hitting edge of data");
-				donotOpe=1;
-			}
-			if(step1==0){
-				
-		//		print("DUP_AVEP 1st; "+DUP_AVEP);
-				selectImage(DUP_AVEP);
-				close();//DUP_AVEP
-				selectImage(AIP);
-				close();//AIP
-				
-				selectImage(Sample);
-				run("Z Project...", "projection=[Max Intensity]");
-				AIP=getImageID();
-				rename("Max.tif");
-				
-				run("Duplicate...", "title=DUP_AVEP.tif");
-				DUP_AVEP=getImageID();
-				
-		//		print("DUP_AVEP 2nd; "+DUP_AVEP);
-				numberResults=0;
-				lower=4;
-				step1=1;
-				
-				//			setBatchMode(false);
-				//			updateDisplay();
-				//			"do"
-				//			exit();
-			}
-		}else if(lower>30000 && secondtime==1){//if(lower>3000){
-			numberResults=1;
-			print("The VNC is hitting edge");
-			donotOpe=1;
-			secondtime=5;
-		}//if(lower>20000 && secondtime==0){
-		setThreshold(lower, 65535);
-		
-		run("Make Binary");
-		run("Analyze Particles...", "size=20000.00-Infinity show=Nothing display exclude clear");
-		
-		updateResults();
-		
-	//	if(step1==0)
-		selectImage(DUP_AVEP);
-	//	else if(step1==1)
-	//	selectImage(DUP_AVEP2);
-		close();
-		
-		if(isOpen("DUP_AVEP.tif")){
-			selectWindow("DUP_AVEP.tif");
-			close();
-		}
-		
-		lowerM=lower;
-		
-		if(nResults>0){
-			maxsize=20000;
-			for(i2=0; i2<nResults; i2++){
-				Size=getResult("Area", i2);
-				ARshape=getResult("AR", i2);// AR value from Triangle
-				
-				if(ARshape>2.2){
-					if(Size>maxsize){
-						maxsize=Size;
-						numberResults=nResults;
-					}
-				}
-			}//for(i2=0; i2<nResults; i2++){
-		}
-		
-		trynum=trynum+1;
-	}//while(nResults==0  && donotOperate==0){
-	
-//	print("615 ImageNO; "+nImages);
-	
-	if(nImages>10){
-		s=getList("image.titles");
-		
-		for(ee=0; ee<s.length; ee++){
-			print("open title; "+s[ee]);
-		}
-	}
-	
-	if(donotOpe==1)
-	lowerM=1000;
-	
-	ARseg[0]=lowerM;
-	ARseg[1]=AIP;
-	ARseg[2]=secondtime;
-}//ARsegmentation(){
-
-function fillGap (height2,width2,yscanUP,yscanDW,xscanLF,xscanRI){
-	for(upfill=0; upfill<yscanUP; upfill++){//up fill
-		for(xfillup=0; xfillup<width2; xfillup++){
-			setPixel(xfillup, upfill, 65535);
-		}
-	}
-	for(dwfill=height2-1; dwfill>height2-1-yscanDW; dwfill--){//down fill
-		for(xfillup=0; xfillup<width2; xfillup++){
-			setPixel(xfillup, dwfill, 65535);
-		}
-	}
-	for(lffill=0; lffill<xscanLF; lffill++){//left fill
-		for(yfillup=0; yfillup<height2; yfillup++){
-			setPixel(lffill, yfillup, 65535);
-		}
-	}
-	for(rffill=width2-1; rffill>width2-1-xscanRI; rffill--){//Right fill
-		for(yfillup=0; yfillup<height2; yfillup++){
-			setPixel(rffill, yfillup, 65535);
-		}
-	}
-}//fillGap (height2,width2,yscanUP,yscanDW,xscanLF,xscanRI){
-
-function backgroundthresholding(){
-	/////////// background histogram analysis /////////////////////
-	for(step=1; step<=2; step++){
-		
-		maxisum=0;
-//		print("nSlices; "+nSlices);
-		for(n=1; n<=nSlices; n++){
-			setSlice(n);
-			maxcounts=0; maxi=0;
-				
-			getHistogram(values, counts,  4000);
-			for(i2=2; i2<4000-21; i2++){
-				Val2=0; numbercount=0;
-				for(iave=i2; iave<i2+20; iave++){
-					Val=counts[iave];
-					Val2=Val2+Val;
-				}
-				
-				ave=Val2/20;
-				
-				sumVal5=0; insideSD=0;
-				for(stdThre=i2; stdThre<i2+20; stdThre++){
-					val5=counts[stdThre];
-					insideSD=((val5-ave)*(val5-ave))+insideSD;
-					sumVal5=sumVal5+val5;
-				}
-				sqinside=insideSD/20;
-				sd = sqrt(sqinside);
-				
-				numbercount=numbercount+1;
-				if(numbercount==20){
-					numbercount=0;
-//					print(i2+"; "+sd);
-				}
-				
-				if(step==1){
-					if(ave>maxcounts && i2>2){// do not count less than 2 gray value in 16bit, this is NP gal4 only
-						maxcounts=ave;
-						maxi=i2+10;
-					}
-				}else{// 2nd step, after acquisition of average background value
-					if(ave>maxcounts && i2<avethre+600 ){// maximum less than 300 value from average background value. This will prevent cutting signal value
-						maxcounts=ave;
-						maxi=i2+10;
-					}
-					if(ave>maxcounts && i2>avethre+600 ){// maximum less than 300 value from average background value. This will prevent cutting signal value
-						maxcounts=ave;
-						maxi=avethre+300;
-					}
-				}//step==2
-			}
-			if(step==2){
-				if(maxi==0)
-				maxi=1;
-				
-				List.set("Slicen"+n-1, maxi);
-	//			print(n+"  max count; "+ maxi);
-			}//if(step==2){
-			maxisum=maxisum+maxi;
-		}//for(n=1; n<=nSlices; n++){
-		avethre=maxisum/n;
-	} //for(step=1; step<=2; step++){
-	
-	////// lower value thresholding /////////////////////////
-	oristack=getImageID();
-	
-	newImage("Untitled.tif", "16-bit black", 512, 1024, 1);
-	single=getImageID();
-	
-	for(n2=1; n2<=nSlices; n2++){
-		selectImage(oristack);
-		setSlice(n2);
-		run("Select All");
-		run("Copy");
-		
-		selectImage(single);
-		run("Paste");
-		
-		lowthre=List.get("Slicen"+n2-1);
-		lowthre=round(lowthre);
-		lowthre=lowthre*0.4;
-		setThreshold(lowthre, 65535);
-	//	run("Convert to Mask");
-		run("Make Binary");
-		run("Histgram stretch", "lower=0 higher=200");
-		run("Select All");
-		run("Copy");
-		close();
-		
-		selectImage(oristack);
-		run("Paste");
-		
-	}//for(n2=1; n2<=nSlices; n2++){
-	
-	selectImage(single);
-	close();
-	if(isOpen("Untitled.tif")){
-		selectWindow("Untitled.tif");
-		close();
-	}
-	
-	
-}//backgroundthresholding(){
 
 function scoreCal(scorearray){
 	loginfo=getInfo("log");

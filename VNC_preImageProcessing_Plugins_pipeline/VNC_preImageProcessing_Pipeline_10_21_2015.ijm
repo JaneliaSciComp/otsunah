@@ -11,10 +11,12 @@ Batch=1;
 FrontBackAnalysis=0;
 BWd=0; //BW decision at 793 line
 PrintSkip=0;
+StackWidth=600;
+StackHeight=1024;
 
 // Arguments
 
-//argstr="/test/VNC_pipeline/,tile-2030851234574893154.v3draw,0,/test/VNC_pipeline/tile-2030851234574893154.v3draw,sr,0.51,0.51"//for test
+//argstr="/test/VNC_pipeline/,tile-2030851234574893154.v3draw,0,/test/VNC_pipeline/tile-2030851234574893154.v3draw,sr,0.51,0.51,Female"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -25,6 +27,7 @@ path = args[3];// full file path for inport LSM
 chanspec = toLowerCase(args[4]);// channel spec
 Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
+temptype=args[7];//"Female" or "Male"
 
 
 print("Output dir: "+savedir);// save location
@@ -34,6 +37,7 @@ print("Input image: "+path);//full file path for open data
 print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
+print("template type: "+temptype);
 	
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
@@ -60,20 +64,16 @@ List.clear();
 CLEAR_MEMORY();
 print("   ");
 print(path);
-
+setBatchMode(true);
 open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
 origi=getTitle();
-run("Out [-]");
-run("Out [-]");
-run("Out [-]");
 
 //		takeout=newArray(origi,0);
 //		C1C20102Takeout(takeout);
 noext = prefix;
 
-God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution);
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,StackWidth,StackHeight);
 
-setBatchMode(false);
 updateDisplay();
 run("Close All");
 List.clear();
@@ -85,27 +85,20 @@ File.saveString(logsum, filepath);
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,StackWidth,StackHeight){
 	
 	bitd=bitDepth();
 	
-	if(bitd==16){
 		maxV=65535;
 		lowthreRange=300;
-		lowthreMin=5;
+		lowthreMin=40;
 		lowthreAveRange=20;
 	//	setMinAndMax(0, 4095);
-	}
 	
 	if (bitd==8){
 		setMinAndMax(0, 255);
 		run("16-bit");
 		run("Histgram stretch", "lower=0 higher=255 3d");
-		maxV=65535;
-		
-		lowthreRange=300;
-		lowthreMin=40;
-		lowthreAveRange=20;
 		setMinAndMax(0, maxV);
 		
 		print("8bit");
@@ -121,9 +114,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 		
 	if(channels>1)
 	run("Split Channels");//C2 is nc82
-		
-	if(Batch==1)
-	setBatchMode(true);
 		
 	titlelist=getList("image.titles");
 	signal_count = 0;
@@ -163,8 +153,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 		}
 	}//for (i=0; i<lengthOf(chanspec); i++) {
 		
-	if(Batch==1)
-	setBatchMode(true);
 	selectImage(nc82);
 	
 	
@@ -217,13 +205,36 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 		//	"do"
 			//	exit();
 			
-			if(bitd==16)
-			setMinAndMax(0, 4095);
-			else
-			setMinAndMax(0, maxV);
+			run("Max value");/// need new plugin
+			logsum=getInfo("log");
+			endlog=lengthOf(logsum);
+			maxposition=lastIndexOf(logsum, "Maxvalue;");
+			minposition=lastIndexOf(logsum, "  Minvalue;");
+			
+			maxvalue0=substring(logsum, maxposition+10, minposition);
+			maxvalue0=round(maxvalue0);
+			
+			minvalue0=substring(logsum, minposition+11, endlog);
+			minvalue0=round(minvalue0);
+			
+			setMinAndMax(minvalue0, maxvalue0);		
 			
 			run("8-bit");
+			sumlower=0;
 			
+			// to get average threshold ///////////////////
+			for(islice=1; islice<=nSlices; islice++){
+				setSlice(islice);
+				//	setAutoThreshold("Default dark");
+				setAutoThreshold("Huang dark");
+				getThreshold(lower, upper);
+				
+				sumlower=sumlower+lower;
+			}
+			avethreDef=round(sumlower/nSlices);
+			avethreDef=round(avethreDef-(avethreDef*0.1));
+			
+	// creating mask ////////////////////////
 			for(i=1; i<=nSlices; i++){
 				showStatus("Creating Mask");
 				prog=i/nSlices;
@@ -231,26 +242,20 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 				
 				setSlice(i);
 				setMinAndMax(0, 255);
-				run("Enhance Local Contrast (CLAHE)", "blocksize=15 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
-				//	setAutoThreshold("Huang dark");
-				setAutoThreshold("Default dark");
+				
+				//run("Enhance Local Contrast (CLAHE)", "blocksize=15 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
+				
+				setAutoThreshold("Huang dark");
+			//	setAutoThreshold("Default dark");
 				
 				getThreshold(lower, upper);
 		//		print(i+"  lower; "+lower+"  upper; "+upper);
 				
 				List.set("Lowthre1st"+i-1, lower)
 				
-				if(lower>highthre){
-					if(i>10){
-						highthre=lower;
-						highslice=i;
-					}
-				}
-				highthreSum=highthreSum+lower;
 			}//for(i=1; i<=nSlices; i++){
-			avehighThre=highthreSum/nSlices;
-			print("highslice; "+highslice+"  highthre; "+highthre/2+"  avehighThre; "+avehighThre*0.6);
-			
+
+			print("avethreDef; "+avethreDef);
 			
 			for(ig=1; ig<=nSlices; ig++){
 				setSlice(ig);
@@ -258,8 +263,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 				lowList=List.get("Lowthre1st"+ig-1);
 				lowList=round(lowList);
 				
-				if(lowList<highthre/2)
-				lowList=highthre/2;
+				if(lowList<avethreDef)
+				lowList=avethreDef;
 				
 				setThreshold(lowList, maxV);
 				run("Convert to Mask", "method=Default background=Default only black");
@@ -279,9 +284,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 		selectImage(nc82);
 		run("Gamma ", "gamma=1.60 3d in=[In macro]");
 		DUP=getImageID();
-		run("Out [-]");
-		run("Out [-]");
-		run("Out [-]");
+	
 
 		selectImage(nc82);
 		close();
@@ -309,9 +312,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution)
 			setMinAndMax(0, maxV);
 			
 			if(CLAHEwithMASK==1)//CLAHE with Mask
-			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=4 mask=Mask.tif fast_(less_accurate)");
+			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=12 mask=Mask.tif fast_(less_accurate)");
 			else
-			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=4 mask=*None* fast_(less_accurate)");
+			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=8 mask=*None* fast_(less_accurate)");
 		}
 		
 		if(CLAHEwithMASK==1){//CLAHE with Mask
@@ -608,27 +611,28 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 	//				exit();
 			
 				CLEAR_MEMORY();	
-	///// BW analysis ////////////////////////////////////////////////////////
-			run("Duplicate...", " ");
-			run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge");
-			MIPduplicateRotation=getImageID();
+///// BW analysis ////////////////////////////////////////////////////////
 			
+			run("Duplicate...", " ");
 			makeRectangle(10,14,74,22);
 			getStatistics(area, mean2, min, max, std, histogram);
 			
 			if(mean2>200){
-				close();
-				selectImage(mask1st);
-				run("Duplicate...", " ");
-				MIPduplicateRotation=getImageID();
-				
 				run("Invert LUT");
 				run("RGB Color");
-				run("8-bit");
-				run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge");
 				invertON=1;
 			}
-	
+			run("Select All");
+			
+			rotation=round(rotation);
+			run("16-bit");
+			sampleLongLength=round(sqrt(height*height+width*width));
+			run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
+			run("Rotation Hideo", "rotate="+rotation+" in=InMacro");
+			
+			//		run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge");
+			MIPduplicateRotation=getImageID();
+			
 			run("Select All");
 			run("Make Binary");
 				
@@ -656,8 +660,8 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 			}
 			
 			if(nResults>1){
-				setBatchMode(false);
-				updateDisplay();
+		//		setBatchMode(false);
+		//		updateDisplay();
 				print("not single sample, skipped");
 				donotOperate=1;
 			}
@@ -665,6 +669,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 			if(donotOperate==0 && nResults==1){
 				xTrue=getResult("X", 0);
 				yTrue=getResult("Y", 0);
+				
 				
 				selectImage(mask1st);
 				
@@ -678,22 +683,15 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 				close();
 				
 				selectImage(DUP);
-				setBatchMode(false);// due to a bug from rotation function. Cannot use BatchMode.
-				updateDisplay();
-
 		//		setBatchMode(false);
 		//		updateDisplay();
 		//			"do"
 	//		exit();
 			
-				rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue);
-				
-			
+				rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
 				
 ///// Z- start and ending slice detection ////////////////////////////////////////////////
 				selectImage(DUP);
-
-				setBatchMode(true);
 				run("Duplicate...", "title=Mask.tif duplicate");
 				Mask=getImageID();
 				
@@ -813,7 +811,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 				endslice=0;
 				posiSnum=newArray(slices);
 				SizeMAX=newArray(slices+1);
-				makeRectangle(38, 200, 435, 700);
+				makeRectangle(38, round(width/3), width*(435/600), height*(700/1024));
 				
 					sumSeven=0;
 					for(b=1; b<=nSlices; b++){
@@ -847,7 +845,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 				}
 				sqinside0=insideSD0/5;
 				sd0 = sqrt(sqinside0);
-				endsliceDeside=0;
+				endsliceDeside=0; minus1stTime=0;
 				
 				for(startdeci=0; startdeci<nSlices; startdeci++){
 					sumVal5=0; insideSD=0;
@@ -863,10 +861,15 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 					sdGap=sd0-sd;
 				//	print("SD; "+sd+"  Slice; "+startdeci+1+"   sdgap; "+sdGap);
 					
+					if(sdGap<0)
+					minus1stTime=1;
+					
 					if(sdGap!=NaN){
 						if(sdGap>0){
-							if(startslice==0)
-							startslice=startdeci;
+							if(minus1stTime==1){
+								if(startslice==0)
+								startslice=startdeci;
+							}
 						}
 					}
 						
@@ -882,20 +885,27 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 					}//if(startslice==0){
 					List.set("SDGAP"+startdeci, sdGap);
 				}//for(startdeci=0; startdeci<slices; startdeci++){
-				
+				minus1stTime=0;
 				for(endS=nSlices-1; endS>=0; endS--){
 					SdGend=List.get("SDGAP"+endS);
 					SdGend=round(SdGend);
+					
+					if(SdGend<0)
+					minus1stTime=1;
+					
 					if(SdGend!=NaN){
 						if(SdGend>0){
-							if(endslice==0){
-								endslice=endS+1;
+							if(minus1stTime==1){
+								if(endslice==0){
+									endslice=endS+1;
+								}
 							}
 						}
 					}
 				}
 				sliceGap=endslice-startslice;
 				
+				print("1st slice position;  startslice; "+startslice+"   endslice; "+endslice);
 				if(endslice==0 || sliceGap<70){
 					for(endS2=nSlices-1; endS2>=0; endS2--){
 						if(endsliceDeside==0){
@@ -1045,10 +1055,17 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 				}//if(FrontBackAnalysis==1){
 				
 				sliceGap=endslice-startslice;
-				depth=(170/sliceGap)*0.46;//depth adjustment same as template
+				
+				if(temptype=="Female")
+				depth=(170/sliceGap)*0.7;//depth adjustment same as template
+				
+				if(temptype=="Male")
+				depth=(160/sliceGap)*0.7;//depth adjustment same as template
 				
 				selectImage(realVNC);//final product for nc82
+				
 				run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
+				
 				
 ///// Shape analysis, for kicking broken / not well aligned sample ///////////////////
 				if(ShapeAnalysis==1){
@@ -1063,9 +1080,6 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 	//		"do"
 	//			exit();
 					
-					if(Batch==1)
-					setBatchMode(true);
-						
 					MarkProblem=1;// create a white Mark on right top
 						
 					ShapeProblem=0;
@@ -1074,7 +1088,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 							
 					lowthreMIP=0; MaxARshape=0; MaxAngle=0; Angle_AR_measure=1; FirstAR=0;
 					
-					SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR);
+					SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
 					shapeMeasurement(SmeasurementArray);
 							
 					lowthreMIP=SmeasurementArray[2];
@@ -1096,7 +1110,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 					if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
 						print("   Rotation angle; "+MaxAngle);
 						Angle_AR_measure=0;
-						SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR);
+						SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
 						shapeMeasurement(SmeasurementArray);
 					
 						lowthreMIP=SmeasurementArray[2];
@@ -1276,10 +1290,8 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 							if(FrontAndBack>0)
 							run("Reverse");
 							
-							setBatchMode(false);
-							updateDisplay();
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
-							rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue);
+							rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
 							selectImage(realNeuron);
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 							
@@ -1298,12 +1310,11 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 							
 							selectImage(realNeuron);
 							close();
-					//		selectImage(selectedNeuron);
-					//		close();
+							selectImage(selectedNeuron);
+							close();
 						}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
-						}//if(titlelist.length>1){
-					}//
-				}
+					}//if(titlelist.length>1){
+				}//
 			}
 		}	//699: if(donotOperate==0){
 		if(donotOperate==1){
@@ -1365,16 +1376,20 @@ function colordecision(colorarray){
 	colorarray[0]=posicolor;
 }
 
-function rotationF(rotation,unit,vxwidth,vxheight,depth,xTrue,yTrue){
+function rotationF(rotation,unit,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight){
 	setBackgroundColor(0, 0, 0);
-	run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge stack");
-	wait(3000);
-	makeRectangle(xTrue-300, yTrue-465, 600, 1024);
+	
+	getDimensions(width, height, channels, slices, frames);
+	sampleLongLength=round(sqrt(height*height+width*width));
+	run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
+	run("Rotation Hideo", "rotate="+rotation+" 3d in=InMacro");
+	
+	makeRectangle(xTrue-round(StackWidth/2), yTrue-StackHeight*(485/1024), StackWidth, StackHeight);
 	run("Crop");
 		
 	getDimensions(width, height, channels, slices, frames);
-	if(height<1024 || width<600)
-	run("Canvas Size...", "width=600 height=1024 position=Top-Left zero");
+	if(height<StackHeight || width<StackWidth)
+	run("Canvas Size...", "width="+StackWidth+" height="+StackHeight+" position=Top-Left zero");
 	run("Select All");
 	run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 	run("Grays");
@@ -1541,6 +1556,9 @@ function shapeMeasurement(SmeasurementArray){
 	FirstAR=SmeasurementArray[17];
 	MaxAngle=SmeasurementArray[6];
 	MaxShapeNo=0;
+	StackWidth=SmeasurementArray[18];
+	StackHeight=SmeasurementArray[19];
+	
 	
 //	print("MaxARshape; from array: "+MaxARshape);
 	
@@ -1805,38 +1823,38 @@ function shapeMeasurement(SmeasurementArray){
 					}//for(shapen2=0; shapen2<nResults; shapen2++){
 				
 					if(xTrue!=0 && yTrue!=0){
-						makeRectangle(xTrue-300, yTrue-465, 600, 1024);
+						makeRectangle(xTrue-round(StackWidth/2), yTrue-round((465/1024)*StackHeight), StackWidth, StackHeight);
 						run("Crop");
 						getDimensions(width, height, channels, slices, frames);
-						if(height<1024 || width<600)
-						run("Canvas Size...", "width=600 height=1024 position=Top-Left zero");
+						if(height<StackHeight || width<StackWidth)
+						run("Canvas Size...", "width="+StackWidth+" height="+StackHeight+" position=Top-Left zero");
 					}
 				}//if(Angle_AR_measure==0){// 2nd run
 			
 				run("Grays");
 				
 				if(LeftRight==0){ // L leg
-					Xmin1=1000; Xmin2=1000; Xmin3=1000;
+					Xmin1=StackHeight-20; Xmin2=StackHeight-20; Xmin3=StackHeight-20;
 				}
 				
 				if(LeftRight==1){ // R leg
-					Xmin1=200; Xmin2=200; Xmin3=200;
+					Xmin1=StackWidth/3; Xmin2=StackWidth/3; Xmin3=StackWidth/3;
 				}
 				
 				firstTime1=0; firstTime2=0; firstStep=1; secondStep=0; theirdStep=0; firstTime3=0;
-				firstTurning=0; secondTurning=0; Xmin3_Result=10000; Ymin3_Result=0; Xmin2_Result=1000; Ymin2_Result=0; 
+				firstTurning=0; secondTurning=0; Xmin3_Result=10000; Ymin3_Result=0; Xmin2_Result=StackHeight-20; Ymin2_Result=0; 
 				Xmin1_Result=100000; Ymin1_Result=0; Xmin1Turning=0;
 				
 	///		BW decision ///////////////////////
 				scan_for_invert();
 				
 // Shape Scan start /////////////////////////////////////////////////////
-				for (Yscan=100; Yscan<1000; Yscan++){
+				for (Yscan=100; Yscan<StackHeight-20; Yscan++){
 					
 					posiPX=0; 
 					if(LeftRight==1){ // R leg
-						Xmin_Result=200;
-						for(Xscan=590; Xscan>=200; Xscan--){
+						Xmin_Result=StackWidth/3;
+						for(Xscan=StackWidth-10; Xscan>=StackWidth/3; Xscan--){
 							
 							ScanPix=getPixel(Xscan, Yscan);
 							
@@ -1851,7 +1869,7 @@ function shapeMeasurement(SmeasurementArray){
 								if(posiPX==3){
 									Xmin_Result=Xscan;
 									
-									Xscan=199;
+									Xscan=StackWidth/3-1;
 									//			List.set("PosiXL"+Yscan, Xscan);
 								}//	if(posiPX==3){
 							}//if(ScanPix==255){
@@ -1859,8 +1877,8 @@ function shapeMeasurement(SmeasurementArray){
 						
 						if(firstStep==1){
 							if(Xmin_Result>Xmin1){
-								if(Xmin2==200){
-									if(Xmin3==200){
+								if(Xmin2==StackWidth/3){
+									if(Xmin3==StackWidth/3){
 										
 										Xmin1_Result=Xmin_Result;//1st Right leg from top
 										Ymin1_Result=Yscan;
@@ -1893,7 +1911,7 @@ function shapeMeasurement(SmeasurementArray){
 						
 						if(secondStep==1){
 							if(Xmin_Result>Xmin2){
-								if(Xmin3==200){
+								if(Xmin3==StackWidth/3){
 									
 									Xmin2_Result=Xmin_Result;//2nd Left leg from top
 									Ymin2_Result=Yscan;
@@ -1938,8 +1956,8 @@ function shapeMeasurement(SmeasurementArray){
 		
 					
 					if(LeftRight==0){ // L leg
-						Xmin_Result=1000;
-						for(Xscan=0; Xscan<=300; Xscan++){
+						Xmin_Result=StackHeight-20;
+						for(Xscan=0; Xscan<=StackWidth/2; Xscan++){
 							
 							ScanPix=getPixel(Xscan, Yscan);
 							
@@ -1960,8 +1978,8 @@ function shapeMeasurement(SmeasurementArray){
 						}//for(Xscan=0; Xscan<=200; Xscan++){	
 						if(firstStep==1){
 							if(Xmin_Result<Xmin1){
-								if(Xmin2==1000){
-									if(Xmin3==1000){
+								if(Xmin2==StackHeight-20){
+									if(Xmin3==StackHeight-20){
 										
 										Xmin1_Result=Xmin_Result;//1st Left leg from top
 										Ymin1_Result=Yscan;
@@ -1994,7 +2012,7 @@ function shapeMeasurement(SmeasurementArray){
 	
 						if(secondStep==1){
 							if(Xmin_Result<Xmin2){
-								if(Xmin3==1000){
+								if(Xmin3==StackHeight-20){
 									
 									Xmin2_Result=Xmin_Result;//2nd Left leg from top
 									Ymin2_Result=Yscan;
