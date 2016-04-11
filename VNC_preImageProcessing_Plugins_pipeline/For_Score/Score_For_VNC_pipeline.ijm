@@ -1,14 +1,14 @@
 //VNC score macro. Wrote by Hideo Otsuna Jan 2016.
-//This macro requires to open VNC template (flyVNCtemplate20xA_CLAHE_16bit.nrrd") and the mask (flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd)
+//This macro requires VNC template (flyVNCtemplate20xA_CLAHE_16bit.nrrd") and the mask (flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd)
 //This macro requires "ObjPearsonCoeff_.class" plugin
-//The input data is nc82 of 20x VNC (aligned)
+//The input data is the signal of nc82 of 20x VNC (aligned)
 //This macro will generate .avi movie; template: purple, sample: green
 
 
 scoreT1=0; SampleDup=0;
 setForegroundColor(65535, 65535, 65535);
 
-//argstr="/Registration/reformatted/flyVNCtemplate20xA_BJD_116F12_AE_01_00-fA00v_C140104_20140106013448279_01_warp_m0g40c4e1e-1x16r3.nrrd,BJD_116F12_AE_01,/test/VNC_Test/,temp full file path,mask path"//for test
+//argstr="/Registration/reformatted/Male_GMR_119_09_01_warp_m0g40c4e1e-1x16r3.nrrd,BJD_116F12_AE_01,/test/VNC_Test/,/Registration/refbrain/flyVNCtemplate20xA_CLAHE_16bit.nrrd,/Registration/refbrain/flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd,Male,/Registration/refbrain/Male_VNC.nrrd,/Registration/refbrain/Mask_Male_VNC.nrrd"//for test
 //args = split(argstr,",");
 
 
@@ -19,11 +19,11 @@ if (lengthOf(args)>1) {
 	path = args[0];// full file path for Open
 	DataName = args[1];//Name for save
 	savedir = args[2];//save directory
-	templocationF=args[3];//template full file path
-	tempMasklocationF= args[4];//template mask full file path
-	temptype= args[5];
-	templocationM=args[6];//template full file path
-	tempMasklocationM= args[7];//template mask full file path
+	templocationF=args[3];//Female template full file path
+	tempMasklocationF= args[4];//Female template mask full file path
+	temptype= args[5];//"Female" or "Male"
+	templocationM=args[6];//Male template full file path
+	tempMasklocationM= args[7];//Male template mask full file path
 }
 
 print("path; "+path);
@@ -61,6 +61,7 @@ if(temptype=="Female"){
 	open(templocationM);
 	tempAve=49.18;
 }
+setMinAndMax(0, 65535);
 tempName=getTitle();
 TempOri=getImageID();
 
