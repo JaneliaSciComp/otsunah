@@ -37,7 +37,7 @@ print("Input image: "+path);//full file path for open data
 print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
-print("template type: "+temptype);
+print("Template type: "+temptype);
 	
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
@@ -998,7 +998,7 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 					aveAreaR=sumAF/nResults;//average Area rear slices
 					aveCircR=sumAC/nResults;
 					resultNumR=nResults;
-				}
+				}//	if(FrontBackAnalysis==1){
 			//	setBatchMode(false);
 		//		updateDisplay();
 		//		"do"
@@ -1072,8 +1072,14 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 			//		print(nSlices+"  1264");
 					run("Z Project...", "projection=[Max Intensity]");
 					resetMinAndMax();
+					origiMIPID0=getImageID();
+					run("Gamma ", "gamma=0.60 in=[In macro]");
 					origiMIPID=getImageID();
+					resetMinAndMax();
 					run("8-bit");
+					
+					selectImage(origiMIPID0);
+					close();
 					
 		//	setBatchMode(false);
 	//		updateDisplay();
