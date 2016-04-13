@@ -52,6 +52,7 @@ for (si=0; si<n3; si++) {
 	if(c==32){// if there is a space
 		print("There is a space, please eliminate the space from saving directory.");
 		exit();
+		run("Quit");
 	}
 }
 String.resetBuffer;
@@ -61,8 +62,8 @@ List.clear();
 		
 			
 // open files //////////////////////////////////			
-CLEAR_MEMORY();
-print("   ");
+
+
 print(path);
 setBatchMode(true);
 open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
@@ -75,8 +76,8 @@ noext = prefix;
 God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,StackWidth,StackHeight);
 
 updateDisplay();
-run("Close All");
-List.clear();
+//run("Close All");
+//List.clear();
 "Done"
 
 logsum=getInfo("log");
@@ -112,1016 +113,995 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 	
 	getDimensions(width, height, channels, slices, frames);
 		
-	if(channels>1)
-	run("Split Channels");//C2 is nc82
+	if(channels>1){
+		run("Split Channels");//C2 is nc82
 		
-	titlelist=getList("image.titles");
-	signal_count = 0;
-	neuronTitle=newArray(titlelist.length);
+		titlelist=getList("image.titles");
+		signal_count = 0;
+		neuronTitle=newArray(titlelist.length);
 ////Channel spec /////////////////////////////////////////////		
-	nc82=0;
-	for (i=titlelist.length-1; i>=0; i--) {
-		//	wname = "C" + (i+1) + "-original";
-		selectWindow(titlelist[i]);
-		
-		if(titlelist.length>1){
-			if(nc82==0){
-				selectWindow(titlelist[titlelist.length-1]);
-				nc82=getImageID();
-			}else if(signal_count==0){
-				neuron=getImageID();
-				neuronTitle[0]=getTitle();
-				signal_count=signal_count+1;
-				print("neuron; "+neuron+"  "+titlelist[i]);
-			}else if(signal_count==1){
-				neuron2=getImageID();
-				print("neuron2; "+neuron2+"  "+titlelist[i]);
-				neuronTitle[1]=getTitle();
-				signal_count=signal_count+1;
-			}else if(signal_count==2){
-				neuron3=getImageID();
-				neuronTitle[2]=getTitle();
-				signal_count=signal_count+1;
-			}else if(signal_count==3){
-				neuron4=getImageID();
-				neuronTitle[3]=getTitle();
-				signal_count=signal_count+1;
-			}else if(signal_count==4){
-				neuron5=getImageID();
-				neuronTitle[4]=getTitle();
+		nc82=0;
+		for (i=titlelist.length-1; i>=0; i--) {
+			//	wname = "C" + (i+1) + "-original";
+			selectWindow(titlelist[i]);
+			
+			if(titlelist.length>1){
+				if(nc82==0){
+					selectWindow(titlelist[titlelist.length-1]);
+					nc82=getImageID();
+				}else if(signal_count==0){
+					neuron=getImageID();
+					neuronTitle[0]=getTitle();
+					signal_count=signal_count+1;
+					print("neuron; "+neuron+"  "+titlelist[i]);
+				}else if(signal_count==1){
+					neuron2=getImageID();
+					print("neuron2; "+neuron2+"  "+titlelist[i]);
+					neuronTitle[1]=getTitle();
+					signal_count=signal_count+1;
+				}else if(signal_count==2){
+					neuron3=getImageID();
+					neuronTitle[2]=getTitle();
+					signal_count=signal_count+1;
+				}else if(signal_count==3){
+					neuron4=getImageID();
+					neuronTitle[3]=getTitle();
+					signal_count=signal_count+1;
+				}else if(signal_count==4){
+					neuron5=getImageID();
+					neuronTitle[4]=getTitle();
+				}
 			}
-		}
-	}//for (i=0; i<lengthOf(chanspec); i++) {
+		}//for (i=0; i<lengthOf(chanspec); i++) {
 		
-	selectImage(nc82);
-	
-	
-//	setBatchMode(false);
-//	updateDisplay();
-//	"do"
-//	exit();
-	
-	if(donotOperate==0){
-		getVoxelSize(vxwidth, vxheight, depth, unit1);
+		selectImage(nc82);
 		
-		vxwidth=Xresolution;
-		vxheight=Yresolution;
 		
-		run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");//setting property, voxel size 1,1,1 for later translation.
-		
-		run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
-		
-		/////////// background histogram analysis /////////////////////
-		avethre=0;
-		
-		ThreArray=newArray(lowthreAveRange, lowthreMin, lowthreRange, maxV, avethre);
-		lowerThresholding (ThreArray);//creating array for background value
-		avethre=ThreArray[4];// background average value
-		
-////// lower value thresholding & Histogram stretch /////////////////////////
-		for(n2=1; n2<=nSlices; n2++){
-			setSlice(n2);
-			lowthre=List.get("Slicen"+n2);// background value, slice by slice
-			lowthre=round(lowthre);
-			
-			run("Histgram stretch", "lower="+lowthre+" higher=65535");
-		//	print("lowerthreshold; "+lowthre+"  Slice No; "+n2);
-		}//for(n2=1; n2<=nSlices; n2++){
-		
-	//	setBatchMode(false);
-	//	updateDisplay();
-	//	"do"
-	//	exit();
-		
-		//// Mask creation//////////////////////////////
-		if(CLAHEwithMASK==1){//CLAHE with Mask
-			run("Duplicate...", "title=Mask.tif duplicate");
-			Mask=getImageID();
-			highthre=0;
-			highthreSum=0;
-			
-			//setBatchMode(false);
-		//	updateDisplay();
-		//	"do"
-			//	exit();
-			
-			run("Max value");/// need new plugin
-			logsum=getInfo("log");
-			endlog=lengthOf(logsum);
-			maxposition=lastIndexOf(logsum, "Maxvalue;");
-			minposition=lastIndexOf(logsum, "  Minvalue;");
-			
-			maxvalue0=substring(logsum, maxposition+10, minposition);
-			maxvalue0=round(maxvalue0);
-			
-			minvalue0=substring(logsum, minposition+11, endlog);
-			minvalue0=round(minvalue0);
-			
-			setMinAndMax(minvalue0, maxvalue0);		
-			
-			run("8-bit");
-			sumlower=0;
-			
-			// to get average threshold ///////////////////
-			for(islice=1; islice<=nSlices; islice++){
-				setSlice(islice);
-				//	setAutoThreshold("Default dark");
-				setAutoThreshold("Huang dark");
-				getThreshold(lower, upper);
-				
-				sumlower=sumlower+lower;
-			}
-			avethreDef=round(sumlower/nSlices);
-			avethreDef=round(avethreDef-(avethreDef*0.1));
-			
-	// creating mask ////////////////////////
-			for(i=1; i<=nSlices; i++){
-				showStatus("Creating Mask");
-				prog=i/nSlices;
-				showProgress(prog);
-				
-				setSlice(i);
-				setMinAndMax(0, 255);
-				
-				//run("Enhance Local Contrast (CLAHE)", "blocksize=15 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
-				
-				setAutoThreshold("Huang dark");
-			//	setAutoThreshold("Default dark");
-				
-				getThreshold(lower, upper);
-		//		print(i+"  lower; "+lower+"  upper; "+upper);
-				
-				List.set("Lowthre1st"+i-1, lower)
-				
-			}//for(i=1; i<=nSlices; i++){
-
-			print("avethreDef; "+avethreDef);
-			
-			for(ig=1; ig<=nSlices; ig++){
-				setSlice(ig);
-				
-				lowList=List.get("Lowthre1st"+ig-1);
-				lowList=round(lowList);
-				
-				if(lowList<avethreDef)
-				lowList=avethreDef;
-				
-				setThreshold(lowList, maxV);
-				run("Convert to Mask", "method=Default background=Default only black");
-			}
-		
-			run("Size based Noise elimination", "ignore=229 less=6");
-			
 		//	setBatchMode(false);
 		//	updateDisplay();
 		//	"do"
 		//	exit();
-			
-			run("16-bit");
-			run("Mask255 to 4095");//Mask.tif
-		}//if(CLAHEwithMASK==1){//CLAHE with Mask
-		
-		selectImage(nc82);
-		run("Gamma ", "gamma=1.60 3d in=[In macro]");
-		DUP=getImageID();
-	
-
-		selectImage(nc82);
-		close();
-		
-		CLEAR_MEMORY();
-		
-	//	setBatchMode(false);
-	//	updateDisplay();
-	//	"do"
-	//	exit();
-
-	/// CLAHE, brightness equalization /////////////////////////////////////////////
-		for(ii=1; ii<=nSlices; ii++){
-			prog=ii/nSlices;
-			showProgress(prog);
-			showStatus("Enhance Local Contrast (CLAHE)");
-			
-			if(CLAHEwithMASK==1){//CLAHE with Mask
-				selectImage(Mask);
-				setSlice(ii);
-			}
-			
-			selectImage(DUP);
-			setSlice(ii);
-			setMinAndMax(0, maxV);
-			
-			if(CLAHEwithMASK==1)//CLAHE with Mask
-			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=12 mask=Mask.tif fast_(less_accurate)");
-			else
-			run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=8 mask=*None* fast_(less_accurate)");
-		}
-		
-		if(CLAHEwithMASK==1){//CLAHE with Mask
-			selectImage(Mask);
-			close();
-			CLEAR_MEMORY();
-		}
-	
-////// VNC segmentatiom & rotation, Findout best threshold for better AR ////////////////////////////////////////////////
-		numberResults=0; mask1st=0; invertON=0;	maxARshape=0; ARshape=0; maxsizeData=0; maxsizeData=0;
-		
-		for(MIPstep=1; MIPstep<3; MIPstep++){
-			for(ThreTry=0; ThreTry<3; ThreTry++){
-			
-				showStatus("VNC rotation");
-				selectImage(DUP);
-
-			//	setBatchMode(false);
-		//		updateDisplay();
-			//		"do"
-			//exit();
-			
-				if(MIPstep==1)
-				run("Z Project...", "projection=[Average Intensity]");
-			
-				if(MIPstep==2)
-				run("Z Project...", "projection=[Max Intensity]");
-			
-				AIP=getImageID();
-	
-				run("Minimum...", "radius=2");
-				run("Maximum...", "radius=2");
-	//		
-	//		setBatchMode(false);
-	//		updateDisplay();
-	//		"do"
-	//		exit();
-			
-				if(ThreTry==0)
-				setAutoThreshold("Triangle dark");
-			
-				if(ThreTry==1)
-				setAutoThreshold("Default dark");
-			
-				if(ThreTry==2)
-				setAutoThreshold("Huang dark");
-
-			//setAutoThreshold("Intermodes dark");
-				getThreshold(lower, upper);
-				setThreshold(lower, maxV);
-				run("Make Binary");
-			
-				run("Analyze Particles...", "size=20000.00-Infinity show=Masks display exclude clear");
-			
-				run("Grays");
-				updateResults();
-				
-				if(nResults==0){
-					run("Invert LUT");
-					run("RGB Color");
-					run("8-bit");
-					
-					run("Analyze Particles...", "size=10000-Infinity show=Nothing display exclude clear");
-					if(nResults>0){
-						invertON=1;
-						print("542 Inverted BW");
-						updateResults();
-					}
-				}
-				maskTest=getImageID();
-				
-				DD2=1; DD3=0;
-				FILL_HOLES(DD2, DD3);
-				maskTest=getImageID();
-
-				maxsizeOri=0;
-			
-				if(nResults>0){
-					numberResults=nResults;
-					for(inn=0; inn<nResults; inn++){
-						maxsize0=getResult("Area", inn);
-						
-						if(maxsize0>maxsizeOri){
-							ARshape=getResult("AR", inn);// AR value from Triangle
-							maxsizeOri=maxsize0;
-							angleT=getResult("Angle", inn);
-							SizeMT=maxsize0;
-						}
-					}//for(inn=0; inn<nResults; inn++){
-
-
-				
-					if(ARshape>1.8){
-						if(maxsizeData<maxsizeOri){
-							maxsizeData=maxsizeOri;
-							if(maxARshape<ARshape){
-								maxARshape=ARshape;
-				//			print("seg_ARshape; "+ARshape);
-								if(mask1st!=0){//previous mask result
-									selectImage(mask1st);
-									close();
-								}
-								selectImage(maskTest);
-								mask1st=getImageID();//このマスクを元にしてローテーション、中心座標を得る
-								numberResults=1;
-								lowerM=lower; threTry=ThreTry; angle=angleT; SizeM=SizeMT; finalMIP=MIPstep;
-								print("   lowerM; "+lowerM+"   threTry; "+threTry+"   angle; "+angle+"   SizeM; "+SizeM+"   maxARshape; "+maxARshape+"   finalMIP; "+finalMIP);
-							}
-						}//	if(maxARshape<ARshape){
-					}else{
-						selectImage(maskTest);
-						close();
-					}//if(ARshape>1.75){
-				}else{
-					selectImage(maskTest);
-					close();
-				}//if(nResults>0){
-
-				if(isOpen(AIP)){
-					selectImage(AIP);
-					close();
-				}
-			}//for(ThreTry=0; ThreTry<3; ThreTry++){
-		}//for(MIPstep=1; MIPstep<3; MIPstep++){
-		
-	//	selectImage(mask1st);
-	//			setBatchMode(false);
-	//			updateDisplay();
-	//			"do"
-	//			exit();
-		donotOperate=0;
-		pretitle=-1; Threstep=10;
-		
-		if(maxARshape<1.8 && maxARshape!=0)
-		donotOperate=1;
-
-
-			
-		if(maxARshape==0){//All 3 thresholding 0 result, connecting with brain, or short VNC
-			selectImage(DUP);
-			run("Z Project...", "projection=[Average Intensity]");
-			AIP=getImageID();
-			ThreTry=3;
-			numberResults=0;
-		}
-
-	//	selectImage(mask1st);
-print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
-
-	//	setBatchMode(false);
-	//		updateDisplay();
-	//		"do"
-	//			exit();
-	
-		startlower=1; trynum=0; step1=0;
-		while(numberResults==0 && donotOperate==0){
-	//		print(lower+"  No; "+trynum+"   Images; "+nImages);
-			
-			if(mask1st!=0){
-				if(isOpen(mask1st)){
-					selectImage(mask1st);
-					close();
-				}
-			}
-
-			selectImage(AIP);
-			run("Duplicate...", "title=DUP_AVEP.tif");
-			DUP_AVEP=getImageID();
-					
-			lower=lower+2;
-			
-			if(lower>3000){
-				if(step1==1){
-					donotOperate=1;
-					print("Check data, no signals? or VNC is hitting edge of data");
-				}
-				if(step1==0){
-					close();
-					selectImage(DUP);
-					run("Z Project...", "projection=[Max Intensity]");
-					DUP_AVEP=getImageID();
-					numberResults=0;
-					lower=1;
-					step1=1;
-				}
-			}
-			
-				
-			setThreshold(lower, maxV);
-	
-			run("Make Binary");
-			
-			if(invertON==1){
-				run("Invert LUT");
-				run("RGB Color");
-				run("8-bit");
-				print("inverted 755");
-			}
-			
-			run("Analyze Particles...", "size=10000.00-Infinity show=Masks display exclude clear");
-
-			if(nResults==0){
-					run("Invert LUT");
-					run("RGB Color");
-					run("8-bit");
-					
-					run("Analyze Particles...", "size=10000-Infinity show=Nothing display exclude clear");
-					if(nResults>0){
-						invertON=1;
-						print("542 Inverted BW");
-						updateResults();
-					}
-				}
-			
-			mask1st=getImageID();
-			
-			run("Grays");
-			updateResults();
-			
-			selectImage(DUP_AVEP);
-			close();
-	
-			lowerM=lower;
-			
-			if(nResults>0){
-				maxsize=40000;
-				for(i=0; i<nResults; i++){
-					Size=getResult("Area", i);
-					ARshape=getResult("AR", i);// AR value from Triangle
-
-					if(ARshape>1.9){
-						if(Size>maxsize){
-							maxsize=Size;
-							angle=getResult("Angle", i);
-							SizeM=getResult("Area", i);
-							numberResults=nResults;
-							print("increment method");
-						}
-					}
-				}//for(i=0; i<nResults; i++){
-			}else{
-				
-				selectImage(mask1st);
-				close();
-			}//if(nResults>0){
-			
-			
-			trynum=trynum+1;
-		}//while(nResults==0  && donotOperate==0){
-
-		
-		if(isOpen(AIP)){
-			selectImage(AIP);
-			close();
-		}
 		
 		if(donotOperate==0){
-
-			if(ThreTry==0)
-			ThreMethod="Triangle";
+			getVoxelSize(vxwidth, vxheight, depth, unit1);
 			
-			if(ThreTry==1)
-			ThreMethod="Default";
+			vxwidth=Xresolution;
+			vxheight=Yresolution;
 			
-			if(ThreTry==2)
-			ThreMethod="Huang";
+			run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");//setting property, voxel size 1,1,1 for later translation.
 			
-			if(ThreTry==3)
-			ThreMethod="Histogram 2 increment method";
+			run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
 			
-			print("lower thresholding for Br and VNC separation; "+lowerM+"  ThreMethod; "+ThreMethod);
-			selectImage(mask1st);
-		
-			run("Grays");
-			run("Maximum...", "radius=20");
-			run("Minimum...", "radius=20");
-			run("Make Binary");
+			/////////// background histogram analysis /////////////////////
+			avethre=0;
 			
-			run("Fill Holes");
+			ThreArray=newArray(lowthreAveRange, lowthreMin, lowthreRange, maxV, avethre);
+			lowerThresholding (ThreArray);//creating array for background value
+			avethre=ThreArray[4];// background average value
 			
-			if(invertON==1){
-				run("Invert LUT");
-				run("RGB Color");
-				run("8-bit");
-				print("invert 870");
-			}
+			////// lower value thresholding & Histogram stretch /////////////////////////
+			for(n2=1; n2<=nSlices; n2++){
+				setSlice(n2);
+				lowthre=List.get("Slicen"+n2);// background value, slice by slice
+				lowthre=round(lowthre);
 				
-			rotation=270+angle;
-			print("angle; "+angle);
+				run("Histgram stretch", "lower="+lowthre+" higher=65535");
+				//	print("lowerthreshold; "+lowthre+"  Slice No; "+n2);
+			}//for(n2=1; n2<=nSlices; n2++){
 			
-	//		setBatchMode(false);
-	//		updateDisplay();
-	//				"do"
-	//				exit();
+			//	setBatchMode(false);
+			//	updateDisplay();
+			//	"do"
+			//	exit();
 			
-				CLEAR_MEMORY();	
-///// BW analysis ////////////////////////////////////////////////////////
-			
-			run("Duplicate...", " ");
-			makeRectangle(10,14,74,22);
-			getStatistics(area, mean2, min, max, std, histogram);
-			
-			if(mean2>200){
-				run("Invert LUT");
-				run("RGB Color");
-				invertON=1;
-			}
-			run("Select All");
-			
-			rotation=round(rotation);
-			run("16-bit");
-			sampleLongLength=round(sqrt(height*height+width*width));
-			run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
-			run("Rotation Hideo", "rotate="+rotation+" in=InMacro");
-			
-			//		run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge");
-			MIPduplicateRotation=getImageID();
-			
-			run("Select All");
-			run("Make Binary");
-				
-			if(nResults>1)
-			setSize=SizeM/2;
-			else
-			setSize=10000;
-				
-			run("Analyze Particles...", "size="+setSize+"-Infinity show=Nothing display exclude clear");//exclude object on the edge
-			updateResults();
-			
-	//	setBatchMode(false);
-	//		updateDisplay();
-//		"do"
-	//		exit();
-			
-///// BW analysis ////////////////////////////////////////////////////////
-			if(nResults==0){
-				run("Invert LUT");
-				run("RGB Color");
-				run("8-bit");
-				invertON=1;
-				run("Analyze Particles...", "size="+setSize+"-Infinity show=Nothing display exclude clear");
-				updateResults();
-			}
-			
-			if(nResults>1){
-		//		setBatchMode(false);
-		//		updateDisplay();
-				print("not single sample, skipped");
-				donotOperate=1;
-			}
-			xTrue=0; yTrue=0;
-			if(donotOperate==0 && nResults==1){
-				xTrue=getResult("X", 0);
-				yTrue=getResult("Y", 0);
-				
-				
-				selectImage(mask1st);
-				
-		//		setBatchMode(false);
-	//			updateDisplay();
-	//			"do"
-	//			exit();
-				close();
-				
-				selectImage(MIPduplicateRotation);
-				close();
-				
-				selectImage(DUP);
-		//		setBatchMode(false);
-		//		updateDisplay();
-		//			"do"
-	//		exit();
-			
-				rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
-				
-///// Z- start and ending slice detection ////////////////////////////////////////////////
-				selectImage(DUP);
+			//// Mask creation//////////////////////////////
+			if(CLAHEwithMASK==1){//CLAHE with Mask
 				run("Duplicate...", "title=Mask.tif duplicate");
 				Mask=getImageID();
-				
 				highthre=0;
 				highthreSum=0;
 				
+				//setBatchMode(false);
+				//	updateDisplay();
+				//	"do"
+				//	exit();
+				
+				run("Max value");/// need new plugin
+				logsum=getInfo("log");
+				endlog=lengthOf(logsum);
+				maxposition=lastIndexOf(logsum, "Maxvalue;");
+				minposition=lastIndexOf(logsum, "  Minvalue;");
+				
+				maxvalue0=substring(logsum, maxposition+10, minposition);
+				maxvalue0=round(maxvalue0);
+				
+				minvalue0=substring(logsum, minposition+11, endlog);
+				minvalue0=round(minvalue0);
+				
+				setMinAndMax(minvalue0, maxvalue0);		
+				
+				run("8-bit");
+				sumlower=0;
+				
+				// to get average threshold ///////////////////
+				for(islice=1; islice<=nSlices; islice++){
+					setSlice(islice);
+					//	setAutoThreshold("Default dark");
+					setAutoThreshold("Huang dark");
+					getThreshold(lower, upper);
+					
+					sumlower=sumlower+lower;
+				}
+				avethreDef=round(sumlower/nSlices);
+				avethreDef=round(avethreDef-(avethreDef*0.1));
+				
+				// creating mask ////////////////////////
 				for(i=1; i<=nSlices; i++){
 					showStatus("Creating Mask");
 					prog=i/nSlices;
 					showProgress(prog);
 					
 					setSlice(i);
-				//	setAutoThreshold("Default dark");
-					setAutoThreshold("RenyiEntropy dark");
+					setMinAndMax(0, 255);
+					
+					//run("Enhance Local Contrast (CLAHE)", "blocksize=15 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
+					
+					setAutoThreshold("Huang dark");
+					//	setAutoThreshold("Default dark");
+					
 					getThreshold(lower, upper);
-
+					//		print(i+"  lower; "+lower+"  upper; "+upper);
+					
+					List.set("Lowthre1st"+i-1, lower)
+					
+				}//for(i=1; i<=nSlices; i++){
+				
+				print("avethreDef; "+avethreDef);
+				
+				for(ig=1; ig<=nSlices; ig++){
+					setSlice(ig);
+					
+					lowList=List.get("Lowthre1st"+ig-1);
+					lowList=round(lowList);
+					
+					if(lowList<avethreDef)
+					lowList=avethreDef;
+					
+					setThreshold(lowList, maxV);
+					run("Convert to Mask", "method=Default background=Default only black");
+				}
+				
+				run("Size based Noise elimination", "ignore=229 less=6");
+				
+				//	setBatchMode(false);
+				//	updateDisplay();
+				//	"do"
+				//	exit();
+				
+				run("16-bit");
+				run("Mask255 to 4095");//Mask.tif
+			}//if(CLAHEwithMASK==1){//CLAHE with Mask
+			
+			selectImage(nc82);
+			run("Gamma ", "gamma=1.60 3d in=[In macro]");
+			DUP=getImageID();
+			
+			
+			selectImage(nc82);
+			close();
+			
+			CLEAR_MEMORY();
+			
+			//	setBatchMode(false);
+			//	updateDisplay();
+			//	"do"
+			//	exit();
+			
+			/// CLAHE, brightness equalization /////////////////////////////////////////////
+			for(ii=1; ii<=nSlices; ii++){
+				prog=ii/nSlices;
+				showProgress(prog);
+				showStatus("Enhance Local Contrast (CLAHE)");
+				
+				if(CLAHEwithMASK==1){//CLAHE with Mask
+					selectImage(Mask);
+					setSlice(ii);
+				}
+				
+				selectImage(DUP);
+				setSlice(ii);
+				setMinAndMax(0, maxV);
+				
+				if(CLAHEwithMASK==1)//CLAHE with Mask
+				run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=12 mask=Mask.tif fast_(less_accurate)");
+				else
+				run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=4095 maximum=8 mask=*None* fast_(less_accurate)");
+			}
+			
+			if(CLAHEwithMASK==1){//CLAHE with Mask
+				selectImage(Mask);
+				close();
+				CLEAR_MEMORY();
+			}
+			
+			////// VNC segmentatiom & rotation, Findout best threshold for better AR ////////////////////////////////////////////////
+			numberResults=0; mask1st=0; invertON=0;	maxARshape=0; ARshape=0; maxsizeData=0; maxsizeData=0;
+			
+			for(MIPstep=1; MIPstep<3; MIPstep++){
+				for(ThreTry=0; ThreTry<3; ThreTry++){
+					
+					showStatus("VNC rotation");
+					selectImage(DUP);
+					
+					//	setBatchMode(false);
+					//		updateDisplay();
+					//		"do"
+					//exit();
+					
+					if(MIPstep==1)
+					run("Z Project...", "projection=[Average Intensity]");
+					
+					if(MIPstep==2)
+					run("Z Project...", "projection=[Max Intensity]");
+					
+					AIP=getImageID();
+					
+					run("Minimum...", "radius=2");
+					run("Maximum...", "radius=2");
+					//		
+					//		setBatchMode(false);
+					//		updateDisplay();
+					//		"do"
+					//		exit();
+					
+					if(ThreTry==0)
+					setAutoThreshold("Triangle dark");
+					
+					if(ThreTry==1)
+					setAutoThreshold("Default dark");
+					
+					if(ThreTry==2)
+					setAutoThreshold("Huang dark");
+					
+					//setAutoThreshold("Intermodes dark");
+					getThreshold(lower, upper);
+					setThreshold(lower, maxV);
+					run("Make Binary");
+					
+					run("Analyze Particles...", "size=20000.00-Infinity show=Masks display exclude clear");
+					
+					run("Grays");
+					updateResults();
+					
+					if(nResults==0){
+						run("Invert LUT");
+						run("RGB Color");
+						run("8-bit");
+						
+						run("Analyze Particles...", "size=10000-Infinity show=Nothing display exclude clear");
+						if(nResults>0){
+							invertON=1;
+							print("542 Inverted BW");
+							updateResults();
+						}
+					}
+					maskTest=getImageID();
+					
+					DD2=1; DD3=0;
+					FILL_HOLES(DD2, DD3);
+					maskTest=getImageID();
+					
+					maxsizeOri=0;
+					
+					if(nResults>0){
+						numberResults=nResults;
+						for(inn=0; inn<nResults; inn++){
+							maxsize0=getResult("Area", inn);
+							
+							if(maxsize0>maxsizeOri){
+								ARshape=getResult("AR", inn);// AR value from Triangle
+								maxsizeOri=maxsize0;
+								angleT=getResult("Angle", inn);
+								SizeMT=maxsize0;
+							}
+						}//for(inn=0; inn<nResults; inn++){
+						
+						
+						
+						if(ARshape>1.8){
+							if(maxsizeData<maxsizeOri){
+								maxsizeData=maxsizeOri;
+								if(maxARshape<ARshape){
+									maxARshape=ARshape;
+									//			print("seg_ARshape; "+ARshape);
+									if(mask1st!=0){//previous mask result
+										selectImage(mask1st);
+										close();
+									}
+									selectImage(maskTest);
+									mask1st=getImageID();//このマスクを元にしてローテーション、中心座標を得る
+									numberResults=1;
+									lowerM=lower; threTry=ThreTry; angle=angleT; SizeM=SizeMT; finalMIP=MIPstep;
+									print("   lowerM; "+lowerM+"   threTry; "+threTry+"   angle; "+angle+"   SizeM; "+SizeM+"   maxARshape; "+maxARshape+"   finalMIP; "+finalMIP);
+								}
+							}//	if(maxARshape<ARshape){
+						}else{
+							selectImage(maskTest);
+							close();
+						}//if(ARshape>1.75){
+					}else{
+						selectImage(maskTest);
+						close();
+					}//if(nResults>0){
+					
+					if(isOpen(AIP)){
+						selectImage(AIP);
+						close();
+					}
+				}//for(ThreTry=0; ThreTry<3; ThreTry++){
+			}//for(MIPstep=1; MIPstep<3; MIPstep++){
+			
+			//	selectImage(mask1st);
+			//			setBatchMode(false);
+			//			updateDisplay();
+			//			"do"
+			//			exit();
+			donotOperate=0;
+			pretitle=-1; Threstep=10;
+			
+			if(maxARshape<1.8 && maxARshape!=0)
+			donotOperate=1;
+			
+			
+			
+			if(maxARshape==0){//All 3 thresholding 0 result, connecting with brain, or short VNC
+				selectImage(DUP);
+				run("Z Project...", "projection=[Average Intensity]");
+				AIP=getImageID();
+				ThreTry=3;
+				numberResults=0;
+			}
+			
+			//	selectImage(mask1st);
+			print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
+			
+			//	setBatchMode(false);
+			//		updateDisplay();
+			//		"do"
+			//			exit();
+			
+			startlower=1; trynum=0; step1=0;
+			while(numberResults==0 && donotOperate==0){
+				//		print(lower+"  No; "+trynum+"   Images; "+nImages);
+				
+				if(mask1st!=0){
+					if(isOpen(mask1st)){
+						selectImage(mask1st);
+						close();
+					}
+				}
+				
+				selectImage(AIP);
+				run("Duplicate...", "title=DUP_AVEP.tif");
+				DUP_AVEP=getImageID();
+				
+				lower=lower+2;
+				
+				if(lower>3000){
+					if(step1==1){
+						donotOperate=1;
+						print("Check data, no signals? or VNC is hitting edge of data");
+					}
+					if(step1==0){
+						close();
+						selectImage(DUP);
+						run("Z Project...", "projection=[Max Intensity]");
+						DUP_AVEP=getImageID();
+						numberResults=0;
+						lower=1;
+						step1=1;
+					}
+				}
+				
+				
+				setThreshold(lower, maxV);
+				
+				run("Make Binary");
+				
+				if(invertON==1){
+					run("Invert LUT");
+					run("RGB Color");
+					run("8-bit");
+					print("inverted 755");
+				}
+				
+				run("Analyze Particles...", "size=10000.00-Infinity show=Masks display exclude clear");
+				
+				if(nResults==0){
+					run("Invert LUT");
+					run("RGB Color");
+					run("8-bit");
+					
+					run("Analyze Particles...", "size=10000-Infinity show=Nothing display exclude clear");
+					if(nResults>0){
+						invertON=1;
+						print("542 Inverted BW");
+						updateResults();
+					}
+				}
+				
+				mask1st=getImageID();
+				
+				run("Grays");
+				updateResults();
+				
+				selectImage(DUP_AVEP);
+				close();
+				
+				lowerM=lower;
+				
+				if(nResults>0){
+					maxsize=40000;
+					for(i=0; i<nResults; i++){
+						Size=getResult("Area", i);
+						ARshape=getResult("AR", i);// AR value from Triangle
+						
+						if(ARshape>1.9){
+							if(Size>maxsize){
+								maxsize=Size;
+								angle=getResult("Angle", i);
+								SizeM=getResult("Area", i);
+								numberResults=nResults;
+								print("increment method");
+							}
+						}
+					}//for(i=0; i<nResults; i++){
+				}else{
+					
+					selectImage(mask1st);
+					close();
+				}//if(nResults>0){
+				
+				
+				trynum=trynum+1;
+			}//while(nResults==0  && donotOperate==0){
+			
+			
+			if(isOpen(AIP)){
+				selectImage(AIP);
+				close();
+			}
+			
+			if(donotOperate==0){
+				
+				if(ThreTry==0)
+				ThreMethod="Triangle";
+				
+				if(ThreTry==1)
+				ThreMethod="Default";
+				
+				if(ThreTry==2)
+				ThreMethod="Huang";
+				
+				if(ThreTry==3)
+				ThreMethod="Histogram 2 increment method";
+				
+				print("lower thresholding for Br and VNC separation; "+lowerM+"  ThreMethod; "+ThreMethod);
+				selectImage(mask1st);
+				
+				run("Grays");
+				run("Maximum...", "radius=20");
+				run("Minimum...", "radius=20");
+				run("Make Binary");
+				
+				run("Fill Holes");
+				
+				if(invertON==1){
+					run("Invert LUT");
+					run("RGB Color");
+					run("8-bit");
+					print("invert 870");
+				}
+				
+				rotation=270+angle;
+				print("angle; "+angle);
+				
+				//		setBatchMode(false);
+				//		updateDisplay();
+				//				"do"
+				//				exit();
+				
+				CLEAR_MEMORY();	
+				///// BW analysis ////////////////////////////////////////////////////////
+				
+				run("Duplicate...", " ");
+				makeRectangle(10,14,74,22);
+				getStatistics(area, mean2, min, max, std, histogram);
+				
+				if(mean2>200){
+					run("Invert LUT");
+					run("RGB Color");
+					invertON=1;
+				}
+				run("Select All");
+				
+				rotation=round(rotation);
+				run("16-bit");
+				sampleLongLength=round(sqrt(height*height+width*width));
+				run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
+				run("Rotation Hideo", "rotate="+rotation+" in=InMacro");
+				
+				//		run("Rotate... ", "angle="+rotation+" grid=1 interpolation=None fill enlarge");
+				MIPduplicateRotation=getImageID();
+				
+				run("Select All");
+				run("Make Binary");
+				
+				if(nResults>1)
+				setSize=SizeM/2;
+				else
+				setSize=10000;
+				
+				run("Analyze Particles...", "size="+setSize+"-Infinity show=Nothing display exclude clear");//exclude object on the edge
+				updateResults();
+				
+				//	setBatchMode(false);
+				//		updateDisplay();
+				//		"do"
+				//		exit();
+				
+				///// BW analysis ////////////////////////////////////////////////////////
+				if(nResults==0){
+					run("Invert LUT");
+					run("RGB Color");
+					run("8-bit");
+					invertON=1;
+					run("Analyze Particles...", "size="+setSize+"-Infinity show=Nothing display exclude clear");
+					updateResults();
+				}
+				
+				if(nResults>1){
+					//		setBatchMode(false);
+					//		updateDisplay();
+					print("not single sample, skipped");
+					donotOperate=1;
+				}
+				xTrue=0; yTrue=0;
+				if(donotOperate==0 && nResults==1){
+					xTrue=getResult("X", 0);
+					yTrue=getResult("Y", 0);
+					
+					
+					selectImage(mask1st);
+					
+					//		setBatchMode(false);
+					//			updateDisplay();
+					//			"do"
+					//			exit();
+					close();
+					
+					selectImage(MIPduplicateRotation);
+					close();
+					
+					selectImage(DUP);
+					//		setBatchMode(false);
+					//		updateDisplay();
+					//			"do"
+					//		exit();
+					
+					rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
+					
+					///// Z- start and ending slice detection ////////////////////////////////////////////////
+					selectImage(DUP);
+					run("Duplicate...", "title=Mask.tif duplicate");
+					Mask=getImageID();
+					
+					highthre=0;
+					highthreSum=0;
+					
+					for(i=1; i<=nSlices; i++){
+						showStatus("Creating Mask");
+						prog=i/nSlices;
+						showProgress(prog);
+						
+						setSlice(i);
+						//	setAutoThreshold("Default dark");
+						setAutoThreshold("RenyiEntropy dark");
+						getThreshold(lower, upper);
+						
 						if(lower>highthre){
 							if(i>10){
 								highthre=lower;
 								highslice=i;
 							}
 						}
-					highthreSum=highthreSum+lower;
-				}//for(i=1; i<=nSlices; i++){
-				avehighThre=highthreSum/nSlices;
-				print("highslice; "+highslice+"  highthre; "+highthre/2+"  avehighThre; "+avehighThre);
-				
-		//		setBatchMode(false);
-	//			updateDisplay();
-	//			"do"
-	//			exit();
-				avehighThre=round(avehighThre);
-		//		print("maxV; "+maxV);
-				
-				setSlice(highslice);// set slice that has highest lower thresholding
-				setThreshold(avehighThre, maxV);//setting threshold, this value will apply to entire slices
-
-				run("Make Binary", "method=Huang background=Dark black");
-				
-				run("Remove Outliers...", "radius=2 threshold=50 which=Bright");
-				run("Minimum...", "radius=2 stack");
-				run("Maximum...", "radius=2 stack");
-				
-	//		setBatchMode(false);
-	//		updateDisplay();
-	//		"do"
-		//		exit();
-				
-				if(BWd==1){//BW decision
-					makeRectangle(69, 144, 383, 860);
-////////// BW decision //////////////
-					maxmean=0;
-					for(areaS=1; areaS<nSlices; areaS++){
-					setSlice(areaS);
-					getStatistics(area, mean, min, max, std, histogram);
+						highthreSum=highthreSum+lower;
+					}//for(i=1; i<=nSlices; i++){
+					avehighThre=highthreSum/nSlices;
+					print("highslice; "+highslice+"  highthre; "+highthre/2+"  avehighThre; "+avehighThre);
 					
-					if(maxmean<mean){
-						maxmean=mean;
-						maxmeanSlice=areaS;
-					}
-				}
-				
-				run("Select All");
-				
-				setSlice(maxmeanSlice);
-				run("Duplicate...", " ");
-				MaxBWdup=getImageID();
-				run("Analyze Particles...", "size=10000-Infinity display exclude clear");
-
-				if(nResults==0){
-					run("Invert LUT");
-					run("RGB Color");
-					run("8-bit");
-					invertON=1;
-					print("864 Inverted BW");
-					run("Analyze Particles...", "size=10000-Infinity display exclude clear");
-				}
-				
-			//			setBatchMode(false);
-			//			updateDisplay();
-			//				"do"
-			//			exit();
+					//		setBatchMode(false);
+					//			updateDisplay();
+					//			"do"
+					//			exit();
+					avehighThre=round(avehighThre);
+					//		print("maxV; "+maxV);
 					
-					if(nResults==0){
-						print("Check data, zero data");
-					}
-
-					selectImage(MaxBWdup);
-					close();
-				}//if(BWd==1){
-
-				selectImage(Mask);
-		//		print(nSLices+"   1021");
-				DD2=0; DD3=1;
-				FILL_HOLES(DD2, DD3);
-				
-				Mask=getImageID();
-				rename("Mask.tif");
-				
-				run("Remove Outliers...", "radius=2 threshold=50 which=Bright");
-				run("Make Binary", "method=Huang background=Dark black");
+					setSlice(highslice);// set slice that has highest lower thresholding
+					setThreshold(avehighThre, maxV);//setting threshold, this value will apply to entire slices
+					
+					run("Make Binary", "method=Huang background=Dark black");
+					
+					run("Remove Outliers...", "radius=2 threshold=50 which=Bright");
+					run("Minimum...", "radius=2 stack");
+					run("Maximum...", "radius=2 stack");
+					
+					//		setBatchMode(false);
+					//		updateDisplay();
+					//		"do"
+					//		exit();
+					
+					if(BWd==1){//BW decision
+						makeRectangle(69, 144, 383, 860);
+						////////// BW decision //////////////
+						maxmean=0;
+						for(areaS=1; areaS<nSlices; areaS++){
+							setSlice(areaS);
+							getStatistics(area, mean, min, max, std, histogram);
+							
+							if(maxmean<mean){
+								maxmean=mean;
+								maxmeanSlice=areaS;
+							}
+						}
+						
+						run("Select All");
+						
+						setSlice(maxmeanSlice);
+						run("Duplicate...", " ");
+						MaxBWdup=getImageID();
+						run("Analyze Particles...", "size=10000-Infinity display exclude clear");
+						
+						if(nResults==0){
+							run("Invert LUT");
+							run("RGB Color");
+							run("8-bit");
+							invertON=1;
+							print("864 Inverted BW");
+							run("Analyze Particles...", "size=10000-Infinity display exclude clear");
+						}
+						
+						//			setBatchMode(false);
+						//			updateDisplay();
+						//				"do"
+						//			exit();
+						
+						if(nResults==0){
+							print("Check data, zero data");
+						}
+						
+						selectImage(MaxBWdup);
+						close();
+					}//if(BWd==1){
+					
+					selectImage(Mask);
+					//		print(nSLices+"   1021");
+					DD2=0; DD3=1;
+					FILL_HOLES(DD2, DD3);
+					
+					Mask=getImageID();
+					rename("Mask.tif");
+					
+					run("Remove Outliers...", "radius=2 threshold=50 which=Bright");
+					run("Make Binary", "method=Huang background=Dark black");
 					
 					setSlice(nSlices);
 					scan_for_invert ();
 					
-	//	setBatchMode(false);
-	//		updateDisplay();
-	//			"do"
-		//			exit();
-			
-/// Start and End slice decision /////////////////////////////////////////////
-//print("preskelton");
-				run("Size to Skelton");
-//print("postskelton");
-				getDimensions(width, height, channels, slices, frames);
-				startslice=0;
-				endslice=0;
-				posiSnum=newArray(slices);
-				SizeMAX=newArray(slices+1);
-				makeRectangle(38, round(width/3), width*(435/600), height*(700/1024));
-				
+					//	setBatchMode(false);
+					//		updateDisplay();
+					//			"do"
+					//			exit();
+					
+					/// Start and End slice decision /////////////////////////////////////////////
+					//print("preskelton");
+					run("Size to Skelton");
+					//print("postskelton");
+					getDimensions(width, height, channels, slices, frames);
+					startslice=0;
+					endslice=0;
+					posiSnum=newArray(slices);
+					SizeMAX=newArray(slices+1);
+					makeRectangle(38, round(width/3), width*(435/600), height*(700/1024));
+					
 					sumSeven=0;
 					for(b=1; b<=nSlices; b++){
 						setSlice(b);
-					
+						
 						sevencounts=0; maxI=0;
 						getHistogram(values, counts,  256);
 						for(i=0; i<50; i++){
 							Val=counts[i];
-						
+							
 							if(i==7){
 								sevencounts=counts[i];
 								sumSeven=sumSeven+sevencounts;
 							}
-						if(i>maxI){
-							if(Val>0){
-								maxI=i;	
+							if(i>maxI){
+								if(Val>0){
+									maxI=i;	
+								}
 							}
 						}
+						List.set("SliceSeven"+b-1, sevencounts);
+						List.set("MaxValue"+b-1, maxI);
+						//			print("SLice; "+b+"   value; "+maxI);
+					}//for(b=1; b<=nSlices; b++){
+					aveSeven=sumSeven/nSlices;
+					
+					insideSD0=0;
+					for(stdThre0=1; stdThre0<5; stdThre0++){
+						
+						insideSD0=((0-aveSeven)*(0-aveSeven))+insideSD0;
 					}
-					List.set("SliceSeven"+b-1, sevencounts);
-					List.set("MaxValue"+b-1, maxI);
-		//			print("SLice; "+b+"   value; "+maxI);
-				}//for(b=1; b<=nSlices; b++){
-				aveSeven=sumSeven/nSlices;
-				
-				insideSD0=0;
-				for(stdThre0=1; stdThre0<5; stdThre0++){
+					sqinside0=insideSD0/5;
+					sd0 = sqrt(sqinside0);
+					endsliceDeside=0; minus1stTime=0;
 					
-					insideSD0=((0-aveSeven)*(0-aveSeven))+insideSD0;
-				}
-				sqinside0=insideSD0/5;
-				sd0 = sqrt(sqinside0);
-				endsliceDeside=0; minus1stTime=0;
-				
-				for(startdeci=0; startdeci<nSlices; startdeci++){
-					sumVal5=0; insideSD=0;
-					for(stdThre=startdeci; stdThre<startdeci+5; stdThre++){
-						val5=List.get("SliceSeven"+stdThre);
-						val5=round(val5);
-						insideSD=((val5-aveSeven)*(val5-aveSeven))+insideSD;
-						sumVal5=sumVal5+val5;
-					}
-					sqinside=insideSD/5;
-					sd = sqrt(sqinside);
-					
-					sdGap=sd0-sd;
-				//	print("SD; "+sd+"  Slice; "+startdeci+1+"   sdgap; "+sdGap);
-					
-					if(sdGap<0)
-					minus1stTime=1;
-					
-					if(sdGap!=NaN){
-						if(sdGap>0){
-							if(minus1stTime==1){
-								if(startslice==0)
-								startslice=startdeci;
+					for(startdeci=0; startdeci<nSlices; startdeci++){
+						sumVal5=0; insideSD=0;
+						for(stdThre=startdeci; stdThre<startdeci+5; stdThre++){
+							val5=List.get("SliceSeven"+stdThre);
+							val5=round(val5);
+							insideSD=((val5-aveSeven)*(val5-aveSeven))+insideSD;
+							sumVal5=sumVal5+val5;
+						}
+						sqinside=insideSD/5;
+						sd = sqrt(sqinside);
+						
+						sdGap=sd0-sd;
+						//	print("SD; "+sd+"  Slice; "+startdeci+1+"   sdgap; "+sdGap);
+						
+						if(sdGap<0)
+						minus1stTime=1;
+						
+						if(sdGap!=NaN){
+							if(sdGap>0){
+								if(minus1stTime==1){
+									if(startslice==0)
+									startslice=startdeci;
+								}
 							}
 						}
-					}
 						
-					if(startslice==0){
-						
-						MaxSize=List.get("MaxValue"+startdeci);
-						MaxSize=round(MaxSize);
-						if(MaxSize>20){
+						if(startslice==0){
 							
-							startslice=startdeci;
-							print("Start slice is...; "+startdeci+"  MaxVal; "+MaxSize);
-						}
-					}//if(startslice==0){
-					List.set("SDGAP"+startdeci, sdGap);
-				}//for(startdeci=0; startdeci<slices; startdeci++){
-				minus1stTime=0;
-				for(endS=nSlices-1; endS>=0; endS--){
-					SdGend=List.get("SDGAP"+endS);
-					SdGend=round(SdGend);
-					
-					if(SdGend<0)
-					minus1stTime=1;
-					
-					if(SdGend!=NaN){
-						if(SdGend>0){
-							if(minus1stTime==1){
-								if(endslice==0){
-									endslice=endS+1;
+							MaxSize=List.get("MaxValue"+startdeci);
+							MaxSize=round(MaxSize);
+							if(MaxSize>20){
+								
+								startslice=startdeci;
+								print("Start slice is...; "+startdeci+"  MaxVal; "+MaxSize);
+							}
+						}//if(startslice==0){
+						List.set("SDGAP"+startdeci, sdGap);
+					}//for(startdeci=0; startdeci<slices; startdeci++){
+					minus1stTime=0;
+					for(endS=nSlices-1; endS>=0; endS--){
+						SdGend=List.get("SDGAP"+endS);
+						SdGend=round(SdGend);
+						
+						if(SdGend<0)
+						minus1stTime=1;
+						
+						if(SdGend!=NaN){
+							if(SdGend>0){
+								if(minus1stTime==1){
+									if(endslice==0){
+										endslice=endS+1;
+									}
 								}
 							}
 						}
 					}
-				}
-				sliceGap=endslice-startslice;
-				
-				print("1st slice position;  startslice; "+startslice+"   endslice; "+endslice);
-				if(endslice==0 || sliceGap<70){
-					for(endS2=nSlices-1; endS2>=0; endS2--){
-						if(endsliceDeside==0){
-							MaxSize2=List.get("MaxValue"+endS2);
-							MaxSize2=round(MaxSize2);
-							if(MaxSize2>19){
-								
-								endslice=endS2;
-								print("End slice is...; "+endS2+"  MaxVal; "+MaxSize2);
-								endsliceDeside=1;
-							}
-						}//if(endsliceDeside==0){
-					}//for(endS2=nSlices-1; endS2>=0; endS2--){
-				}//if(endslice==0){
-				
-				sliceGap=endslice-startslice;
-				if(startslice==endslice || sliceGap<40)
-				endslice=startslice+110;
+					sliceGap=endslice-startslice;
 					
-				print("startslice; "+startslice+"  endslice; "+endslice);
+					print("1st slice position;  startslice; "+startslice+"   endslice; "+endslice);
+					if(endslice==0 || sliceGap<70){
+						for(endS2=nSlices-1; endS2>=0; endS2--){
+							if(endsliceDeside==0){
+								MaxSize2=List.get("MaxValue"+endS2);
+								MaxSize2=round(MaxSize2);
+								if(MaxSize2>19){
+									
+									endslice=endS2;
+									print("End slice is...; "+endS2+"  MaxVal; "+MaxSize2);
+									endsliceDeside=1;
+								}
+							}//if(endsliceDeside==0){
+						}//for(endS2=nSlices-1; endS2>=0; endS2--){
+					}//if(endslice==0){
 					
-				selectImage(DUP);
-				slicePosition=newArray(startslice,endslice,slices,0,0);
-				addingslice(slicePosition);
+					sliceGap=endslice-startslice;
+					if(startslice==endslice || sliceGap<40)
+					endslice=startslice+110;
 					
-				Rstartslice=slicePosition[3];
-				Rendslice=slicePosition[4];
+					print("startslice; "+startslice+"  endslice; "+endslice);
 					
-			//			setBatchMode(false);
-			//				updateDisplay();
-			//				"do"
-				//			exit();
-				
-					/// Front & Back detection //////////////////////////////////////////
-				if(FrontBackAnalysis==1){
-					selectImage(Mask);
-					run("Z Project...", "start="+startslice+" stop="+startslice+10+" projection=[Max Intensity]");
-					setThreshold(2, 255);
-					run("Convert to Mask");
-					
-					if(invertON==1){
-						run("Invert LUT");
-						run("RGB Color");
-						run("8-bit");
-					}
-					aveF=getImageID();
-					//	run("Analyze Particles...", "size=1000-Infinity circularity=0.00-1.00 show=Nothing display clear");
-					run("Analyze Particles...", "size=1000-Infinity show=Nothing display exclude clear");
-						
-					sumAR=0; sumAF=0; sumAC=0;
-					for(frontR=0; frontR<nResults; frontR++){//AR result measurement
-						AR=getResult("AR", frontR);
-						sumAR=sumAR+AR;
-						AreaF=getResult("Area", frontR);
-						sumAF=sumAF+AreaF;
-						Circ=getResult("Circ.", frontR);
-						sumAC=sumAC+Circ;
-					}
-					aveARF=sumAR/nResults;//average AR front slices
-					aveAreaF=sumAF/nResults;//average Area front slices
-					aveCircF=sumAC/nResults;
-					resultNumF=nResults;
-				//		selectImage(aveF);
-						//	close();
-					
-					selectImage(Mask);
-					run("Z Project...", "start="+endslice-10+" stop="+endslice+" projection=[Max Intensity]");
-					setThreshold(2, 255);
-					run("Convert to Mask");
-					
-					if(invertON==1){
-						run("Invert LUT");
-						run("RGB Color");
-						run("8-bit");
-					}
-					
-					aveR=getImageID();
-					run("Analyze Particles...", "size=1000-Infinity show=Nothing display exclude clear");
-						
-					sumAR=0; sumAF=0; sumAC=0;
-					for(rearR=1; rearR<nResults; rearR++){//Area result measurement
-						AR=getResult("AR", rearR);
-						sumAR=sumAR+AR;
-						AreaR=getResult("Area", rearR);
-						sumAF=sumAR+AreaR;
-						Circ=getResult("Circ.", rearR);
-						sumAC=sumAC+Circ;
-					}
-					aveARR=sumAR/nResults;//average AR rear slices
-					aveAreaR=sumAF/nResults;//average Area rear slices
-					aveCircR=sumAC/nResults;
-					resultNumR=nResults;
-				}//	if(FrontBackAnalysis==1){
-			//	setBatchMode(false);
-		//		updateDisplay();
-		//		"do"
-		//		exit();
-				
-				selectImage(Mask);
-				close();
-				CLEAR_MEMORY();
-				selectImage(DUP);
-				
-				if(Rstartslice<Rendslice)
-				run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
-				
-		//		setBatchMode(false);
-			//	updateDisplay();
-		//		"do"
-		//		exit();
-				
-				realVNC=getImageID();
-				
-				if(Rstartslice<Rendslice){
 					selectImage(DUP);
+					slicePosition=newArray(startslice,endslice,slices,0,0);
+					addingslice(slicePosition);
+					
+					Rstartslice=slicePosition[3];
+					Rendslice=slicePosition[4];
+					
+					//			setBatchMode(false);
+					//				updateDisplay();
+					//				"do"
+					//			exit();
+					
+					/// Front & Back detection //////////////////////////////////////////
+					if(FrontBackAnalysis==1){
+						selectImage(Mask);
+						run("Z Project...", "start="+startslice+" stop="+startslice+10+" projection=[Max Intensity]");
+						setThreshold(2, 255);
+						run("Convert to Mask");
+						
+						if(invertON==1){
+							run("Invert LUT");
+							run("RGB Color");
+							run("8-bit");
+						}
+						aveF=getImageID();
+						//	run("Analyze Particles...", "size=1000-Infinity circularity=0.00-1.00 show=Nothing display clear");
+						run("Analyze Particles...", "size=1000-Infinity show=Nothing display exclude clear");
+						
+						sumAR=0; sumAF=0; sumAC=0;
+						for(frontR=0; frontR<nResults; frontR++){//AR result measurement
+							AR=getResult("AR", frontR);
+							sumAR=sumAR+AR;
+							AreaF=getResult("Area", frontR);
+							sumAF=sumAF+AreaF;
+							Circ=getResult("Circ.", frontR);
+							sumAC=sumAC+Circ;
+						}
+						aveARF=sumAR/nResults;//average AR front slices
+						aveAreaF=sumAF/nResults;//average Area front slices
+						aveCircF=sumAC/nResults;
+						resultNumF=nResults;
+						//		selectImage(aveF);
+						//	close();
+						
+						selectImage(Mask);
+						run("Z Project...", "start="+endslice-10+" stop="+endslice+" projection=[Max Intensity]");
+						setThreshold(2, 255);
+						run("Convert to Mask");
+						
+						if(invertON==1){
+							run("Invert LUT");
+							run("RGB Color");
+							run("8-bit");
+						}
+						
+						aveR=getImageID();
+						run("Analyze Particles...", "size=1000-Infinity show=Nothing display exclude clear");
+						
+						sumAR=0; sumAF=0; sumAC=0;
+						for(rearR=1; rearR<nResults; rearR++){//Area result measurement
+							AR=getResult("AR", rearR);
+							sumAR=sumAR+AR;
+							AreaR=getResult("Area", rearR);
+							sumAF=sumAR+AreaR;
+							Circ=getResult("Circ.", rearR);
+							sumAC=sumAC+Circ;
+						}
+						aveARR=sumAR/nResults;//average AR rear slices
+						aveAreaR=sumAF/nResults;//average Area rear slices
+						aveCircR=sumAC/nResults;
+						resultNumR=nResults;
+					}//	if(FrontBackAnalysis==1){
+					//	setBatchMode(false);
+					//		updateDisplay();
+					//		"do"
+					//		exit();
+					
+					selectImage(Mask);
 					close();
 					CLEAR_MEMORY();
-				}
-				
-			//	selectImage(realVNC);
-			//	rename(nc82);
-
-				FrontAndBack=0;
-				
-				if(FrontBackAnalysis==1){
-					if(aveCircR>aveCircF){//if rear is ventral slice
+					selectImage(DUP);
+					
+					if(Rstartslice<Rendslice)
+					run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+					
+					//		setBatchMode(false);
+					//	updateDisplay();
+					//		"do"
+					//		exit();
+					
+					realVNC=getImageID();
+					
+					if(Rstartslice<Rendslice){
+						selectImage(DUP);
+						close();
+						CLEAR_MEMORY();
+					}
+					
+					//	selectImage(realVNC);
+					//	rename(nc82);
+					
+					FrontAndBack=0;
+					
+					if(FrontBackAnalysis==1){
+						if(aveCircR>aveCircF){//if rear is ventral slice
+							FrontAndBack=FrontAndBack+1;
+						}
+						if(resultNumR>2)
 						FrontAndBack=FrontAndBack+1;
-					}
-					if(resultNumR>2)
-					FrontAndBack=FrontAndBack+1;
-					
-					selectImage(realVNC);
-					//color depth MIP, measure blue and red in the center of data. brighter is front
-					if(FrontAndBack>0){
-						run("Reverse");
-			
-						for(addingSF=1; addingSF<=5; addingSF++){
-							setSlice(1);
-							run("Add Slice");
-						}
-						for(addingSR=1; addingSR<=5; addingSR++){
-							setSlice(nSlices);
-							run("Delete Slice");
-						}
-						print("Ventral - Dorsal inverted!"+"  resultNumR; "+resultNumR+"  resultNumF; "+resultNumF+"  aveCircR; "+aveCircR+"  aveCircF; "+aveCircF);
-					}
-				}//if(FrontBackAnalysis==1){
-				
-				sliceGap=endslice-startslice;
-				
-				if(temptype=="Female")
-				depth=(170/sliceGap)*0.7;//depth adjustment same as template
-				
-				if(temptype=="Male")
-				depth=(160/sliceGap)*0.7;//depth adjustment same as template
-				
-				selectImage(realVNC);//final product for nc82
-				
-				run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
-				
-				
-///// Shape analysis, for kicking broken / not well aligned sample ///////////////////
-				if(ShapeAnalysis==1){
-			//		print(nSlices+"  1264");
-					run("Z Project...", "projection=[Max Intensity]");
-					resetMinAndMax();
-					origiMIPID0=getImageID();
-					run("Gamma ", "gamma=0.60 in=[In macro]");
-					origiMIPID=getImageID();
-					resetMinAndMax();
-					run("8-bit");
-					
-					selectImage(origiMIPID0);
-					close();
-					
-		//	setBatchMode(false);
-	//		updateDisplay();
-	//		"do"
-	//			exit();
-					
-					MarkProblem=1;// create a white Mark on right top
 						
-					ShapeProblem=0;
-					selectImage(origiMIPID);
-					print("");
+						selectImage(realVNC);
+						//color depth MIP, measure blue and red in the center of data. brighter is front
+						if(FrontAndBack>0){
+							run("Reverse");
 							
-					lowthreMIP=0; MaxARshape=0; MaxAngle=0; Angle_AR_measure=1; FirstAR=0;
+							for(addingSF=1; addingSF<=5; addingSF++){
+								setSlice(1);
+								run("Add Slice");
+							}
+							for(addingSR=1; addingSR<=5; addingSR++){
+								setSlice(nSlices);
+								run("Delete Slice");
+							}
+							print("Ventral - Dorsal inverted!"+"  resultNumR; "+resultNumR+"  resultNumF; "+resultNumF+"  aveCircR; "+aveCircR+"  aveCircF; "+aveCircF);
+						}
+					}//if(FrontBackAnalysis==1){
 					
-					SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
-					shapeMeasurement(SmeasurementArray);
-							
-					lowthreMIP=SmeasurementArray[2];
-					LXminsd=SmeasurementArray[3];
-					LYminsd=SmeasurementArray[4];
-					MaxARshape=SmeasurementArray[5];
-					MaxAngle=SmeasurementArray[6];
+					sliceGap=endslice-startslice;
 					
-					ShapeProblem=SmeasurementArray[9];
-					RXminsd=SmeasurementArray[12];
-					RYminsd=SmeasurementArray[13];
-					MaxShapeNo=SmeasurementArray[16];
-					FirstAR=SmeasurementArray[17];
-							
-		//			print("   LXsd; "+LXminsd+"  LYsd; "+LYminsd);
-		//			print("   RXsd; "+RXminsd+"  RYsd; "+RYminsd+"  Threshold; "+lowthreMIP+"  MaxARshape; "+MaxARshape);
-							
-		//if the shape is strange, rotation and measure again ////////////////////////////
-					if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
-						print("   Rotation angle; "+MaxAngle);
-						Angle_AR_measure=0;
-						SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
+					if(temptype=="Female")
+					depth=(170/sliceGap)*0.7;//depth adjustment same as template
+					
+					if(temptype=="Male")
+					depth=(160/sliceGap)*0.7;//depth adjustment same as template
+					
+					selectImage(realVNC);//final product for nc82
+					
+					run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
+					
+					
+					///// Shape analysis, for kicking broken / not well aligned sample ///////////////////
+					if(ShapeAnalysis==1){
+						//		print(nSlices+"  1264");
+						run("Z Project...", "projection=[Max Intensity]");
+						resetMinAndMax();
+						origiMIPID0=getImageID();
+						run("Gamma ", "gamma=0.60 in=[In macro]");
+						origiMIPID=getImageID();
+						resetMinAndMax();
+						run("8-bit");
+						
+						selectImage(origiMIPID0);
+						close();
+						
+						//	setBatchMode(false);
+						//		updateDisplay();
+						//		"do"
+						//			exit();
+						
+						MarkProblem=1;// create a white Mark on right top
+						
+						ShapeProblem=0;
+						selectImage(origiMIPID);
+						print("");
+						
+						lowthreMIP=0; MaxARshape=0; MaxAngle=0; Angle_AR_measure=1; FirstAR=0;
+						
+						SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
 						shapeMeasurement(SmeasurementArray);
-					
+						
 						lowthreMIP=SmeasurementArray[2];
 						LXminsd=SmeasurementArray[3];
 						LYminsd=SmeasurementArray[4];
+						MaxARshape=SmeasurementArray[5];
 						MaxAngle=SmeasurementArray[6];
 						
 						ShapeProblem=SmeasurementArray[9];
@@ -1129,215 +1109,239 @@ print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 						RYminsd=SmeasurementArray[13];
 						MaxShapeNo=SmeasurementArray[16];
 						FirstAR=SmeasurementArray[17];
-									
-						//		setBatchMode(false);
-						//			updateDisplay();
-						//			"do"
-						//			exit();
 						
-						updateDisplay();
-								
-						print("   LXsd2; "+LXminsd+"  LYsd2; "+LYminsd);
-						print("   RXsd2; "+RXminsd+"  RYsd2; "+RYminsd+"  Threshold2; "+lowthreMIP+"  MaxARshape2; "+MaxARshape);
-						if(LXminsd>24 || LYminsd>75){
-							//	if(Xminsd>20){
-							print("Left side VNC shape has problem! ");
-							ShapeProblem=1;
+						//			print("   LXsd; "+LXminsd+"  LYsd; "+LYminsd);
+						//			print("   RXsd; "+RXminsd+"  RYsd; "+RYminsd+"  Threshold; "+lowthreMIP+"  MaxARshape; "+MaxARshape);
+						
+						//if the shape is strange, rotation and measure again ////////////////////////////
+						if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
+							print("   Rotation angle; "+MaxAngle);
+							Angle_AR_measure=0;
+							SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
+							shapeMeasurement(SmeasurementArray);
+							
+							lowthreMIP=SmeasurementArray[2];
+							LXminsd=SmeasurementArray[3];
+							LYminsd=SmeasurementArray[4];
+							MaxAngle=SmeasurementArray[6];
+							
+							ShapeProblem=SmeasurementArray[9];
+							RXminsd=SmeasurementArray[12];
+							RYminsd=SmeasurementArray[13];
+							MaxShapeNo=SmeasurementArray[16];
+							FirstAR=SmeasurementArray[17];
+							
+							//		setBatchMode(false);
+							//			updateDisplay();
+							//			"do"
+							//			exit();
+							
+							updateDisplay();
+							
+							print("   LXsd2; "+LXminsd+"  LYsd2; "+LYminsd);
+							print("   RXsd2; "+RXminsd+"  RYsd2; "+RYminsd+"  Threshold2; "+lowthreMIP+"  MaxARshape2; "+MaxARshape);
+							if(LXminsd>24 || LYminsd>75){
+								//	if(Xminsd>20){
+								print("Left side VNC shape has problem! ");
+								ShapeProblem=1;
+							}
+							if(RXminsd>24 || RYminsd>75){
+								//	if(Xminsd>20){
+								print("Right side VNC shape has problem! ");
+								ShapeProblem=1;
+							}
+						}//	if(Xminsd>20 || Yminsd>065){
+						
+						
+						/// Copy to Original image/stack ///////////////////////
+						if(MaxShapeNo<=6 || MaxShapeNo>=8 ){
+							selectImage(origiMIPID);
+							run("Duplicate...", "title=DUP_MIP");
 						}
-						if(RXminsd>24 || RYminsd>75){
-							//	if(Xminsd>20){
-							print("Right side VNC shape has problem! ");
-							ShapeProblem=1;
+						if(MaxShapeNo==7){
+							selectImage(realVNC);
+							run("Z Project...", "projection=[Average Intensity]");
+							run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
+							setThreshold(lowthreMIP, 65536);
 						}
-					}//	if(Xminsd>20 || Yminsd>065){
-								
-								
-					/// Copy to Original image/stack ///////////////////////
-					if(MaxShapeNo<=6 || MaxShapeNo>=8 ){
-						selectImage(origiMIPID);
-						run("Duplicate...", "title=DUP_MIP");
-					}
-					if(MaxShapeNo==7){
-						selectImage(realVNC);
-						run("Z Project...", "projection=[Average Intensity]");
-						run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
-						setThreshold(lowthreMIP, 65536);
-					}
-					VNCDUP2=getImageID();
-								
-					if(MaxShapeNo==4){
-						//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-						run("Gamma ", "gamma=1.60 in=InMacro");
-					}
-					
-					if(MaxShapeNo<=6 || MaxShapeNo>=8)
-					setThreshold(lowthreMIP, 255);
-					
-					
-					run("Make Binary");
-					
-					MIPgenerateArray=newArray(0,1,invertON);
-					MIPgenerate(MIPgenerateArray);
-								
-					VNCmask=getImageID();
-					
-					scan_for_invert();
-					
-					if(ShapeProblem==1 && MarkProblem==1){
-						selectImage(VNCmask);
-						makeRectangle(15, 22, 55, 55);
-						setForegroundColor(255, 255, 255);
-						run("Fill", "slice");
-						run("Select All");
+						VNCDUP2=getImageID();
 						
-						saveAs("PNG", savedir+noext+"_Mask.png");
-						saveAs("PNG", myDir0+noext+"_Mask.png");
-					}
-								
-					run("Make Binary");
-					run("Copy");
-								
-					selectImage(VNCDUP2);
-					close();
-								
-					selectImage(VNCmask);
-					close();
-								
-					if(isOpen("DUP_DUP_MIP")){
-						selectWindow("DUP_DUP_MIP");
-						close();
-					}
-					CLEAR_MEMORY();
-					
-					selectImage(origiMIPID);
-					run("Paste");
-					run("Make Binary");
-							
-				}//if(ShapeAnalysis==1){
-////// scan left/right both side to detect 3 x2 leg //////////////				
-				
-				
-	///// file save as nrrd /////////////////////////////////////////////
-				if(donotOperate==0){//open from directory, not from Image
-					
-					if(MIPsave==1){
-						selectImage(realVNC);
-						run("Z Project...", "start=1 stop="+nSlices+" projection=[Max Intensity]");
-						resetMinAndMax();
-						run("8-bit");
-							
-						if(ShapeProblem==0)
-						saveAs("PNG", savedir+noext+".png");
-						else
-						saveAs("PNG", myDir0+noext+".png");
-							
-						close();
-					}
-					selectImage(realVNC);
-					//		run("Nrrd ... ", "nrrd="+savedir+noext+"_01.nrrd");
+						if(MaxShapeNo==4){
+							//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
+							run("Gamma ", "gamma=1.70 in=InMacro");
+						}
 						
-					if(ShapeProblem==0){
-						if(FrontAndBack==0)
-						run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_01.nrrd");
-							
-						if(FrontAndBack>0)
-						run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_Rev_01.nrrd");
-					}else{//ShapeProblem==1
-						if(FrontAndBack==0)
-						run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_01.nrrd");
-							
-						if(FrontAndBack>0)
-						run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_Rev_01.nrrd");
-					}
+						if(MaxShapeNo<=6 || MaxShapeNo>=8)
+						setThreshold(lowthreMIP, 255);
 						
-					close();
-					
-					if(titlelist.length>1){
-						for(exportchannel=1; exportchannel<titlelist.length; exportchannel++){
-							
-							if(exportchannel==1){
-								if(isOpen(neuron))
-								selectImage(neuron);
-								
-								if(isOpen(neuronTitle[0]))
-								selectWindow(neuronTitle[0]);
-								
-							}
-							
-							if(exportchannel==2){
-								if(isOpen(neuron2))
-								selectImage(neuron2);
-								
-								if(isOpen(neuronTitle[1]))
-								selectWindow(neuronTitle[1]);
-							}
-							if(exportchannel==3){
-								if(isOpen(neuron3))
-								selectImage(neuron3);
-								
-								if(isOpen(neuronTitle[2]))
-								selectWindow(neuronTitle[2]);
-							}
-							if(exportchannel==4)
-							selectImage(neuron4);
-							
-							if(exportchannel==5)
-							selectImage(neuron5);
-							
-							selectedNeuron=getImageID();
+						
+						run("Make Binary");
+						
+						MIPgenerateArray=newArray(0,1,invertON);
+						MIPgenerate(MIPgenerateArray);
+						
+						VNCmask=getImageID();
+						
+						scan_for_invert();
+						
+						if(ShapeProblem==1 && MarkProblem==1){
+							selectImage(VNCmask);
+							makeRectangle(15, 22, 55, 55);
+							setForegroundColor(255, 255, 255);
+							run("Fill", "slice");
 							run("Select All");
 							
-							slicePosition=newArray(startslice,endslice,slices,0,0);
-							addingslice(slicePosition);
+							saveAs("PNG", savedir+noext+"_Mask.png");
+							saveAs("PNG", myDir0+noext+"_Mask.png");
+						}
+						
+						run("Make Binary");
+						run("Copy");
+						
+						selectImage(VNCDUP2);
+						close();
+						
+						selectImage(VNCmask);
+						close();
+						
+						if(isOpen("DUP_DUP_MIP")){
+							selectWindow("DUP_DUP_MIP");
+							close();
+						}
+						CLEAR_MEMORY();
+						
+						selectImage(origiMIPID);
+						run("Paste");
+						run("Make Binary");
+						
+					}//if(ShapeAnalysis==1){
+					////// scan left/right both side to detect 3 x2 leg //////////////				
+					
+					
+					///// file save as nrrd /////////////////////////////////////////////
+					if(donotOperate==0){//open from directory, not from Image
+						
+						if(MIPsave==1){
+							selectImage(realVNC);
+							run("Z Project...", "start=1 stop="+nSlices+" projection=[Max Intensity]");
+							resetMinAndMax();
+							run("8-bit");
 							
-							run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
-							realNeuron=getImageID();//substack, duplicated
+							if(ShapeProblem==0)
+							saveAs("PNG", savedir+noext+".png");
+							else
+							saveAs("PNG", myDir0+noext+".png");
+							
+							close();
+						}
+						selectImage(realVNC);
+						//		run("Nrrd ... ", "nrrd="+savedir+noext+"_01.nrrd");
+						
+						if(ShapeProblem==0){
+							if(FrontAndBack==0)
+							run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_01.nrrd");
 							
 							if(FrontAndBack>0)
-							run("Reverse");
+							run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_Rev_01.nrrd");
+						}else{//ShapeProblem==1
+							if(FrontAndBack==0)
+							run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_01.nrrd");
 							
-							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
-							rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
-							selectImage(realNeuron);
-							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
-							
-							if(ShapeProblem==0){
-								if(FrontAndBack>0)
-								run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_Rev_0"+exportchannel+1+".nrrd");
-								if(FrontAndBack==0)
-								run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_0"+exportchannel+1+".nrrd");
-							}else{//ShapeProblem==1
-								if(FrontAndBack>0)
-								run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_Rev_0"+exportchannel+1+".nrrd");
+							if(FrontAndBack>0)
+							run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_Rev_01.nrrd");
+						}
+						
+						close();
+						
+						if(titlelist.length>1){
+							for(exportchannel=1; exportchannel<titlelist.length; exportchannel++){
 								
-								if(FrontAndBack==0)
-								run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_0"+exportchannel+1+".nrrd");
-							}
-							
-							selectImage(realNeuron);
-							close();
-							selectImage(selectedNeuron);
-							close();
-						}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
-					}//if(titlelist.length>1){
-				}//
-			}
-		}	//699: if(donotOperate==0){
-		if(donotOperate==1){
-			
-			if(isOpen(DUP))
-			selectImage(DUP);
+								if(exportchannel==1){
+									if(isOpen(neuron))
+									selectImage(neuron);
+									
+									if(isOpen(neuronTitle[0]))
+									selectWindow(neuronTitle[0]);
+									
+								}
+								
+								if(exportchannel==2){
+									if(isOpen(neuron2))
+									selectImage(neuron2);
+									
+									if(isOpen(neuronTitle[1]))
+									selectWindow(neuronTitle[1]);
+								}
+								if(exportchannel==3){
+									if(isOpen(neuron3))
+									selectImage(neuron3);
+									
+									if(isOpen(neuronTitle[2]))
+									selectWindow(neuronTitle[2]);
+								}
+								if(exportchannel==4)
+								selectImage(neuron4);
+								
+								if(exportchannel==5)
+								selectImage(neuron5);
+								
+								selectedNeuron=getImageID();
+								run("Select All");
+								
+								slicePosition=newArray(startslice,endslice,slices,0,0);
+								addingslice(slicePosition);
+								
+								run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+								realNeuron=getImageID();//substack, duplicated
+								
+								if(FrontAndBack>0)
+								run("Reverse");
+								
+								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
+								rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
+								selectImage(realNeuron);
+								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
+								
+								if(ShapeProblem==0){
+									if(FrontAndBack>0)
+									run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_Rev_0"+exportchannel+1+".nrrd");
+									if(FrontAndBack==0)
+									run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_0"+exportchannel+1+".nrrd");
+								}else{//ShapeProblem==1
+									if(FrontAndBack>0)
+									run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_Rev_0"+exportchannel+1+".nrrd");
+									
+									if(FrontAndBack==0)
+									run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_0"+exportchannel+1+".nrrd");
+								}
+								
+								selectImage(realNeuron);
+								close();
+								selectImage(selectedNeuron);
+								close();
+							}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
+						}//if(titlelist.length>1){
+					}//
+				}
+			}	//699: if(donotOperate==0){
+			if(donotOperate==1){
 				
-			run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_Cannot_segment_AR_short"+maxARshape+".nrrd");
-			donotOperate=0;
+				if(isOpen(DUP))
+				selectImage(DUP);
+				
+				run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_Cannot_segment_AR_short"+maxARshape+".nrrd");
+				donotOperate=0;
+			}
+		}//if(donotOperate==0){209
+		
+		if(donotOperate==1){
+			selectImage(DUP);
+			run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_No_nc82.nrrd");
 		}
-	}//if(donotOperate==0){209
-	
-	if(donotOperate==1){
-		selectImage(DUP);
-		run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_No_nc82.nrrd");
+	}else{//if(channel>1)
+		
+		print("This stack has only single channel!");
 	}
-	
 }//function God(path, dir, savedir, filen,noext){
 
 function colordecision(colorarray){
