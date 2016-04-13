@@ -27,7 +27,7 @@ path = args[3];// full file path for inport LSM
 chanspec = toLowerCase(args[4]);// channel spec
 Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
-temptype=args[7];//"Female" or "Male"
+temptype=args[7];//"f" or "m"
 
 
 print("Output dir: "+savedir);// save location
@@ -1057,10 +1057,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					sliceGap=endslice-startslice;
 					
-					if(temptype=="Female")
+					if(temptype=="f")
 					depth=(170/sliceGap)*0.7;//depth adjustment same as template
 					
-					if(temptype=="Male")
+					if(temptype=="m")
 					depth=(160/sliceGap)*0.7;//depth adjustment same as template
 					
 					selectImage(realVNC);//final product for nc82

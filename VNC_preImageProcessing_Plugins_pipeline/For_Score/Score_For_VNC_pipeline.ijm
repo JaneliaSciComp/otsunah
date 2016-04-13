@@ -19,24 +19,20 @@ if (lengthOf(args)>1) {
 	path = args[0];// full file path for Open
 	DataName = args[1];//Name for save
 	savedir = args[2];//save directory
-	templocationF=args[3];//Female template full file path
-	tempMasklocationF= args[4];//Female template mask full file path
-	temptype= args[5];//"Female" or "Male"
-	templocationM=args[6];//Male template full file path
-	tempMasklocationM= args[7];//Male template mask full file path
+	templocation=args[3];//Female template full file path
+	tempMasklocation= args[4];//Female template mask full file path
+	temptype= args[5];//"f" or "Male"
 }
 
 print("path; "+path);
 print("DataName; "+DataName);
 print("savedir; "+savedir);
-print("temptype; "+temptype);
+print("Gender; "+temptype);
 
 filepath=savedir+"Hideo_OBJPearsonCoeff.txt";
 
-if(temptype=="Female")
-open(tempMasklocationF);
-else
-open(tempMasklocationM);
+open(tempMasklocation);
+
 
 OrigiMask2=getImageID();// Template Mask
 tempMaskName=getTitle();
@@ -53,12 +49,10 @@ if(nSlices==220){
 	OrigiMask2=getImageID();// Template Mask
 }
 
-
-if(temptype=="Female"){
-	open(templocationF);
+open(templocation);
+if(temptype=="f"){
 	tempAve=60.56;
 }else{
-	open(templocationM);
 	tempAve=49.18;
 }
 setMinAndMax(0, 65535);
@@ -199,7 +193,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		print("deleted slice; "+nSlices);
 	}
 	
-	if(temptype=="Female"){
+	if(temptype=="f"){
 		Threweight=1;
 		incriweight=0.03;
 		maxGap=3;
