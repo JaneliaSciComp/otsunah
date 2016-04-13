@@ -37,7 +37,7 @@ print("Input image: "+path);//full file path for open data
 print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
-print("Template type: "+temptype);
+print("Gender: "+temptype);
 	
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
