@@ -30,9 +30,9 @@ print("savedir; "+savedir);
 print("Gender; "+temptype);
 
 filepath=savedir+"Hideo_OBJPearsonCoeff.txt";
+setBatchMode(true);
 
 open(tempMasklocation);
-
 
 OrigiMask2=getImageID();// Template Mask
 tempMaskName=getTitle();
@@ -59,10 +59,8 @@ setMinAndMax(0, 65535);
 tempName=getTitle();
 TempOri=getImageID();
 
-setBatchMode(true);
 histostretch=1;
 	
-
 ///// start processing /////////////////////////////////////////////////
 		
 open(path);
