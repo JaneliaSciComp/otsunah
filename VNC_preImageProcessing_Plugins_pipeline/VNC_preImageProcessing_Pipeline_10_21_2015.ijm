@@ -1,5 +1,5 @@
 //Pre-Image processing for VNC before CMTK operation
-//Wrote by Hideo Otsuna, October 21, 2015
+//Wrote by Hideo Otsuna, October 21, 2015, last update; 2016 08 03
 // This macro requires 6 Fiji plugins (Hideo wrote these plugins) "Histgram_stretch.class", "Size_based_Noise_elimination.class", "Mask255_to_4095.class"
 //"Gamma_.jar", "Size_to_Skelton.jar", "Nrrd_Writer.class" (modified for compressed nrrd option)
 
@@ -62,11 +62,21 @@ List.clear();
 		
 			
 // open files //////////////////////////////////			
-
+filesize=File.length(path);
 
 print(path);
 setBatchMode(true);
+
+if(filesize>1000000)// if more than 1MB
 open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
+else{
+	print("file size is too small, less than 1MB.");
+	logsum=getInfo("log");
+	filepath=savedir+"VNC_pre_aligner_log.txt";
+	File.saveString(logsum, filepath);
+	run("Quit");
+}
+
 origi=getTitle();
 
 //		takeout=newArray(origi,0);
