@@ -70,7 +70,7 @@ setBatchMode(true);
 if(filesize>1000000)// if more than 1MB
 open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
 else{
-	print("file size is too small, less than 1MB.");
+	print("file size is too small, "+filesize/1000000+" MB, less than 1MB.");
 	logsum=getInfo("log");
 	filepath=savedir+"VNC_pre_aligner_log.txt";
 	File.saveString(logsum, filepath);
