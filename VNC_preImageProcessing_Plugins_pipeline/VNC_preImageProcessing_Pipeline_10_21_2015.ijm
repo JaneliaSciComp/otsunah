@@ -16,7 +16,7 @@ StackHeight=1024;
 
 // Arguments
 
-//argstr="/test/VNC_pipeline/,tile-2030851234574893154.v3draw,0,/test/VNC_pipeline/tile-2030851234574893154.v3draw,sr,0.51,0.51,Female"//for test
+//argstr="/test/VNC_pipeline/,tile-2030851234574893154.v3draw,0,/test/VNC_Test/failed_sample/tile-2147098802673156194.v3dpbd,sr,0.51,0.51,f"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -51,7 +51,10 @@ for (si=0; si<n3; si++) {
 	c = charCodeAt(savedir, si);
 	if(c==32){// if there is a space
 		print("There is a space, please eliminate the space from saving directory.");
-		exit();
+		logsum=getInfo("log");
+		filepath=savedir+"VNC_pre_aligner_log.txt";
+		File.saveString(logsum, filepath);
+		print("line 57; log file saved");
 		run("Quit");
 	}
 }
@@ -74,6 +77,7 @@ else{
 	logsum=getInfo("log");
 	filepath=savedir+"VNC_pre_aligner_log.txt";
 	File.saveString(logsum, filepath);
+	print("line 80; log file saved");
 	run("Quit");
 }
 
@@ -93,6 +97,7 @@ updateDisplay();
 logsum=getInfo("log");
 filepath=savedir+"VNC_pre_aligner_log.txt";
 File.saveString(logsum, filepath);
+print("line 100; log file saved");
 run("Quit");
 
 
@@ -166,6 +171,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 		
 		selectImage(nc82);
 		
+		logsum=getInfo("log");
+		filepath=savedir+"VNC_pre_aligner_log.txt";
+		File.saveString(logsum, filepath);
 		
 		//	setBatchMode(false);
 		//	updateDisplay();
@@ -267,6 +275,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				}//for(i=1; i<=nSlices; i++){
 				
 				print("avethreDef; "+avethreDef);
+				
+				logsum=getInfo("log");
+				File.saveString(logsum, filepath);
 				
 				for(ig=1; ig<=nSlices; ig++){
 					setSlice(ig);
@@ -433,6 +444,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									numberResults=1;
 									lowerM=lower; threTry=ThreTry; angle=angleT; SizeM=SizeMT; finalMIP=MIPstep;
 									print("   lowerM; "+lowerM+"   threTry; "+threTry+"   angle; "+angle+"   SizeM; "+SizeM+"   maxARshape; "+maxARshape+"   finalMIP; "+finalMIP);
+									
+									logsum=getInfo("log");
+									File.saveString(logsum, filepath);
 								}
 							}//	if(maxARshape<ARshape){
 						}else{
@@ -475,6 +489,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 			//	selectImage(mask1st);
 			print("numberResults; "+numberResults+"  maxARshape; "+maxARshape);
 			
+			logsum=getInfo("log");
+			File.saveString(logsum, filepath);
+			
 			//	setBatchMode(false);
 			//		updateDisplay();
 			//		"do"
@@ -501,6 +518,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					if(step1==1){
 						donotOperate=1;
 						print("Check data, no signals? or VNC is hitting edge of data");
+						
+						logsum=getInfo("log");
+						File.saveString(logsum, filepath);
 					}
 					if(step1==0){
 						close();
@@ -563,6 +583,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								SizeM=getResult("Area", i);
 								numberResults=nResults;
 								print("increment method");
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
 							}
 						}
 					}//for(i=0; i<nResults; i++){
@@ -597,6 +619,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				ThreMethod="Histogram 2 increment method";
 				
 				print("lower thresholding for Br and VNC separation; "+lowerM+"  ThreMethod; "+ThreMethod);
+				
+				logsum=getInfo("log");
+				File.saveString(logsum, filepath);
+				
 				selectImage(mask1st);
 				
 				run("Grays");
@@ -615,6 +641,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				
 				rotation=270+angle;
 				print("angle; "+angle);
+				
+				logsum=getInfo("log");
+				File.saveString(logsum, filepath);
 				
 				//		setBatchMode(false);
 				//		updateDisplay();
@@ -674,6 +703,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					//		setBatchMode(false);
 					//		updateDisplay();
 					print("not single sample, skipped");
+					
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
+					
 					donotOperate=1;
 				}
 				xTrue=0; yTrue=0;
@@ -729,6 +762,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					}//for(i=1; i<=nSlices; i++){
 					avehighThre=highthreSum/nSlices;
 					print("highslice; "+highslice+"  highthre; "+highthre/2+"  avehighThre; "+avehighThre);
+					
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
 					
 					//		setBatchMode(false);
 					//			updateDisplay();
@@ -788,6 +824,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						if(nResults==0){
 							print("Check data, zero data");
+							
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
 						}
 						
 						selectImage(MaxBWdup);
@@ -892,6 +931,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								
 								startslice=startdeci;
 								print("Start slice is...; "+startdeci+"  MaxVal; "+MaxSize);
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
 							}
 						}//if(startslice==0){
 						List.set("SDGAP"+startdeci, sdGap);
@@ -926,6 +967,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									
 									endslice=endS2;
 									print("End slice is...; "+endS2+"  MaxVal; "+MaxSize2);
+									logsum=getInfo("log");
+									File.saveString(logsum, filepath);
 									endsliceDeside=1;
 								}
 							}//if(endsliceDeside==0){
@@ -937,6 +980,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					endslice=startslice+110;
 					
 					print("startslice; "+startslice+"  endslice; "+endslice);
+					
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
 					
 					selectImage(DUP);
 					slicePosition=newArray(startslice,endslice,slices,0,0);
@@ -1062,6 +1108,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Delete Slice");
 							}
 							print("Ventral - Dorsal inverted!"+"  resultNumR; "+resultNumR+"  resultNumF; "+resultNumF+"  aveCircR; "+aveCircR+"  aveCircF; "+aveCircF);
+							
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
 						}
 					}//if(FrontBackAnalysis==1){
 					
@@ -1105,7 +1154,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						lowthreMIP=0; MaxARshape=0; MaxAngle=0; Angle_AR_measure=1; FirstAR=0;
 						
-						SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
+						SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight,savedir);
 						shapeMeasurement(SmeasurementArray);
 						
 						lowthreMIP=SmeasurementArray[2];
@@ -1126,8 +1175,12 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						//if the shape is strange, rotation and measure again ////////////////////////////
 						if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
 							print("   Rotation angle; "+MaxAngle);
+							
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
+							
 							Angle_AR_measure=0;
-							SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight);
+							SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight,savedir);
 							shapeMeasurement(SmeasurementArray);
 							
 							lowthreMIP=SmeasurementArray[2];
@@ -1150,14 +1203,22 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							print("   LXsd2; "+LXminsd+"  LYsd2; "+LYminsd);
 							print("   RXsd2; "+RXminsd+"  RYsd2; "+RYminsd+"  Threshold2; "+lowthreMIP+"  MaxARshape2; "+MaxARshape);
+							
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
+							
 							if(LXminsd>24 || LYminsd>75){
 								//	if(Xminsd>20){
 								print("Left side VNC shape has problem! ");
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
 								ShapeProblem=1;
 							}
 							if(RXminsd>24 || RYminsd>75){
 								//	if(Xminsd>20){
 								print("Right side VNC shape has problem! ");
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
 								ShapeProblem=1;
 							}
 						}//	if(Xminsd>20 || Yminsd>065){
@@ -1218,7 +1279,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							selectWindow("DUP_DUP_MIP");
 							close();
 						}
-						CLEAR_MEMORY();
+			//			CLEAR_MEMORY();
 						
 						selectImage(origiMIPID);
 						run("Paste");
@@ -1351,6 +1412,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 	}else{//if(channel>1)
 		
 		print("This stack has only single channel!");
+		logsum=getInfo("log");
+		File.saveString(logsum, filepath);
 	}
 }//function God(path, dir, savedir, filen,noext){
 
@@ -1578,7 +1641,7 @@ function shapeMeasurement(SmeasurementArray){
 	MaxShapeNo=0;
 	StackWidth=SmeasurementArray[18];
 	StackHeight=SmeasurementArray[19];
-	
+	savedir=SmeasurementArray[20];
 	
 //	print("MaxARshape; from array: "+MaxARshape);
 	
@@ -1735,6 +1798,9 @@ function shapeMeasurement(SmeasurementArray){
 					if(lowthreSeparation>20000){
 						ResultSeparation=1;
 						print("Cannot separate Br and VNC for shape measurement");
+						logsum=getInfo("log");
+						filepath=savedir+"VNC_pre_aligner_log.txt";
+						File.saveString(logsum, filepath);
 						stepMask=8;
 					}//if(lowthreSeparation>20000){
 				}//while(ResultSeparation==0){
@@ -2082,6 +2148,10 @@ function shapeMeasurement(SmeasurementArray){
 				if(LeftRight==1)
 				print("   "+stepMask+"   RlegOne; "+Xmin1_Result+", "+Ymin1_Result+"  RlegTwo; "+Xmin2_Result+", "+Ymin2_Result+"  RlegThree; "+Xmin3_Result+", "+Ymin3_Result);
 				
+				logsum=getInfo("log");
+				filepath=savedir+"VNC_pre_aligner_log.txt";
+				File.saveString(logsum, filepath);
+				
 				aveX=(Xmin1_Result+Xmin2_Result+Xmin3_Result)/3;
 				Xsd=sqrt(((aveX-Xmin1_Result)*(aveX-Xmin1_Result)+(aveX-Xmin2_Result)*(aveX-Xmin2_Result)+(aveX-Xmin3_Result)*(aveX-Xmin3_Result))/3);
 							
@@ -2118,6 +2188,10 @@ function shapeMeasurement(SmeasurementArray){
 							MaxAngle=angleFunc;
 							
 							print("MaxARshape; "+MaxARshape);
+							
+							logsum=getInfo("log");
+							filepath=savedir+"VNC_pre_aligner_log.txt";
+							File.saveString(logsum, filepath);
 						}
 					}
 				}//if(ResultNstep==1){
@@ -2140,11 +2214,17 @@ function shapeMeasurement(SmeasurementArray){
 			LXminsd=Xminsd;
 			LYminsd=Yminsd;
 			
+			logsum=getInfo("log");
+			File.saveString(logsum, filepath);
+			
 		}else if(LeftRight==1){
 			
 			print("Thresholding Method for shape Right.  "+BestThreM+"   R_Xsd; "+Xminsd+"  R_Ysd; "+Yminsd+"  ThreVal; "+lowthreMIP);
 			RXminsd=Xminsd;
 			RYminsd=Yminsd;
+			
+			logsum=getInfo("log");
+			File.saveString(logsum, filepath);
 		}
 		
 	}//for(LeftRight=0; LeftRight<2; LeftRight++){// for left right 
@@ -2152,6 +2232,11 @@ function shapeMeasurement(SmeasurementArray){
 	if(MaxARshape<1.75){// 
 		if(FirstAR==0){
 			print("The VNC is short! "+MaxARshape);
+			
+			logsum=getInfo("log");
+			filepath=savedir+"VNC_pre_aligner_log.txt";
+			File.saveString(logsum, filepath);
+			
 			ShapeProblem=1;
 		}
 	}
