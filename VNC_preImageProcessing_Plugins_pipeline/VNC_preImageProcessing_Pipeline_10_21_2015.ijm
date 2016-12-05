@@ -39,6 +39,11 @@ print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
 
+exi=File.exists(savedir);
+if(exi!=1){
+	File.makeDirectory(savedir);
+	print("savedir created!");
+}
 logsum=getInfo("log");
 filepath=savedir+"VNC_pre_aligner_log.txt";
 File.saveString(logsum, filepath);
