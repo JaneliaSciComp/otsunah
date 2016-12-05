@@ -38,7 +38,11 @@ print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
-	
+
+logsum=getInfo("log");
+filepath=savedir+"VNC_pre_aligner_log.txt";
+File.saveString(logsum, filepath);
+
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
 	
@@ -71,7 +75,18 @@ print(path);
 setBatchMode(true);
 
 if(filesize>1000000)// if more than 1MB
+print("Try Open");
+logsum=getInfo("log");
+filepath=savedir+"VNC_pre_aligner_log.txt";
+File.saveString(logsum, filepath);
+
 open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
+
+print("Opened File");
+logsum=getInfo("log");
+filepath=savedir+"VNC_pre_aligner_log.txt";
+File.saveString(logsum, filepath);
+
 else{
 	print("file size is too small, "+filesize/1000000+" MB, less than 1MB.");
 	logsum=getInfo("log");

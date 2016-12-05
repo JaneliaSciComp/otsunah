@@ -41,11 +41,11 @@ startMIP=0;//MIP starting slice
 endMIP=1000;//MIP ending slice
 
 desiredmean=150;
-lowerweight=0.8;
+lowerweight=0.7;
 MIPbasedThreshold=0;//0 is lower thresholding with 3D stack, 1 is based on MIP
 
 if(AutoBRV==1)
-//print("Desired mean; "+desiredmean);
+print("Desired mean; "+desiredmean);
 
 origi=getTitle();
 files=files+1;
@@ -80,27 +80,27 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 	
 	selectImage(neuron[channelNo]);
 	stack=getImageID();
-	
 	BasicMIP=newArray(bitd,0,stack);
 	basicoperation(BasicMIP);//rename MIP.tif
 	
-	DefMaxValue=BasicMIP[1];
+	MIP=getImageID();
+	DefMaxValue=BasicMIP[1];//actual max value in stack
 				
 	if(AutoBRV==1){//to get brightness value from MIP
-		selectWindow("MIP.tif");
-		MIP=getImageID();
-		briadj=newArray(desiredmean, 0, 0, 0,lowerweight,lowthreM,autothre,DefMaxValue,MIP,stack);
+		selectImage(MIP);
+		briadj=newArray(desiredmean, 0, 0, 0,lowerweight,lowthreM,autothre,DefMaxValue,MIP,stack,multiDSLT,secondjump);
 		autobradjustment(briadj);
 		applyV=briadj[2];
 		sigsize=briadj[1];
 		sigsizethre=briadj[3];
 		sigsizethre=round(sigsizethre);
 		sigsize=round(sigsize);
+		
 	}//	if(AutoBRV==1){
 				
 				
 	selectImage(stack);
-	brightnessapply(applyV, bitd,lowerweight,MIPbasedThreshold,stack);
+	brightnessapply(applyV, bitd,lowerweight,unsharp,lowthreM,stack);
 					
 					
 	if(usingLUT=="royal")
@@ -114,7 +114,7 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 		}
 	}
 				
-	TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP);
+	TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP,expand);
 				
     savePrefix = saveplace+"/"+DataName+(channelNo+1);
     print("Saving to "+savePrefix);
@@ -128,6 +128,11 @@ for(channelNo=0; channelNo<signal_count; channelNo++){
 }//for(channelNo=0; channelNo<signal_count; channelNo++){
 
 print("Done");
+
+logsum=getInfo("log");
+filepath=savedir+"Color_depthMIP_log.txt";
+File.saveString(logsum, filepath);
+
 run("Close All");
 run("Quit");
 
@@ -141,6 +146,8 @@ function autobradjustment(briadj){
 	DefMaxValue=briadj[7];
 	MIP=briadj[8];
 	stack=briadj[9];
+	multiDSLT=briadj[10];
+	secondjump=briadj[11];
 	
 	if(autothre==1)//Fiji Original thresholding
 	run("Duplicate...", "title=test.tif");
@@ -161,14 +168,15 @@ function autobradjustment(briadj){
 	}
 	/////////////////////signal size measurement/////////////////////
 	selectImage(MIP);
-	
 	run("Duplicate...", "title=test2.tif");
-	selectWindow("test2.tif");
 	setAutoThreshold("Triangle dark");
 	getThreshold(lower, upper);
 	setThreshold(lower, DefMaxValue);
 	
-	run("Convert to Mask");
+	run("Convert to Mask", "method=Triangle background=Dark black");
+	
+	selectWindow("test2.tif");
+	
 	if(bitd==16)
 	run("8-bit");
 	
@@ -181,7 +189,6 @@ function autobradjustment(briadj){
 		}
 	}
 	getStatistics(areathre, mean, min, max, std, histogram);
-	selectWindow("test2.tif");
 	close();//test2.tif
 	
 	
@@ -194,7 +201,10 @@ function autobradjustment(briadj){
 		getThreshold(lower, upper);
 		setThreshold(lower, DefMaxValue);
 		
-		run("Convert to Mask");
+		run("Convert to Mask", "method=Moments background=Dark black");
+		
+		selectWindow("test2.tif");
+		
 		if(bitd==16)
 		run("8-bit");
 		
@@ -222,7 +232,7 @@ function autobradjustment(briadj){
 	//////////////////////
 
 	selectImage(MIP);//MIP
-	getMinAndMax(min, max);
+	getMinAndMax(min1, max);
 	if(max>4095){//16bit
 		minus=0;
 		getMinAndMax(min, max1);
@@ -233,7 +243,7 @@ function autobradjustment(briadj){
 			
 			
 			//		print("premax; "+max+"premin; "+min);
-			run("Histgram stretch", "lower="+min+" higher="+max1-minus+"");//histogram stretch	\
+			run("Histgram stretch", "lower=0 higher="+max1-minus+"");//histogram stretch	\
 			getMinAndMax(min, max);
 			//	print("postmax; "+max+"postmin; "+min);
 			close();
@@ -242,14 +252,14 @@ function autobradjustment(briadj){
 		//		print("minus; "+minus);
 		
 		selectImage(MIP);//MIP
-		run("Histgram stretch", "lower="+min+" higher="+max1-minus-100+"");//histogram stretch	\
+		run("Histgram stretch", "lower="+min1+" higher="+max1-minus-100+"");//histogram stretch	\
 		getMinAndMax(min, max);
 		//		print("after max; "+max);
 		
 		selectImage(stack);
-		run("Histgram stretch", "lower="+min+" higher="+max1-minus-100+" 3d");//histogram stretch	
+		run("Histgram stretch", "lower="+min1+" higher="+max1-minus-100+" 3d");//histogram stretch	
 		selectImage(MIP);//MIP
-	}
+	}//if(max>4095){//16bit
 	
 	run("Mask Brightness Measure", "mask=test.tif data=MIP.tif desired="+desiredmean+"");
 	selectImage(MIP);//MIP
@@ -261,6 +271,7 @@ function autobradjustment(briadj){
 	applyV=applyvv[0];
 	
 	selectImage(MIP);//MIP
+	
 	
 	if(fff=="MIP.tif"){
 		if(bitd==16)
