@@ -87,7 +87,22 @@ if(endsWith(filename,".lsm")){
 	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+outputdir+"] crop_width=0");
 	//	else if(CH3positive!=-1)
 	//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
+	
+	dotindex=lastIndexOf(filename,".lsm");
+	truname=substring(filename,0,dotindex);
+	
+	exi2ch=File.exists(outputdir+truname+"-1-2.tif");
+	exi3ch=File.exists(outputdir+truname+"-1-3.tif");
+	
+	if(exi2ch==1)
+	File.rename(outputdir+truname+"-1-2.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+	
+	if(exi3ch==1)
+	File.rename(outputdir+truname+"-1-3.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+
 }
+
+
 
 "Done"
 
