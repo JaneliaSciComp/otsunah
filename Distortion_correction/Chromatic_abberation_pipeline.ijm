@@ -100,7 +100,7 @@ if(endsWith(filename,".lsm")){
 	if(exi3ch==1)
 	File.rename(outputdir+truname+"-1-3.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
 	
-	open(outputdir+truname+".tif")
+	open(outputdir+truname+".tif");
 	run("V3Draw...", "save="+outputdir+truname+".v3draw");
 	File.delete(outputdir+truname+".tif");
 	
