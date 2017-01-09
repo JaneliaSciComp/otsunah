@@ -6,7 +6,7 @@ ScopeNum=0;
 
 //args will be like this; "dir,filename,outputdir,Scope #1"
 
-
+dir=0; filename=0; outputdir=0; ScopeNumST=0;
 args = split(getArgument(),",");
 dir = args[0];// Imput directory of the LSM files
 filename = args[1];// The name of the LSM file
@@ -25,14 +25,17 @@ if(exi!=1){
 }
 logsum=getInfo("log");
 filepath=outputdir+"Distortion_Correction_log.txt";
+
+if(File.exists(filepath)!=1)
 File.saveString(logsum, filepath);
 
+print("\\Clear");
 
 exi2=File.exists(dir+filename);
 if(exi2!=1){
 	print("input file is not existing!  "+dir+filename);
 	logsum=getInfo("log");
-	filepath=outputdir+"Distortion_Correction_log_error.txt";
+	filepath=outputdir+"Distortion_Correction_log_error+"+filename+".txt";
 	File.saveString(logsum, filepath);
 	
 	run("Quit");
@@ -64,26 +67,16 @@ if(ScopeNum==0){
 	print("ScopeNumST; "+ScopeNumST+" is wrong string. It must be Scope #1,Scope #2,Scope #3,Scope #4,Scope #5,Scope #6");
 	
 	logsum=getInfo("log");
-	filepath=outputdir+"Distortion_Correction_log_error.txt";
+	filepath=outputdir+"Distortion_Correction_log_error Scope num; "+ScopeNumST+".txt";
 	File.saveString(logsum, filepath);
 	
 	run("Quit");
 }
 
-//mydir2=outputdir+"CA_fixed_2ch"+File.separator;
-//File.makeDirectory(mydir2);
-
-//mydir3=outputdir+"CA_fixed_3ch"+File.separator;
-//File.makeDirectory(mydir3);
-
 if(endsWith(filename,".lsm")){
 	
 	imputdir=dir+filename;
 	
-	//	CH2positive=indexOf(list[i], "Ch2_");
-	//	CH3positive=indexOf(list[i], "Ch3_");
-	
-	//	if(CH2positive!=-1)
 	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+outputdir+"] crop_width=0");
 	//	else if(CH3positive!=-1)
 	//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
@@ -109,8 +102,8 @@ if(endsWith(filename,".lsm")){
 
 
 "Done"
-
+""
 logsum=getInfo("log");
 filepath=outputdir+"Distortion_Correction_log.txt";
-File.saveString(logsum, filepath);
+File.append(logsum, filepath);
 run("Quit");
