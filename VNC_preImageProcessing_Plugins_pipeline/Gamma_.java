@@ -70,7 +70,7 @@ public class Gamma_ extends JFrame implements PlugIn {
 			bittype=1;
 			majorT=3;
 			minorT=3;
-			setvalue=4095;
+			setvalue=65535;
 		}
 		
 		int curslice=imp.getSlice();
