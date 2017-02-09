@@ -18,13 +18,13 @@ AdvanceDepth=true;
 // Arguments
 
 
-argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I1_ZB49_T1.tif,sr,0.2965237,0.2965237,f"//for test
+//argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
 
 //argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f"//for test
-args = split(argstr,",");
+//args = split(argstr,",");
 
-//args = split(getArgument(),",");
+args = split(getArgument(),",");
 savedir = args[0];// save dir
 prefix = args[1];//file name
 VNC_Lateral_small = args[2];// full file path for VNC_Lateral_F.tif
@@ -66,7 +66,6 @@ for (si=0; si<n3; si++) {
 	if(c==32){// if there is a space
 		print("There is a space, please eliminate the space from saving directory.");
 		logsum=getInfo("log");
-		filepath=savedir+"VNC_pre_aligner_log.txt";
 		File.saveString(logsum, filepath);
 		print("line 57; log file saved");
 		run("Quit");
@@ -84,22 +83,19 @@ print(path);
 setBatchMode(true);
 
 if(filesize>1000000){// if more than 1MB
-print("Try Open");
-logsum=getInfo("log");
-filepath=savedir+"VNC_pre_aligner_log.txt";
-File.saveString(logsum, filepath);
-
-open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
-
-print("Opened File");
-logsum=getInfo("log");
-filepath=savedir+"VNC_pre_aligner_log.txt";
-File.saveString(logsum, filepath);
-
+	print("Try Open");
+	logsum=getInfo("log");
+	File.saveString(logsum, filepath);
+	
+	open(path);// for tif, comp nrrd, lsm", am, v3dpbd, mha
+	
+	print("Opened File");
+	logsum=getInfo("log");
+	File.saveString(logsum, filepath);
+	
 }else{
 	print("file size is too small, "+filesize/1000000+" MB, less than 1MB.");
 	logsum=getInfo("log");
-	filepath=savedir+"VNC_pre_aligner_log.txt";
 	File.saveString(logsum, filepath);
 	print("line 80; log file saved");
 	run("Quit");
@@ -1500,7 +1496,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								close();
 							}
 							print(" 1502; nImages; "+nImages);
-					//		PrintWindows ();
+							//		PrintWindows ();
 							selectImage(lateralNC82MIP);
 							
 							sampWidth=getWidth();
@@ -1519,11 +1515,11 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							if(defaultWidth>30)
 							startWidth=20;
 							
-						//	if(defaultWidth<15)
-						//	startWidth=17;
+							//	if(defaultWidth<15)
+							//	startWidth=17;
 							
-						//	setBatchMode(false);
-						//	updateDisplay();
+							//	setBatchMode(false);
+							//	updateDisplay();
 							
 							tempimg="VNC_Lateral_F.tif"; 
 							
@@ -1558,11 +1554,11 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Gamma ", "gamma=1.2 in=InMacro");
 								DUP2=getImageID();
 								print(" 1559; nImages; "+nImages);
-				//				PrintWindows ();
+								//				PrintWindows ();
 								selectImage(DUP3);
 								close();
 								print(" 1562; nImages; "+nImages);
-						//		PrintWindows ();
+								//		PrintWindows ();
 								for(iclose=0; iclose<3; iclose++){
 									if(isOpen("DUPnc82.tif")){
 										selectWindow("DUPnc82.tif");
@@ -1574,7 +1570,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									}
 								}
 								print(" 1573; nImages; "+nImages);
-						//		PrintWindows ();
+								//		PrintWindows ();
 								selectImage(DUP2);
 								rename("DUPnc82.tif");
 								
@@ -1605,7 +1601,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Canvas Size...", "width=60 height=100 position=Center zero");
 								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=90 parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-;
+								;
 								
 								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								
@@ -1700,10 +1696,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							}//	for(startW=round(startWidth); startW<round(startWidth)*4; startW++){
 							
 							
-								if(isOpen(lateralNC82MIP)){
-									selectImage(lateralNC82MIP);
-									close();
-								}
+							if(isOpen(lateralNC82MIP)){
+								selectImage(lateralNC82MIP);
+								close();
+							}
 							
 							print(" 1703; nImages; "+nImages);
 							PrintWindows ();
@@ -1886,11 +1882,11 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 			run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_Cannot_segment_AR_short"+maxARshape+".nrrd");
 			donotOperate=0;
 		}
-//		if(donotOperate==1){
-//			if(isOpen(DUP))
-//			selectImage(DUP);
-//			run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_No_nc82.nrrd");
-//		}
+		//		if(donotOperate==1){
+		//			if(isOpen(DUP))
+		//			selectImage(DUP);
+		//			run("Nrrd Writer", "compressed nrrd="+myDir4+noext+"_No_nc82.nrrd");
+		//		}
 	}else if(channels==1){//if(channels>1)
 		print("This stack has only single channel!");
 		logsum=getInfo("log");
