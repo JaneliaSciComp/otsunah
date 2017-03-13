@@ -21,6 +21,7 @@ AdvanceDepth=true;
 //argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
 
+//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/scicompsoft/otsuna/VNC_pipeline_error/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f"//for test
 //argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f"//for test
 //args = split(argstr,",");
 
@@ -176,14 +177,17 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					signal_count=signal_count+1;
 				}else if(signal_count==2){
 					neuron3=getImageID();
+					print("neuron3; "+neuron3+"  "+titlelist[i]);
 					neuronTitle[2]=getTitle();
 					signal_count=signal_count+1;
 				}else if(signal_count==3){
 					neuron4=getImageID();
+					print("neuron4; "+neuron4+"  "+titlelist[i]);
 					neuronTitle[3]=getTitle();
 					signal_count=signal_count+1;
 				}else if(signal_count==4){
 					neuron5=getImageID();
+					print("neuron5; "+neuron5+"  "+titlelist[i]);
 					neuronTitle[4]=getTitle();
 				}
 			}
