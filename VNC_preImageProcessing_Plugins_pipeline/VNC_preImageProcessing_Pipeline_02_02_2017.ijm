@@ -1347,6 +1347,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					print("   LXsd; "+LXminsd+"  LYsd; "+LYminsd+"   MaxShapeNo; "+MaxShapeNo);
 					print("   RXsd; "+RXminsd+"  RYsd; "+RYminsd+"  Threshold; "+lowthreMIP+"  MaxARshape; "+MaxARshape);
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
 					
 					//if the shape is strange, rotation and measure again ////////////////////////////
 					if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
@@ -1423,15 +1425,23 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					print("MIPgenerate pre #1424");
 					run("Make Binary");
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
 					
 					MIPgenerateArray=newArray(0,1,invertON);
 					MIPgenerate(MIPgenerateArray);
 					
 					VNCmask=getImageID();
-					print("scan_for_invert pre #1431");
+					print("scan_for_invert pre #1433");
 					RunGray=1;
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
+					
 					scan_for_invert(RunGray);
 					print("scan_for_invert Done");
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
+					
 					if(ShapeProblem==1 && MarkProblem==1){
 						selectImage(VNCmask);
 						makeRectangle(15, 22, 55, 55);
@@ -1468,6 +1478,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				////// scan left/right both side to detect 3 x2 leg //////////////				
 				
 				print("donotOperate #1470; "+donotOperate);
+				logsum=getInfo("log");
+				File.saveString(logsum, filepath);
+				
 				///// file save as nrrd /////////////////////////////////////////////
 				if(donotOperate==0){//open from directory, not from Image
 					
