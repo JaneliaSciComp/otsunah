@@ -1708,6 +1708,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								}
 								print(" 1694; nImages; "+nImages);
 								PrintWindows ();
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
+								
 							}//	for(startW=round(startWidth); startW<round(startWidth)*4; startW++){
 							
 							
