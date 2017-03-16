@@ -1584,7 +1584,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 										close();
 									}
 								}
-								print(" 1573; nImages; "+nImages);
+								print(" 1573; nImages; "+nImages+"   maxrotation; "+maxrotation);
 								//		PrintWindows ();
 								selectImage(DUP2);
 								rename("DUPnc82.tif");
@@ -1606,7 +1606,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Enhance Local Contrast (CLAHE)", "blocksize=10 histogram=4095 maximum=25 mask=*None* fast_(less_accurate)");
 								
 								heightSizeRatio=6.36416/heightVXsmall;
-								run("Size...", "width="+startW*(0.6214809/widthVXsmall)+" height="+sampHeight/heightSizeRatio+" interpolation=None");
+								run("Size...", "width="+round(startW*(0.6214809/widthVXsmall))+" height="+round(sampHeight/heightSizeRatio)+" interpolation=None");
 								
 												setBatchMode(false);
 												updateDisplay();
@@ -1616,7 +1616,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Canvas Size...", "width=60 height=100 position=Center zero");
 								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=90 parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-								;
+								
 								
 								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								
