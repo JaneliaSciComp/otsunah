@@ -1608,10 +1608,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								heightSizeRatio=6.36416/heightVXsmall;
 								run("Size...", "width="+startW*(0.6214809/widthVXsmall)+" height="+sampHeight/heightSizeRatio+" interpolation=None");
 								
-								//				setBatchMode(false);
-								//				updateDisplay();
-								//				"do"
-								//				exit();
+												setBatchMode(false);
+												updateDisplay();
+												"do"
+												exit();
 								
 								run("Canvas Size...", "width=60 height=100 position=Center zero");
 								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=90 parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
@@ -1621,6 +1621,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								
 								totalLog=getInfo("log");
+								filepath2=savedir+"VNC_Iteration_log.txt";
+								File.saveString(totalLog, filepath2);
+								
 								
 								lengthofLog=lengthOf(totalLog);
 								OBJPosi=lastIndexOf(totalLog, "score;");
