@@ -1345,8 +1345,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					MaxShapeNo=SmeasurementArray[16];
 					FirstAR=SmeasurementArray[17];
 					
-					//			print("   LXsd; "+LXminsd+"  LYsd; "+LYminsd);
-					//			print("   RXsd; "+RXminsd+"  RYsd; "+RYminsd+"  Threshold; "+lowthreMIP+"  MaxARshape; "+MaxARshape);
+					print("   LXsd; "+LXminsd+"  LYsd; "+LYminsd+"   MaxShapeNo; "+MaxShapeNo);
+					print("   RXsd; "+RXminsd+"  RYsd; "+RYminsd+"  Threshold; "+lowthreMIP+"  MaxARshape; "+MaxARshape);
 					
 					//if the shape is strange, rotation and measure again ////////////////////////////
 					if(LXminsd>20 || LYminsd>75 || RXminsd>20 || RYminsd>75){
@@ -1421,17 +1421,17 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					if(MaxShapeNo<=6 || MaxShapeNo>=8)
 					setThreshold(lowthreMIP, 255);
 					
-					
+					print("MIPgenerate pre #1424");
 					run("Make Binary");
 					
 					MIPgenerateArray=newArray(0,1,invertON);
 					MIPgenerate(MIPgenerateArray);
 					
 					VNCmask=getImageID();
-					
+					print("scan_for_invert pre #1431");
 					RunGray=1;
 					scan_for_invert(RunGray);
-					
+					print("scan_for_invert Done");
 					if(ShapeProblem==1 && MarkProblem==1){
 						selectImage(VNCmask);
 						makeRectangle(15, 22, 55, 55);
@@ -1467,7 +1467,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				}//if(ShapeAnalysis==1){
 				////// scan left/right both side to detect 3 x2 leg //////////////				
 				
-				
+				print("donotOperate #1470; "+donotOperate);
 				///// file save as nrrd /////////////////////////////////////////////
 				if(donotOperate==0){//open from directory, not from Image
 					
@@ -1515,7 +1515,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//sampWidth; 153   sampHeight; 1024   nImages;158   defaultWidth; 17.4321
 							//defaultWidth; 17.4321
 							
-							
+						
 							defaultWidth=(sampWidth*depthVXsmall)/(sampHeight/100);//309*0.2965/18  = 5
 							startWidth=defaultWidth;
 							
@@ -1537,6 +1537,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								open(VNC_Lateral_small);
 							}else{
 								print("VNC_Lateral_F.tif is not existing within; "+VNC_Lateral_small);
+								logsum=getInfo("log");
+								File.saveString(logsum, filepath);
+								run("Quit");
 							}
 							
 							maxW=0; maxOBJ=0; nonmaxOBJtime=0; MinusRot=15; PlusRot=15; maxrotation=0; MaxShiftABS=10; NextRotation=0;
