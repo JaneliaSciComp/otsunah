@@ -1415,7 +1415,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					if(MaxShapeNo==4){
 						//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-						run("Gamma ", "gamma=1.60 in=InMacro");
+						run("Gamma ", "gamma=1.60 in=[In macro]");
 					}
 					
 					if(MaxShapeNo<=6 || MaxShapeNo>=8)
@@ -1553,7 +1553,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Duplicate...", "title=DUPnc82.tif");
 								DUP3=getImageID();
 								
-								run("Gamma ", "gamma=1.2 in=InMacro");
+								run("Gamma ", "gamma=1.2 in=[In macro]");
 								DUP2=getImageID();
 								print(" 1559; nImages; "+nImages);
 								//				PrintWindows ();
@@ -2264,7 +2264,7 @@ function shapeMeasurement(SmeasurementArray){
 				VNCDUP3=getImageID();
 				
 				//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-				run("Gamma ", "gamma=1.60 in=InMacro");
+				run("Gamma ", "gamma=1.60 in=[In macro]");
 				setAutoThreshold("Default dark");
 				getThreshold(LowThreMax, upperM);
 				setThreshold(LowThreMax, upperM2);
