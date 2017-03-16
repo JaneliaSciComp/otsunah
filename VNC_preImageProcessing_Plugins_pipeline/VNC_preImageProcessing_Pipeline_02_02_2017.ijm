@@ -45,6 +45,8 @@ print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
 
+print("Plugin Dir; "+getDirectory("Plugins"));
+
 exi=File.exists(savedir);
 if(exi!=1){
 	File.makeDirectory(savedir);
@@ -109,6 +111,8 @@ origi=getTitle();
 noext = prefix;
 
 God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small);
+
+nrrd2v3draw(savedir, noext);
 
 updateDisplay();
 //run("Close All");
@@ -266,6 +270,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				
 				setMinAndMax(minvalue0, maxvalue0);		
 				
+				if(bitd==16)
 				run("8-bit");
 				sumlower=0;
 				
@@ -1897,6 +1902,55 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 		File.saveString(logsum, filepath);
 	}
 }//function God(path, dir, savedir, filen,noext){
+
+function nrrd2v3draw(savedir, noext){
+	print("v3draw conversion start");
+	logsum=getInfo("log");
+	filepath=savedir+"VNC_pre_aligner_log.txt";
+	File.saveString(logsum, filepath);
+	
+	fullpath = savedir+"PreAlignedVNC.v3draw";//"/test/VNC_Test/AlignedFlyVNC.v3draw";
+	if (fullpath=="") exit ("No argument!");
+	
+	ch1 = replace(fullpath, "PreAlignedVNC.v3draw", noext+"_01.nrrd");
+	ch2 = replace(fullpath, "PreAlignedVNC.v3draw", noext+"_02.nrrd");
+	ch3 = replace(fullpath, "PreAlignedVNC.v3draw", noext+"_03.nrrd");
+	ch4 = replace(fullpath, "PreAlignedVNC.v3draw", noext+"_04.nrrd");
+	
+	ch1exi=File.exists(ch1);
+	if(ch1exi==1){
+		print("Channel 1: "+ch1);
+		run("Nrrd ...", "load=[" + ch1 + "]");
+	}
+	ch2exi=File.exists(ch2);
+	if(ch2exi==1){
+		print("Channel 2: "+ch2);
+		run("Nrrd ...", "load=[" + ch2 + "]");
+	}
+	ch3exi=File.exists(ch3);
+	if(ch3exi==1){
+		print("Channel 3: "+ch3);
+		run("Nrrd ...", "load=[" + ch3 + "]");
+	}
+	ch4exi=File.exists(ch4);
+	if(ch4exi==1){
+		run("Nrrd ...", "load=[" + ch4 + "]");
+		print("Channel 4: "+ch4);
+	}
+	
+	if(ch4exi==0 && ch3exi==0 && ch2exi==1 && ch1exi==1)
+	run("Merge Channels...", "c1="+noext+"_02.nrrd c2="+noext+"_01.nrrd create ignore");
+	else if(ch4exi==0 && ch3exi==1 && ch2exi==1 && ch1exi==1)
+	run("Merge Channels...", "c1="+noext+"_02.nrrd c2="+noext+"_03.nrrd c3="+noext+"_01.nrrd create ignore");
+	else if(ch4exi==1 && ch3exi==1 && ch2exi==1 && ch1exi==1)
+	run("Merge Channels...", "c1="+noext+"_02.nrrd c2="+noext+"_03.nrrd c3="+noext+"_04.nrrd c4="+noext+"_01.nrrd create ignore");
+	
+	run("V3Draw...", "save=[" + fullpath +"]");
+	print("v3draw saved");
+
+	close();
+
+}
 
 function colordecision(colorarray){
 	posicolor=colorarray[0];
