@@ -1530,24 +1530,14 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//	setBatchMode(false);
 							//	updateDisplay();
 							
-							tempimg="VNC_Lateral_F.tif"; 
+							tempimg="VNC_Lateral_F.tif";
 							
-							if(isOpen(tempimg)){
-								selectWindow(tempimg);
-								LateralDir=getDirectory("image");
-								VNC_Lateral_small=LateralDir+tempimg;
+							LateralDirEXI=File.exists(VNC_Lateral_small);
+							if(LateralDirEXI==1){
+								open(VNC_Lateral_small);
 							}else{
-								
-								LateralDirEXI=File.exists(VNC_Lateral_small);
-								if(LateralDirEXI==1){
-									open(VNC_Lateral_small);
-								}else{
-									LateralDir=getDirectory("Choose a Directory for VNC_Lateral_F.tif");
-									VNC_Lateral_small=LateralDir+tempimg;
-									open(VNC_Lateral_small);
-								}
-							}//	if(isOpen(tempimg)){
-							
+								print("VNC_Lateral_F.tif is not existing within; "+VNC_Lateral_small);
+							}
 							
 							maxW=0; maxOBJ=0; nonmaxOBJtime=0; MinusRot=15; PlusRot=15; maxrotation=0; MaxShiftABS=10; NextRotation=0;
 							
@@ -1947,9 +1937,9 @@ function nrrd2v3draw(savedir, noext){
 	
 	run("V3Draw...", "save=[" + fullpath +"]");
 	print("v3draw saved");
-
+	
 	close();
-
+	
 }
 
 function colordecision(colorarray){
