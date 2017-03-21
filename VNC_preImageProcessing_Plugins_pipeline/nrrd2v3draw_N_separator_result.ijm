@@ -4,7 +4,7 @@ fullpath = getArgument;//"/test/VNC_Test/AlignedFlyVNC.v3draw";
 if (fullpath=="") exit ("No argument!");
 setBatchMode(true);
 
-NS = replace(fullpath, "AlignedFlyVNC.v3draw", "VNC-PP-BGwarp.nrrd");
+NS = replace(fullpath, "Reformatted_Separator_Result.v3draw", "Reformatted_Separator_Result.nrrd");
 
 ch1exi=File.exists(NS);
 if(ch1exi==1){
