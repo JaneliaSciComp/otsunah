@@ -32,7 +32,16 @@ print("Gender; "+temptype);
 filepath=savedir+"Hideo_OBJPearsonCoeff.txt";
 setBatchMode(true);
 
+TempMaskPlace=File.exists(tempMasklocation);
+if(TempMaskPlace==1)
 open(tempMasklocation);
+else{
+	print("Mask file is not existing!! "+tempMasklocation);
+	logsum=getInfo("log");
+	filepath2=savedir+"VNC_Score_log.txt";
+	File.saveString(logsum, filepath2);
+	run("Quit");
+}
 
 OrigiMask2=getImageID();// Template Mask
 tempMaskName=getTitle();
