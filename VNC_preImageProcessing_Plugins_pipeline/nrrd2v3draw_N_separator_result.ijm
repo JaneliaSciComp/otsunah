@@ -14,4 +14,16 @@ if(ch1exi==1){
 	run("V3Draw...", "save=[" + fullpath +"]");
 }
 
+filesepIndex=lastIndexOf(fullpath,"/");
+if(filesepIndex!=-1){
+	INdir=substring(fullpath,0,filesepIndex+1);
+//	filesepIndex2=lastIndexOf(INdir,"/");
+//	if(filesepIndex2!=-1)
+//	INdir=substring(INdir,0,filesepIndex2+1);
+	open(INdir+"VNC-PP-SGwarp1.nrrd");
+	run("V3Draw...", "save=["+INdir+"ConsolidatedLabel.v3draw""]");
+}
+
+
+
 	run("Quit");
