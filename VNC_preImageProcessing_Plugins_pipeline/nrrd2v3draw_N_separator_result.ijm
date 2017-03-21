@@ -19,9 +19,16 @@ if(filesepIndex!=-1){
 	INdir=substring(fullpath,0,filesepIndex+1);
 //	filesepIndex2=lastIndexOf(INdir,"/");
 //	if(filesepIndex2!=-1)
-//	INdir=substring(INdir,0,filesepIndex2+1);
-	open(INdir+"VNC-PP-SGwarp1.nrrd");
-	run("V3Draw...", "save=["+INdir+"ConsolidatedLabel.v3draw""]");
+	//	INdir=substring(INdir,0,filesepIndex2+1);
+	
+	nc82Exi=File.exists(INdir+"VNC-PP-SGwarp1.nrrd");
+	if(nc82Exi==1){
+		open(INdir+"VNC-PP-SGwarp1.nrrd");
+		run("V3Draw...", "save=["+INdir+"ConsolidatedLabel.v3draw""]");
+	}else{
+		print("no VNC-PP-SGwarp1.nrrd exist");
+		
+	}
 }
 
 
