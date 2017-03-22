@@ -14,6 +14,15 @@ close();
 open(InputDirSeparation+"ConsolidatedSignal.v3dpbd");
 run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+VxWidth+" pixel_height="+VxHeight+" voxel_depth="+VxDepth+"");
 
-run("Nrrd Writer", "compressed nrrd="+InputDir+"ConsolidatedSignal.nrrd");
+getDimensions(width, height, channels, slices, frames);
+if(channels>1)
+run("Split Channels");
+
+
+for(i=1; i<=channels; i++){
+	selectWindow("C"+i+"-ConsolidatedSignal.v3dpbd");
+	run("Nrrd Writer", "compressed nrrd="+InputDir+"ConsolidatedSignal_"+i+".nrrd");
+	close();
+}
 print("Done");
 run("Quit");
