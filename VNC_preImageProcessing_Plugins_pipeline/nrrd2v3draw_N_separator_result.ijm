@@ -17,7 +17,7 @@ if(ch2exi==1){
 }
 
 ch3exi=File.exists(OutDir+"Reformatted_Separator_Result_3.nrrd");
-if(ch2exi==1){
+if(ch3exi==1){
 	print("Reformatted neuron separator result: 3ch");
 	run("Nrrd ...", "load=[" + OutDir+"Reformatted_Separator_Result_3.nrrd" + "]");
 }
