@@ -12,9 +12,9 @@ getVoxelSize(VxWidth, VxHeight, VxDepth, VxUnit);
 close();
 
 open(InputDirSeparation+"ConsolidatedSignal.v3dpbd");
-run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+VxWidth+" pixel_height="+VxHeight+" voxel_depth="+VxDepth+"");
-
 getDimensions(width, height, channels, slices, frames);
+run("Properties...", "channels="+channels+" slices="+nSlices+" frames=1 unit=microns pixel_width="+VxWidth+" pixel_height="+VxHeight+" voxel_depth="+VxDepth+"");
+
 if(channels>1)
 run("Split Channels");
 
