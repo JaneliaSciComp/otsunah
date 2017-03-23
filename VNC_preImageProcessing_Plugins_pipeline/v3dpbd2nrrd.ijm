@@ -13,7 +13,7 @@ close();
 
 open(InputDirSeparation+"ConsolidatedSignal.v3dpbd");
 getDimensions(width, height, channels, slices, frames);
-run("Properties...", "channels="+channels+" slices="+nSlices+" frames=1 unit=microns pixel_width="+VxWidth+" pixel_height="+VxHeight+" voxel_depth="+VxDepth+"");
+run("Properties...", "channels="+channels+" slices="+nSlices/channels+" frames=1 unit=microns pixel_width="+VxWidth+" pixel_height="+VxHeight+" voxel_depth="+VxDepth+"");
 
 if(channels>1)
 run("Split Channels");
