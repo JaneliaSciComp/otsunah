@@ -1910,7 +1910,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							run("Split Channels");
 							
-							SeparatorTitle=newArray(titlelist.length);
+							SeparatorTitle=getList("image.titles");
 							
 							
 							for(SeparatorChannel=1; SeparatorChannel<=titlelist.length; SeparatorChannel++){
