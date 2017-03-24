@@ -22,7 +22,7 @@ AdvanceDepth=true;
 
 
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/scicompsoft/otsuna/VNC_pipeline_error/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f"//for test
-//argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f"//for test
+//argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f,/test/VNC_pipeline/I1_ZB49_T1.zip"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -34,7 +34,7 @@ chanspec = toLowerCase(args[4]);// channel spec
 Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
-
+PathConsolidatedSignal=args[8];
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
@@ -44,6 +44,7 @@ print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
+print("ConsolidatedSignal path; "+PathConsolidatedSignal);
 
 print("Plugin Dir; "+getDirectory("Plugins"));
 
@@ -82,7 +83,7 @@ List.clear();
 // open files //////////////////////////////////			
 filesize=File.length(path);
 
-print(path);
+//print(path);
 setBatchMode(true);
 
 if(filesize>1000000){// if more than 1MB
@@ -110,7 +111,7 @@ origi=getTitle();
 //		C1C20102Takeout(takeout);
 noext = prefix;
 
-God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small);
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedSignal);
 
 nrrd2v3draw(savedir, noext);
 
@@ -126,7 +127,7 @@ print("line 100; log file saved");
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedSignal){
 	
 	bitd=bitDepth();
 	
@@ -1892,6 +1893,97 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							selectImage(selectedNeuron);
 							close();
 						}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
+						
+						run("Close All");
+						
+						//////// Neuron separtor ConsolidatedSignal.v3dpbdb conversion ////////////////
+						ConsoliExi=File.exists(PathConsolidatedSignal);//neuron separator consolidatedsignal
+						if(ConsoliExi==1){
+							print("Try Open Neuron separator result");
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
+							
+							open(PathConsolidatedSignal);
+							print("Opened Neuron separator result");
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
+							
+							run("Split Channels");
+							
+							SeparatorTitle=newArray(titlelist.length);
+							
+							
+							for(SeparatorChannel=1; SeparatorChannel<=titlelist.length; SeparatorChannel++){
+								
+								if(SeparatorChannel==1){
+									
+									if(isOpen(SeparatorTitle[0]))
+									selectWindow(SeparatorTitle[0]);
+									print("ConsolidatedSignal_1; "SeparatorTitle[0]);
+								}
+								
+								if(SeparatorChannel==2){
+									
+									if(isOpen(SeparatorTitle[1]))
+									selectWindow(SeparatorTitle[1]);
+									print("ConsolidatedSignal_2; "SeparatorTitle[1]);
+								}
+								if(SeparatorChannel==3){
+									
+									if(isOpen(SeparatorTitle[2]))
+									selectWindow(SeparatorTitle[2]);
+									print("ConsolidatedSignal_3; "SeparatorTitle[2]);
+								}
+								if(SeparatorChannel==4){
+									selectImage(SeparatorTitle[3]);
+									print("ConsolidatedSignal_4; "SeparatorTitle[3]);
+								}
+								
+								if(SeparatorChannel==5){
+								selectImage(SeparatorTitle[4]);
+									print("ConsolidatedSignal_5; "SeparatorTitle[4]);
+								}
+								selectedNeuron=getImageID();
+								run("Select All");
+								
+								slicePosition=newArray(startslice,endslice,slices,0,0);
+								addingslice(slicePosition);
+								
+								run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+								realNeuron=getImageID();//substack, duplicated
+								
+								if(FrontAndBack>0)
+								run("Reverse");
+								
+								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
+								rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
+								selectImage(realNeuron);
+								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
+								
+								if(ShapeProblem==0){
+									if(FrontAndBack>0)
+									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedSignal__Rev_"+SeparatorChannel+".nrrd");
+									if(FrontAndBack==0)
+									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedSignal__"+SeparatorChannel+".nrrd");
+								}else{//ShapeProblem==1
+									if(FrontAndBack>0)
+									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedSignal__Rev_"+SeparatorChannel+".nrrd");
+									
+									if(FrontAndBack==0)
+									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedSignal__"+SeparatorChannel+".nrrd");
+								}
+								
+								selectImage(realNeuron);
+								close();
+								selectImage(selectedNeuron);
+								close();
+							}//for(SeparatorChannel=1; SeparatorChannel<=titlelist.length; SeparatorChannel++){
+						}else{//if(ConsoliExi==1){
+							print("There is no ConsolodatedSignal.v3dpbd!!; "+PathConsolidatedSignal);
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
+						}//	if(ConsoliExi==1){
+						
 					}//if(titlelist.length>1){
 				}//
 			}
