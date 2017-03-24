@@ -1919,29 +1919,29 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									
 									if(isOpen(SeparatorTitle[0]))
 									selectWindow(SeparatorTitle[0]);
-									print("ConsolidatedSignal_1; "SeparatorTitle[0]);
+									print("ConsolidatedSignal_1; "+SeparatorTitle[0]);
 								}
 								
 								if(SeparatorChannel==2){
 									
 									if(isOpen(SeparatorTitle[1]))
 									selectWindow(SeparatorTitle[1]);
-									print("ConsolidatedSignal_2; "SeparatorTitle[1]);
+									print("ConsolidatedSignal_2; "+SeparatorTitle[1]);
 								}
 								if(SeparatorChannel==3){
 									
 									if(isOpen(SeparatorTitle[2]))
 									selectWindow(SeparatorTitle[2]);
-									print("ConsolidatedSignal_3; "SeparatorTitle[2]);
+									print("ConsolidatedSignal_3; "+SeparatorTitle[2]);
 								}
 								if(SeparatorChannel==4){
 									selectImage(SeparatorTitle[3]);
-									print("ConsolidatedSignal_4; "SeparatorTitle[3]);
+									print("ConsolidatedSignal_4; "+SeparatorTitle[3]);
 								}
 								
 								if(SeparatorChannel==5){
 								selectImage(SeparatorTitle[4]);
-									print("ConsolidatedSignal_5; "SeparatorTitle[4]);
+									print("ConsolidatedSignal_5; "+SeparatorTitle[4]);
 								}
 								selectedNeuron=getImageID();
 								run("Select All");
