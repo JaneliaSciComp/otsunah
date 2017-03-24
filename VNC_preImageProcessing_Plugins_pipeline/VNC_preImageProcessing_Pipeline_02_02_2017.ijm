@@ -2105,6 +2105,12 @@ function rotationF(rotation,unit,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,S
 	getDimensions(width, height, channels, slices, frames);
 	sampleLongLength=round(sqrt(height*height+width*width));
 	run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
+	
+//	if(bitDepth==8){
+//		setMinAndMax(0, 255);
+//		run("16-bit");
+//	}
+	
 	run("Rotation Hideo", "rotate="+rotation+" 3d in=InMacro");
 	
 	makeRectangle(xTrue-round(StackWidth/2), yTrue-StackHeight*(485/1024), StackWidth, StackHeight);
