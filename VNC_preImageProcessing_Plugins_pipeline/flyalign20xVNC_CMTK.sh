@@ -215,11 +215,11 @@ cd $OUTPUT
 # -------------------------------------------------------------------------------------------
 echo "+---------------------------------------------------------------------------------------+"
 echo "| Running Otsuna preprocessing step                                                     |"
-echo "| $FIJI -macro $PREPROCIMG \"$OUTPUT/,preprocResult,$LATTIF,$SUBVNC,ssr,$RESX,$RESY,$GENDER\" |"
+echo "| $FIJI -macro $PREPROCIMG \"$OUTPUT/,preprocResult,$LATTIF,$SUBVNC,ssr,$RESX,$RESY,$GENDER,$Unaligned_Neuron_Separator_Result_V3DPBD\" |"
 echo "+---------------------------------------------------------------------------------------+"
 START=`date '+%F %T'`
 # Expect to take far less than 1 hour
-timeout --preserve-status 60m $FIJI -macro $PREPROCIMG "$OUTPUT/,preprocResult,$LATTIF,$SUBVNC,ssr,$RESX,$RESY,$GENDER"
+timeout --preserve-status 60m $FIJI -macro $PREPROCIMG "$OUTPUT/,preprocResult,$LATTIF,$SUBVNC,ssr,$RESX,$RESY,$GENDER,$Unaligned_Neuron_Separator_Result_V3DPBD"
 STOP=`date '+%F %T'`
 # -------------------------------------------------------------------------------------------
 # NRRD conversion
@@ -412,19 +412,6 @@ then
 	# -------------------------------------------------------------------------------------------
 	# CMTK reformatting for neuron separator result
 
-	echo "+----------------------------------------------------------------------+"
-	echo "| Running v3dpbd -> nrrd conversion                                    |"
-	echo "| $FIJI -macro $V3DPBD2NRRD $Neuron_Separator_Result         |"
-	echo "+----------------------------------------------------------------------+"
-	START=`date '+%F %T'`
-	#  2 args: unaligned separator dir and output dir.
-	$FIJI -macro $V3DPBD2NRRD ${Unaligned_Neuron_Separator_Dir},${OUTPUT}"/"
-	STOP=`date '+%F %T'`
-	if [ ! -e $Neuron_Separator_ResultNRRD1 ]
-	then
-	    echo -e "Error: v3pbdb -> nrrd conversion of Neuron separator failed"
-	    exit -1
-	fi
 
     for NUM in "1" "2" "3" "4"
     do
