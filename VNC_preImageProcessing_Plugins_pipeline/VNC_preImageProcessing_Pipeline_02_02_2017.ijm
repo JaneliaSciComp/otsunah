@@ -1945,7 +1945,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								close();
 					
 						}else{//if(ConsoliExi==1){
-							print("There is no ConsolodatedSignal.v3dpbd!!; "+PathConsolidatedLabel);
+							print("There is no ConsolidatedLabel.v3dpbd!!; "+PathConsolidatedLabel);
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 						}//	if(ConsoliExi==1){

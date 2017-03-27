@@ -179,8 +179,8 @@ registered_otsuna_qual=$OUTPUT"/Hideo_OBJPearsonCoeff.txt"
 
 # Neuron separation definitions. Expecting consolidated label to be sibling of signal.
 Unaligned_Neuron_Separator_Dir=$(dirname "${CONSLABEL}")"/"
-Unaligned_Neuron_Separator_Result_V3DPBD=${Unaligned_Neuron_Separator_Dir}"ConsolidatedSignal.v3dpbd"
-Unaligned_Neuron_Separator_Result_RAW=${Unaligned_Neuron_Separator_Dir}"ConsolidatedSignal.v3draw"
+Unaligned_Neuron_Separator_Result_V3DPBD=${Unaligned_Neuron_Separator_Dir}"ConsolidatedLabel.v3dpbd"
+Unaligned_Neuron_Separator_Result_RAW=${Unaligned_Neuron_Separator_Dir}"ConsolidatedLabel.v3draw"
 V3DPBD2NRRD=$VNCScripts"VNC_preImageProcessing_Plugins_pipeline/v3dpbd2nrrd.ijm"
 Reformatted_Separator_result_v3draw=$OUTPUT"/Reformatted_Separator_Result.v3draw"
 NRRD2V3DRAW_NS=$VNCScripts"VNC_preImageProcessing_Plugins_pipeline/nrrd2v3draw_N_separator_result.ijm"
@@ -413,20 +413,18 @@ then
 	# CMTK reformatting for neuron separator result
 
 
-    for NUM in "1" "2" "3" "4"
-    do
-        Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedSignal_"${NUM}".nrrd"
-        if [ -e $Neuron_Separator_ResultNRRD ]
-        then
-            echo "+----------------------------------------------------------------------+"
-            echo "| Running CMTK reformatting for Neuron separator result                |"
-            echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
-            echo "+----------------------------------------------------------------------+"
-            START=`date '+%F %T'`
+	Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
+	if [ -e $Neuron_Separator_ResultNRRD ]
+		then
+		echo "+----------------------------------------------------------------------+"
+		echo "| Running CMTK reformatting for Neuron separator result                |"
+		echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
+		echo "+----------------------------------------------------------------------+"
+		START=`date '+%F %T'`
 
-            Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result_"${NUM}".nrrd"
+		Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
 
-            $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
+		$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
             STOP=`date '+%F %T'`
             if [ ! -e $Reformatted_Separator_result_nrrd ]
             then
