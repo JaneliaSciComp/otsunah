@@ -34,7 +34,7 @@ chanspec = toLowerCase(args[4]);// channel spec
 Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
-PathConsolidatedSignal=args[8];
+PathConsolidatedLabel=args[8];
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
@@ -44,7 +44,7 @@ print("Channel spec: "+chanspec);//channel spec
 print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
-print("ConsolidatedSignal path; "+PathConsolidatedSignal);
+print("ConsolidatedLabel path; "+PathConsolidatedLabel);
 
 print("Plugin Dir; "+getDirectory("Plugins"));
 
@@ -111,9 +111,9 @@ origi=getTitle();
 //		C1C20102Takeout(takeout);
 noext = prefix;
 
-God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedSignal);
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel);
 
-nrrd2v3draw(savedir, noext);
+//nrrd2v3draw(savedir, noext);
 
 updateDisplay();
 //run("Close All");
@@ -127,7 +127,7 @@ print("line 100; log file saved");
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedSignal){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel){
 	
 	bitd=bitDepth();
 	
@@ -1896,53 +1896,19 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						run("Close All");
 						
-						//////// Neuron separtor ConsolidatedSignal.v3dpbdb conversion ////////////////
-						ConsoliExi=File.exists(PathConsolidatedSignal);//neuron separator consolidatedsignal
+						//////// Neuron separtor ConsolidatedLabel.v3dpbdb conversion ////////////////
+						ConsoliExi=File.exists(PathConsolidatedLabel);//neuron separator ConsolidatedLabel
 						if(ConsoliExi==1){
 							print("Try Open Neuron separator result");
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
-							open(PathConsolidatedSignal);
-							print("Opened Neuron separator result");
+							open(PathConsolidatedLabel);
+							print("Opened ConsolidatedLabel.v3dpbd");
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
-							run("Split Channels");
 							
-							SeparatorTitle=getList("image.titles");
-							
-							
-							for(SeparatorChannel=1; SeparatorChannel<=titlelist.length; SeparatorChannel++){
-								
-								if(SeparatorChannel==1){
-									
-									if(isOpen(SeparatorTitle[0]))
-									selectWindow(SeparatorTitle[0]);
-									print("ConsolidatedSignal_1; "+SeparatorTitle[0]);
-								}
-								
-								if(SeparatorChannel==2){
-									
-									if(isOpen(SeparatorTitle[1]))
-									selectWindow(SeparatorTitle[1]);
-									print("ConsolidatedSignal_2; "+SeparatorTitle[1]);
-								}
-								if(SeparatorChannel==3){
-									
-									if(isOpen(SeparatorTitle[2]))
-									selectWindow(SeparatorTitle[2]);
-									print("ConsolidatedSignal_3; "+SeparatorTitle[2]);
-								}
-								if(SeparatorChannel==4){
-									selectImage(SeparatorTitle[3]);
-									print("ConsolidatedSignal_4; "+SeparatorTitle[3]);
-								}
-								
-								if(SeparatorChannel==5){
-								selectImage(SeparatorTitle[4]);
-									print("ConsolidatedSignal_5; "+SeparatorTitle[4]);
-								}
 								selectedNeuron=getImageID();
 								run("Select All");
 								
@@ -1962,24 +1928,24 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								
 								if(ShapeProblem==0){
 									if(FrontAndBack>0)
-									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedSignal__Rev_"+SeparatorChannel+".nrrd");
+									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel__Rev.nrrd");
 									if(FrontAndBack==0)
-									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedSignal__"+SeparatorChannel+".nrrd");
+									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel.nrrd");
 								}else{//ShapeProblem==1
 									if(FrontAndBack>0)
-									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedSignal__Rev_"+SeparatorChannel+".nrrd");
+									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel__Rev.nrrd");
 									
 									if(FrontAndBack==0)
-									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedSignal__"+SeparatorChannel+".nrrd");
+									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel.nrrd");
 								}
 								
 								selectImage(realNeuron);
 								close();
 								selectImage(selectedNeuron);
 								close();
-							}//for(SeparatorChannel=1; SeparatorChannel<=titlelist.length; SeparatorChannel++){
+					
 						}else{//if(ConsoliExi==1){
-							print("There is no ConsolodatedSignal.v3dpbd!!; "+PathConsolidatedSignal);
+							print("There is no ConsolodatedSignal.v3dpbd!!; "+PathConsolidatedLabel);
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 						}//	if(ConsoliExi==1){
