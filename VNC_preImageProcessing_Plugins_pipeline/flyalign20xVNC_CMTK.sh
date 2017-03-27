@@ -425,15 +425,13 @@ then
 		Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
 
 		$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
-            STOP=`date '+%F %T'`
-            if [ ! -e $Reformatted_Separator_result_nrrd ]
-            then
-                echo -e "Error: CMTK reformatting Neuron separation failed"
-                exit -1
-            fi
-
-        fi
-    done
+		STOP=`date '+%F %T'`
+		if [ ! -e $Reformatted_Separator_result_nrrd ]
+			then
+			echo -e "Error: CMTK reformatting Neuron separation failed"
+			exit -1
+		fi
+	fi
 
     echo "+----------------------------------------------------------------------+"
     echo "| Running nrrd -> v3draw conversion                                    |"
