@@ -10,8 +10,8 @@ if(ch1exi==1){
 	run("Nrrd ...", "load=[" + OutDir+"Reformatted_Separator_Result.nrrd" + "]");
 }
 
-run("V3Draw...", "save=[" + OutDir +"Reformatted_Separator_Result.v3draw]");
-print("saved v3draw; "+ OutDir +"Reformatted_Separator_Result.v3draw");
+run("V3Draw...", "save=[" + OutDir +"ConsolidatedLabel.v3draw]");
+print("saved v3draw; "+ OutDir +"ConsolidatedLabel.v3draw");
 run("Close All");
 
 logsum=getInfo("log");
