@@ -1905,6 +1905,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							open(PathConsolidatedLabel);
 							print("Opened ConsolidatedLabel.v3dpbd");
+							run("Flip Vertically", "stack");
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
