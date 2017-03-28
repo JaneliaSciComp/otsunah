@@ -7,7 +7,7 @@ setBatchMode(true);
 ch1exi=File.exists(OutDir+"Reformatted_Separator_Result.nrrd");
 if(ch1exi==1){
 	print("Reformatted neuron separator result");
-	run("Nrrd ...", "load=[" + OutDir+"Reformatted_Separator_Result_1.nrrd" + "]");
+	run("Nrrd ...", "load=[" + OutDir+"Reformatted_Separator_Result.nrrd" + "]");
 }
 
 run("V3Draw...", "save=[" + OutDir +"Reformatted_Separator_Result.v3draw]");
