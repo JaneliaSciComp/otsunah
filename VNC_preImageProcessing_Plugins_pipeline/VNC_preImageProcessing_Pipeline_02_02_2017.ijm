@@ -21,7 +21,7 @@ AdvanceDepth=true;
 //argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
 
-//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/scicompsoft/otsuna/VNC_pipeline_error/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f"//for test
+//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd"//for test
 //argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f,/test/VNC_pipeline/I1_ZB49_T1.zip"//for test
 //args = split(argstr,",");
 
@@ -34,7 +34,7 @@ chanspec = toLowerCase(args[4]);// channel spec
 Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
-PathConsolidatedLabel=args[8];
+PathConsolidatedLabel=args[8];// full file path for ConsolidatedLabel.v3dpbd
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
@@ -1529,7 +1529,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//sampWidth; 153   sampHeight; 1024   nImages;158   defaultWidth; 17.4321
 							//defaultWidth; 17.4321
 							
-						
+							
 							defaultWidth=(sampWidth*depthVXsmall)/(sampHeight/100);//309*0.2965/18  = 5
 							startWidth=defaultWidth;
 							
@@ -1620,8 +1620,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								
 								
 								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-						//		run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=80 parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-
+								//		run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=80 parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								
 								totalLog=getInfo("log");
 								filepath2=savedir+"VNC_Iteration_log.txt";
 								File.saveString(totalLog, filepath2);
@@ -1847,12 +1847,17 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							if(FrontAndBack>0)
 							run("Reverse");
 							
+							print("1850; nSlices; "+nSlices+"  rotation; "+rotation+"  vxwidth; "+vxwidth+"  vxheight; "+vxheight+"  depth; "+depth+"  xTrue; "+xTrue+"  yTrue; "+yTrue);
+							print("1851; StackWidth; "+StackWidth+"  StackHeight; "+StackHeight);
+							
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
 							rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
 							selectImage(realNeuron);
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 							
 							if(AdvanceDepth){
+								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation+NextRotation; "+maxrotation+NextRotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
+								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
 								LatarlBigVNC=getImageID();
 								
@@ -1868,7 +1873,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								setVoxelSize(widthVXsmall, heightVXsmall, realdepthVal, unitVX);
 								realNeuron2=getImageID();
 							}//if(AdvanceDepth){
-							
 							
 							
 							if(ShapeProblem==0){
@@ -1903,48 +1907,84 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
+							//setBatchMode(false);
+							
 							open(PathConsolidatedLabel);
+							
+							
+							
 							print("Opened ConsolidatedLabel.v3dpbd");
 							run("Flip Vertically", "stack");
+							
+							//	setBatchMode(false);
+							//						updateDisplay();
+							//						"do"
+							//						exit();
+							
+							
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
 							
-								selectedNeuron=getImageID();
-								run("Select All");
+							selectedNeuron=getImageID();
+							run("Select All");
+							
+							slicePosition=newArray(startslice,endslice,slices,0,0);
+							addingslice(slicePosition);
+							
+							run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+							realNeuron=getImageID();//substack, duplicated
+							
+							if(FrontAndBack>0)
+							run("Reverse");
+							
+							print("1850; nSlices; "+nSlices+"  rotation; "+rotation+"  vxwidth; "+vxwidth+"  vxheight; "+vxheight+"  depth; "+depth+"  xTrue; "+xTrue+"  yTrue; "+yTrue);
+							print("1851; StackWidth; "+StackWidth+"  StackHeight; "+StackHeight);
+							
+							
+							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
+							rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
+							selectImage(realNeuron);
+							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
+							
+							if(AdvanceDepth){
+								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation+NextRotation; "+maxrotation+NextRotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
+								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
+								run("Reslice [/]...", "output=1 start=Left rotate avoid");
+								LatarlBigVNC=getImageID();
 								
-								slicePosition=newArray(startslice,endslice,slices,0,0);
-								addingslice(slicePosition);
+								if(maxrotation+NextRotation!=0){
+									getVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
+									run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
+									run("Rotation Hideo", "rotate="+maxrotation+NextRotation+" 3d in=InMacro");
+									run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
+								}//	if(rotationOriginal>0){
 								
-								run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
-								realNeuron=getImageID();//substack, duplicated
-								
+								run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
+								run("Reslice [/]...", "output=1 start=Left rotate avoid");
+								setVoxelSize(widthVXsmall, heightVXsmall, realdepthVal, unitVX);
+								realNeuron2=getImageID();
+							}//if(AdvanceDepth){
+							
+							
+							if(ShapeProblem==0){
 								if(FrontAndBack>0)
-								run("Reverse");
+								run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel__Rev.nrrd");
+								if(FrontAndBack==0)
+								run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel.nrrd");
+							}else{//ShapeProblem==1
+								if(FrontAndBack>0)
+								run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel__Rev.nrrd");
 								
-								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
-								rotationF(rotation,unit1,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight);
-								selectImage(realNeuron);
-								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
-								
-								if(ShapeProblem==0){
-									if(FrontAndBack>0)
-									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel__Rev.nrrd");
-									if(FrontAndBack==0)
-									run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel.nrrd");
-								}else{//ShapeProblem==1
-									if(FrontAndBack>0)
-									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel__Rev.nrrd");
-									
-									if(FrontAndBack==0)
-									run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel.nrrd");
-								}
-								
-								selectImage(realNeuron);
-								close();
-								selectImage(selectedNeuron);
-								close();
-					
+								if(FrontAndBack==0)
+								run("Nrrd Writer", "compressed nrrd="+myDir0+"ConsolidatedLabel.nrrd");
+							}
+							
+							selectImage(realNeuron);
+							close();
+							selectImage(selectedNeuron);
+							close();
+							
 						}else{//if(ConsoliExi==1){
 							print("There is no ConsolidatedLabel.v3dpbd!!; "+PathConsolidatedLabel);
 							logsum=getInfo("log");
@@ -2073,10 +2113,10 @@ function rotationF(rotation,unit,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,S
 	sampleLongLength=round(sqrt(height*height+width*width));
 	run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
 	
-//	if(bitDepth==8){
-//		setMinAndMax(0, 255);
-//		run("16-bit");
-//	}
+	//	if(bitDepth==8){
+	//		setMinAndMax(0, 255);
+	//		run("16-bit");
+	//	}
 	
 	run("Rotation Hideo", "rotate="+rotation+" 3d in=InMacro");
 	
