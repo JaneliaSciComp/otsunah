@@ -10,6 +10,9 @@ if(ch1exi==1){
 	run("Nrrd ...", "load=[" + OutDir+"Reformatted_Separator_Result.nrrd" + "]");
 }
 
+// due to Fragment generation, the later step will do flip back
+run("Flip Vertically", "stack");
+
 run("V3Draw...", "save=[" + OutDir +"ConsolidatedLabel.v3draw]");
 print("saved v3draw; "+ OutDir +"ConsolidatedLabel.v3draw");
 run("Close All");
