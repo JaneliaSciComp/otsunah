@@ -36,6 +36,7 @@ Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
 PathConsolidatedLabel=args[8];// full file path for ConsolidatedLabel.v3dpbd
 
+
 print("java.runtime.version; "+getInfo("java.runtime.version"));
 print("java.version; "+getInfo("java.version"));
 print("");
@@ -45,6 +46,7 @@ print("java.class.path; "+getInfo("java.class.path"));
 print("java.library.path; "+getInfo("java.library.path"));
 print("fiji.executable; "+getInfo("fiji.executable"));
 print("");
+print("java.specification.version; "+getInfo("java.specification.version"));
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
@@ -271,7 +273,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				logsum=getInfo("log");
 				endlog=lengthOf(logsum);
 				maxposition=lastIndexOf(logsum, "Maxvalue;");
-				minposition=lastIndexOf(logsum, "  Minvalue;");
+				minposition=lastIndexOf(logsum, "Minvalue;");
 				
 				maxvalue0=substring(logsum, maxposition+10, minposition);
 				maxvalue0=round(maxvalue0);
@@ -1609,7 +1611,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									sampleLongLength=round(sqrt((sampWidth*sampWidth)+(sampHeight*sampHeight)));
 									run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");		
 									run("Rotation Hideo", "rotate="+maxrotation+" in=InMacro");
-									setVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
+									
+									run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
 									run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
 									
 								}//	if(rotationOriginal>0){
@@ -1641,6 +1644,17 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								OBJPosi=lastIndexOf(totalLog, "score;");
 								OBJ=substring(totalLog, OBJPosi+6, lengthofLog);
 								OBJScore=parseFloat(OBJ);
+								
+								if(OBJScore==0){
+									print("OBJ score is 0 !!!");
+									totalLog=getInfo("log");
+									filepath2=savedir+"VNC_Iteration_log.txt";
+									File.saveString(totalLog, filepath2);
+									startW=round(startWidth)*4;
+				
+								}
+								
+								
 								
 								OBJRPosi=lastIndexOf(totalLog, "OBJ");
 								
@@ -1753,7 +1767,13 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//run("Size...", "width="+getWidth()*(maxW/defaultWidth)+" height="+getHeight()+" interpolation=None");
 							
 							run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
+							
+							if(startW!=round(startWidth)*4)
 							realdepthVal=(6.4/Mvxwidth)*depth;
+							else{
+								realdepthVal=depth;
+								Mvxwidth=0; Mvxheight=0;
+							}
 							
 							run("Z Project...", "projection=[Max Intensity]");
 							run("Size...", "width="+getWidth*(realdepthVal/widthVXsmall)+" height="+getHeight+" interpolation=None");
