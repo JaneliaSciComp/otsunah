@@ -36,6 +36,8 @@ Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
 PathConsolidatedLabel=args[8];// full file path for ConsolidatedLabel.v3dpbd
 
+print(getInfo("Java version; "+"java.version"));
+
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
 print("VNC_Lateral_small: "+VNC_Lateral_small);
