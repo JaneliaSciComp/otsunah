@@ -36,7 +36,15 @@ Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
 PathConsolidatedLabel=args[8];// full file path for ConsolidatedLabel.v3dpbd
 
-print(getInfo("Java version; "+"java.version"));
+print("java.runtime.version; "+getInfo("java.runtime.version"));
+print("java.version; "+getInfo("java.version"));
+print("");
+print("java.endorsed.dirs; "+getInfo("java.endorsed.dirs"));
+print("sun.boot.library.path; "+getInfo("sun.boot.library.path"));
+print("java.class.path; "+getInfo("java.class.path"));
+print("java.library.path; "+getInfo("java.library.path"));
+print("fiji.executable; "+getInfo("fiji.executable"));
+print("");
 
 print("Output dir: "+savedir);// save location
 print("Output prefix: "+prefix);//file name
