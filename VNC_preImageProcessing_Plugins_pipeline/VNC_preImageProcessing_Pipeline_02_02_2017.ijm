@@ -1629,12 +1629,15 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								
 								run("Canvas Size...", "width=60 height=100 position=Center zero");
 								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=90 parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								
+								//for new log version;
+								//print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								
+								//for old bigdecimal
 								print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-								
-								
-								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-								//		run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=80 parallel=3 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-								
+								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+										
 								totalLog=getInfo("log");
 								filepath2=savedir+"VNC_Iteration_log.txt";
 								File.saveString(totalLog, filepath2);
