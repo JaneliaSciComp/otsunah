@@ -60,7 +60,7 @@ if(nSlices==220){
 
 open(templocation);
 if(temptype=="f"){
-	tempAve=60.56;
+	tempAve=60.83;
 }else{
 	tempAve=49.18;
 }
@@ -203,7 +203,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	if(temptype=="f"){
 		Threweight=1;
 		incriweight=0.03;
-		maxGap=3;
+		maxGap=2;
 	}else{
 		Threweight=2;
 		incriweight=0.06;
