@@ -20,9 +20,9 @@ AdvanceDepth=true;
 
 //argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
-
+//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd"//for test
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd"//for test
-//argstr="/test/VNC_pipeline/,I1_ZB49_T1,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/I1_ZB49_T1.zip,sr,0.2965237,0.2965237,f,/test/VNC_pipeline/I1_ZB49_T1.zip"//for test
+//argstr="/test/VNC_pipeline/,tile-2310500072061665317,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/tile-2310500072061665317.v3draw,sr,0.51,0.51,f,???"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -350,7 +350,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 			}//if(CLAHEwithMASK==1){//CLAHE with Mask
 			
 			selectImage(nc82);
-			run("Gamma ", "gamma=1.60 3d in=[In macro]");
+			run("Gamma ", "gamma=1.60 3d in=InMacro cpu=6");
 			DUP=getImageID();
 			DUPst2=getTitle();
 			
@@ -1322,7 +1322,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					run("Z Project...", "projection=[Max Intensity]");
 					resetMinAndMax();
 					origiMIPID0=getImageID();
-					run("Gamma ", "gamma=0.60 in=[In macro]");
+					run("Gamma ", "gamma=0.60 3d in=InMacro cpu=6");
 					origiMIPID=getImageID();
 					resetMinAndMax();
 					run("8-bit");
@@ -1430,7 +1430,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					if(MaxShapeNo==4){
 						//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-						run("Gamma ", "gamma=1.60 in=[In macro]");
+						run("Gamma ", "gamma=1.60 3d in=InMacro cpu=6");
 					}
 					
 					if(MaxShapeNo<=6 || MaxShapeNo>=8)
@@ -1568,7 +1568,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Quit");
 							}
 							
-							maxW=0; maxOBJ=0; nonmaxOBJtime=0; MinusRot=15; PlusRot=15; maxrotation=0; MaxShiftABS=10; NextRotation=0;
+							maxW=0; maxOBJ=0; nonmaxOBJtime=0; MinusRot=15; PlusRot=15; maxrotation=0; MaxShiftABS=10;
 							
 							print("  defaultWidth; "+defaultWidth);
 							
@@ -1579,7 +1579,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Duplicate...", "title=DUPnc82.tif");
 								DUP3=getImageID();
 								
-								run("Gamma ", "gamma=1.2 in=[In macro]");
+								run("Gamma ", "gamma=1.2 in=InMacro cpu=6");
 								DUP2=getImageID();
 								print(" 1559; nImages; "+nImages);
 								//				PrintWindows ();
@@ -1601,21 +1601,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								//		PrintWindows ();
 								selectImage(DUP2);
 								rename("DUPnc82.tif");
-								
+								run("16-bit");
 								//run("Enhance Contrast", "saturated=0.3");
 								//run("Apply LUT");
-								
-								
-								if(maxrotation!=0){
-									getVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
-									sampleLongLength=round(sqrt((sampWidth*sampWidth)+(sampHeight*sampHeight)));
-									run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");		
-									run("Rotation Hideo", "rotate="+maxrotation+" in=InMacro");
-									
-									run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
-									run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
-									
-								}//	if(rotationOriginal>0){
 								
 								run("Enhance Local Contrast (CLAHE)", "blocksize=10 histogram=4095 maximum=25 mask=*None* fast_(less_accurate)");
 								
@@ -1674,49 +1662,21 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								ShiftX=parseFloat(ShiftX);
 								
 								if(maxOBJ<=OBJScore){
+									nonmaxOBJtime=0;
 									maxOBJ=OBJScore;
 									maxW=startW;
 									maxY=ShiftY;
 									maxX=ShiftX;
+									maxrotation=Rot;
 									
-									if(startW==round(startWidth)){
-										maxrotation=Rot;
-										numRot=0;
-										sumRot=0;
-									}else{
-										if(startW>=round(startWidth+4)){
-											numRot=numRot+1;
-											sumRot=sumRot+Rot;
-											aveRot=sumRot/numRot;
-											NextRotation=round(aveRot);
-											
-											print("MaxShiftABS; "+MaxShiftABS+"   NextRotation; "+NextRotation+"   maxrotation; "+maxrotation);
-											
-											if(abs(NextRotation)>2){
-												maxrotation=maxrotation+NextRotation;
-												numRot=0;
-												sumRot=0;
-												NextRotation=0;
-											}
-										}
-									}//if(startW==round(startWidth)){
+									
 									if(abs(maxX)>abs(maxY))
 									MaxShiftABS=abs(maxX);
 									else
 									MaxShiftABS=abs(maxY);
 									
-									
-									
-									MinusRot=5;
-									PlusRot=5;
-									
-									
 									getVoxelSize(Mvxwidth, Mvxheight, Mdepth, unit1);
 									
-									run("Rotation Hideo", "rotate="+maxrotation+NextRotation+" in=InMacro");
-									run("Select All");
-									run("Copy");
-									nonmaxOBJtime=0;
 								}else//if(maxOBJ<=OBJScore){
 								nonmaxOBJtime=nonmaxOBJtime+1;
 								
@@ -1755,10 +1715,18 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							PrintWindows ();
 							selectImage(lateralNC82stack);
 							
-							if(maxrotation+NextRotation!=0){
+							if(startW!=round(startWidth)*4)
+							realdepthVal=(6.4/Mvxwidth)*depth;
+							else{
+								realdepthVal=depth;
+								Mvxwidth=0; Mvxheight=0;
+							}
+							maxrotation=maxrotation/(realdepthVal/widthVXsmall);
+							
+							if(maxrotation!=0){
 								getVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
 								run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
-								run("Rotation Hideo", "rotate="+maxrotation+NextRotation+" 3d in=InMacro");
+								run("Rotation Hideo", "rotate="+maxrotation+" 3d in=InMacro");
 								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
 							}//	if(rotationOriginal>0){
 							
@@ -1770,13 +1738,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//run("Size...", "width="+getWidth()*(maxW/defaultWidth)+" height="+getHeight()+" interpolation=None");
 							
 							run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
-							
-							if(startW!=round(startWidth)*4)
-							realdepthVal=(6.4/Mvxwidth)*depth;
-							else{
-								realdepthVal=depth;
-								Mvxwidth=0; Mvxheight=0;
-							}
 							
 							run("Z Project...", "projection=[Max Intensity]");
 							run("Size...", "width="+getWidth*(realdepthVal/widthVXsmall)+" height="+getHeight+" interpolation=None");
@@ -1806,7 +1767,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							print("");
 							print("Mvxwidth; "+Mvxwidth+"   Mvxheight; "+Mvxheight+"   Mdepth; "+Mdepth);
-							print("maxOBJ; "+maxOBJ+"   maxW; "+maxW+"   maxY; "+maxY+"   maxX; "+maxX+"   maxrotation; "+maxrotation+NextRotation);
+							print("maxOBJ; "+maxOBJ+"   maxW; "+maxW+"   maxY; "+maxY+"   maxX; "+maxX+"   maxrotation; "+maxrotation);
 							print("realdepthVal; "+realdepthVal);
 						}
 						selectImage(lateralNC82stack);
@@ -1889,15 +1850,15 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 							
 							if(AdvanceDepth){
-								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation+NextRotation; "+maxrotation+NextRotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
+								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation; "+maxrotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
 								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
 								LatarlBigVNC=getImageID();
 								
-								if(maxrotation+NextRotation!=0){
+								if(maxrotation!=0){
 									getVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
 									run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
-									run("Rotation Hideo", "rotate="+maxrotation+NextRotation+" 3d in=InMacro");
+									run("Rotation Hideo", "rotate="+maxrotation+" 3d in=InMacro");
 									run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
 								}//	if(rotationOriginal>0){
 								
@@ -1940,8 +1901,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							logsum=getInfo("log");
 							File.saveString(logsum, filepath);
 							
-							//setBatchMode(false);
-							
 							open(PathConsolidatedLabel);
 							
 							
@@ -1981,15 +1940,15 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 							
 							if(AdvanceDepth){
-								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation+NextRotation; "+maxrotation+NextRotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
+								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation; "+maxrotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
 								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
 								LatarlBigVNC=getImageID();
 								
-								if(maxrotation+NextRotation!=0){
+								if(maxrotation!=0){
 									getVoxelSize(OriSampWidth, OriSampHeight, OriSampDepth, OriSampUnit);
 									run("Canvas Size...", "width="+sampleLongLength+" height="+sampleLongLength+" position=Center zero");
-									run("Rotation Hideo", "rotate="+maxrotation+NextRotation+" 3d in=InMacro");
+									run("Rotation Hideo", "rotate="+maxrotation+" 3d in=InMacro");
 									run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+OriSampWidth+" pixel_height="+OriSampHeight+" voxel_depth="+OriSampDepth+"");
 								}//	if(rotationOriginal>0){
 								
@@ -2422,7 +2381,7 @@ function shapeMeasurement(SmeasurementArray){
 				VNCDUP3=getImageID();
 				
 				//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-				run("Gamma ", "gamma=1.60 in=[In macro]");
+				run("Gamma ", "gamma=1.60 in=InMacro cpu=6");
 				setAutoThreshold("Default dark");
 				getThreshold(LowThreMax, upperM);
 				setThreshold(LowThreMax, upperM2);
