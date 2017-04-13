@@ -6,7 +6,7 @@
 MIPsave=1;
 handleCH=2;//number of handling channels for 01, 02 ZIP file
 ShapeAnalysis=1;//perform shape analysis and kick strange sample
-CLAHEwithMASK=1;
+
 Batch=1;
 FrontBackAnalysis=0;
 BWd=0; //BW decision at 793 line
@@ -142,7 +142,7 @@ run("Quit");
 function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel){
 	
 	bitd=bitDepth();
-	
+	CLAHEwithMASK=0;
 	maxV=65535;
 	lowthreRange=300;
 	lowthreMin=40;
@@ -235,27 +235,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 			run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
 			
 			/////////// background histogram analysis /////////////////////
-			avethre=0;
-			
-			ThreArray=newArray(lowthreAveRange, lowthreMin, lowthreRange, maxV, avethre);
-			lowerThresholding (ThreArray);//creating array for background value
-			avethre=ThreArray[4];// background average value
-			
-			selectImage(nc82);
-			////// lower value thresholding & Histogram stretch /////////////////////////
-			for(n2=1; n2<=nSlices; n2++){
-				setSlice(n2);
-				lowthre=List.get("Slicen"+n2);// background value, slice by slice
-				lowthre=round(lowthre);
-				
-				run("Histgram stretch", "lower="+lowthre+" higher=65535");
-				//	print("lowerthreshold; "+lowthre+"  Slice No; "+n2);
-			}//for(n2=1; n2<=nSlices; n2++){
-			
-			//	setBatchMode(false);
-			//	updateDisplay();
-			//	"do"
-			//	exit();
 			
 			//// Mask creation//////////////////////////////
 			if(CLAHEwithMASK==1){//CLAHE with Mask
