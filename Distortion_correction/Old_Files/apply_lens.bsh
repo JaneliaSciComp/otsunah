@@ -37,7 +37,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.imagearchive.lsm.reader.Reader;
 
 import ij.plugin.*;
-import ij.plugin.PlugIn;
 import java.awt.*;
 import java.io.*;
 import ij.*;
@@ -68,7 +67,6 @@ class Parameters {
 	String transformsFilePath = "";
 	String outFilePath = "";
 	int cropWidth = 16;
-	int Step = 40;
 }
 
 class Transform {
@@ -172,7 +170,6 @@ void setup(Parameters p) {
 	gd.addFileField("Transformations: ", p.transformsFilePath);
 	gd.addDirectoryField("Output: ", p.outFilePath);
 	gd.addNumericField("Crop_width: ", p.cropWidth, 0);
-	gd.addNumericField("MIP_Step_slices: ", p.Step, 0);
 	gd.showDialog();
 	if (!gd.wasCanceled()) {
 		p.imageFilePaths = new String[]{
@@ -181,77 +178,8 @@ void setup(Parameters p) {
 		p.transformsFilePath = gd.getNextString();
 		p.outFilePath = gd.getNextString();
 		p.cropWidth = (int)gd.getNextNumber();
-		p.Step = (int)gd.getNextNumber();
 	}
 }
-
-ImagePlus zresizeMIP (ImageStack st1, int chnum, ImagePlus[] channels, int Step) {
-	
-	ImageProcessor ip1 = channels[chnum].getProcessor(); //Mask
-	int slicenumber = channels[chnum].getStackSize();
-	//	slicenumber=slicenumber/channels.length;
-	IJ.log("slicenumber"+String.valueOf(slicenumber)+"   Step; "+String.valueOf(Step));
-	
-	int sumpx = ip1.getPixelCount();
-	int width = channels[chnum].getWidth();
-	int height = channels[chnum].getHeight();
-	//	ImageStack st1 = channels[chnum].getStack();
-	ImageStack dcStack = new ImageStack (width,height);
-	
-	ip1 = st1.getProcessor(1);// data
-	//	String Label =st1.getSliceLabel(1);
-	dcStack.addSlice(ip1);
-	
-	if(IJ.escapePressed())
-	return;
-	
-	
-	//	IJ.showProgress(0.0);
-	
-	int StepSlice=1, StepIncri=0;
-	ImageProcessor ip3 = dcStack.getProcessor(StepSlice);
-	
-	for (int islice=1; islice<=slicenumber ; islice++){
-		if(IJ.escapePressed())
-		return;
-		
-		StepIncri=StepIncri+1;
-		if(StepIncri==Step+1){
-			StepIncri=1;
-			StepSlice=StepSlice+1;
-			//	Label =st1.getSliceLabel(islice);
-			ip1 = st1.getProcessor(islice);
-			dcStack.addSlice(ip1);
-			ip3 = dcStack.getProcessor(StepSlice);
-		}
-		
-		IJ.showStatus("MIP & Z-resize "+String.valueOf(islice)+"  StepSlice; "+String.valueOf(StepSlice));
-		//		IJ.showProgress((double)islice/(double)slicenumber);
-		
-		if(StepIncri!=1){
-			ip1 = st1.getProcessor(islice);// data
-			
-			for(int OriSig=0; OriSig<sumpx; OriSig++){
-				int pix1= ip1.get(OriSig);//Original signal
-				int pix2= ip3.get(OriSig);// data
-				
-				if(pix1>pix2)
-				ip3.set(OriSig,pix1);
-				//		IJ.log("Added");
-				
-			}
-		}//if(StepIncri!=1){
-	}//for (int islice=StartSli; islice<=EndSli ; islice++){
-	
-	ImagePlus newimp = new ImagePlus(channels[chnum].getTitle(), dcStack);
-	newimp.setCalibration(channels[chnum].getCalibration());
-	//imp.setDimensions(channelsize, nSlices, 1);
-	
-	int slicenumberDC = dcStack.getSize();
-	IJ.log("slicenumberDC"+String.valueOf(slicenumberDC));
-	return newimp;
-	//newimp.show();
-} //public void run(ImageProcessor ip){
 
 /**
  * Open a list of images, that each contain one or more channels as an array of single channel images.
@@ -263,7 +191,6 @@ ImagePlus[] openChannels(String[] filePaths) {
 		ImagePlus imp = openImagePlus(filePath);
 		if (imp != null)
 		channels = ArrayUtils.addAll(channels, splitChannels(imp));
-		
 	}
 	return channels;
 }
@@ -289,25 +216,14 @@ void main() {
 		StartJson=2; EndJson=5; endimage=1; startchannel=0; endchannel=3;
 	}
 	
-	ImagePlus[] channels2 = new ImagePlus[channels.length];
 	int transChannel=0;
-	int usePlugin=1;
-	IJ.log("Transformation bigin");
-	
 	for (int i = StartJson; i < EndJson; ++i) {
 		CoordinateTransform ct = createCoordinateTransform(transformExports[i].transform);
 		ImageStack transformedStack = createTransformedStack(channels[transChannel].getStack(), ct, p.cropWidth);
 		channels[transChannel].setStack(transformedStack);
-		
-		if(usePlugin==0)
-		channels2[transChannel] = zresizeMIP (channels[transChannel].getStack(),transChannel,channels,p.Step);
-		
-		//int slicenumberMIP = MIPStack.getSize();
-		//IJ.log("slicenumberMIP"+String.valueOf(slicenumberMIP));
-		
 		transChannel=transChannel+1;
 	}
-	IJ.log("Transformation finished");
+	//IJ.log("Transformation finished");
 	for(int ifile=0; ifile<endimage; ifile++){
 		
 		if(channels.length==5){
@@ -320,20 +236,7 @@ void main() {
 			}
 		}//if(channels.length==5){
 		
-		ImagePlus impCombined0 = combineChannels(channels, startchannel, endchannel);
-		
-		//	if(usePlugin==1){
-		IJ.run(impCombined0, "Resize Z MIP", "mip="+p.Step+"");
-	//	impCombined0.flush(); 
-	//	ImagePlus impCombined = WindowManager.getImage (impCombined0.getTitle()); 
-		ImagePlus impCombined=WindowManager.getCurrentImage();
-	//	results[i-starting_threshold] = res.getProcessor();  
-		//res.getWindow().setVisible(false); 
-		
-//		int wList [] = WindowManager.getIDList();
-//		IJ.log("wList"+String.valueOf(wList.length));
-	//		impCombined=WindowManager.getCurrentImage();
-		//		}
+		ImagePlus impCombined = combineChannels(channels, startchannel, endchannel);
 		
 		File f = new File(p.outFilePath);
 		if (f == null || !(f.mkdirs() || f.exists())) return;
@@ -343,6 +246,9 @@ void main() {
 			//		ImagePlus impCombined0=new CompositeImage(impCombined);
 			//		impCombined0.updateImage();
 			//		new StackConverter(impCombined0).convertToRGB();
+			
+			
+			
 			
 			if(endimage==2)
 			IJ.saveAsTiff(new CompositeImage(impCombined), p.outFilePath + "/" + impCombined.getTitle() +"_"+ifile+".tif");

@@ -1,17 +1,23 @@
 ScopeNum=0;
 
 //for test
-//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch2_FLFL_20161125145959698_242423.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1"//for test
+//63x
+//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch3_FLFL_20161125150205110_242445.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1,63x"//for test
+
+//40x
+//argstr="/test/Dist_Correction_test/Scope6_40x/,FLFL_20170411171458477_279354.lsm,/test/Dist_Correction_test/Scope6_40x/Output/,Scope #5,40x"//for test
+
 //args = split(argstr,",");
 
-//args will be like this; "dir,filename,outputdir,Scope #1"
+//args will be like this; "dir,filename,outputdir,Scope #1,Objective"
 
-dir=0; filename=0; outputdir=0; ScopeNumST=0;
+dir=0; filename=0; outputdir=0; ScopeNumST=0; ObjectiveST=0;
 args = split(getArgument(),",");
 dir = args[0];// Imput directory of the LSM files
 filename = args[1];// The name of the LSM file
 outputdir = args[2];//output directory
 ScopeNumST = args[3];// scope number, "Scope #1" "Scope #2" "Scope #3" "Scope #4"" Scope #5" "Scope #6"
+ObjectiveST= args[4];
 
 print("dir; "+dir);
 print("filename; "+filename);
@@ -73,33 +79,49 @@ if(ScopeNum==0){
 	run("Quit");
 }
 
-if(endsWith(filename,".lsm")){
+JSONDIR=""+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+"_"+ObjectiveST+".json";
+if(File.exists(JSONDIR)==1){
 	
-	imputdir=dir+filename;
-	
-	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+outputdir+"] crop_width=0");
-	//	else if(CH3positive!=-1)
-	//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
-	
-	dotindex=lastIndexOf(filename,".lsm");
-	truname=substring(filename,0,dotindex);
-	
-	exi2ch=File.exists(outputdir+truname+"-1-2.tif");
-	exi3ch=File.exists(outputdir+truname+"-1-3.tif");
-	
-	if(exi2ch==1)
-	File.rename(outputdir+truname+"-1-2.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
-	
-	if(exi3ch==1)
-	File.rename(outputdir+truname+"-1-3.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
-	
-	open(outputdir+truname+".tif");
-	run("V3Draw...", "save="+outputdir+truname+".v3draw");
-	File.delete(outputdir+truname+".tif");
-	
+	if(endsWith(filename,".lsm")){
+		
+		imputdir=dir+filename;
+		
+		run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+"_"+ObjectiveST+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
+		//	else if(CH3positive!=-1)
+		//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
+		
+		dotindex=lastIndexOf(filename,".lsm");
+		truname=substring(filename,0,dotindex);
+		
+		exi2ch=File.exists(outputdir+truname+"-1-2.tif");
+		exi3ch=File.exists(outputdir+truname+"-1-3.tif");
+		
+		exi2ch0=File.exists(outputdir+truname+"-1-2-0.tif");
+		exi3ch0=File.exists(outputdir+truname+"-1-3-0.tif");
+		
+		if(exi2ch==1)
+		File.rename(outputdir+truname+"-1-2.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+		
+		if(exi3ch==1)
+		File.rename(outputdir+truname+"-1-3.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+		
+		if(exi2ch0==1)
+		File.rename(outputdir+truname+"-1-2-0.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+		
+		if(exi3ch0==1)
+		File.rename(outputdir+truname+"-1-3-0.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
+		
+		
+		
+		open(outputdir+truname+".tif");
+		print("Opened tif"+truname);
+		run("V3Draw...", "save="+outputdir+truname+".v3draw");
+		File.delete(outputdir+truname+".tif");
+		
+	}
+}else{//if(File.exists(JSONDIR)==1){
+	print("json file is not existing!!  "+JSONDIR);
 }
-
-
 
 "Done"
 ""
