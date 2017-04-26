@@ -18,11 +18,14 @@ filename = args[1];// The name of the LSM file
 outputdir = args[2];//output directory
 ScopeNumST = args[3];// scope number, "Scope #1" "Scope #2" "Scope #3" "Scope #4"" Scope #5" "Scope #6"
 ObjectiveST= args[4];
+PluginsDir=getDirectory("plugins");
 
 print("dir; "+dir);
 print("filename; "+filename);
 print("outputdir; "+outputdir);
 print("ScopeNumST; "+ScopeNumST);
+print("ObjectiveST; "+ObjectiveST);
+print("PluginsDir; "+PluginsDir);
 
 exi=File.exists(outputdir);
 if(exi!=1){
@@ -48,7 +51,7 @@ if(exi2!=1){
 }
 
 
-PluginsDir=getDirectory("plugins");
+
 //items=newArray("scope1", "scope2", "scope3","scope4", "scope5", "scope6");
 
 if(ScopeNumST=="Scope #1")
