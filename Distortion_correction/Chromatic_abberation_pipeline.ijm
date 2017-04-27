@@ -118,6 +118,14 @@ if(File.exists(JSONDIR)==1){
 		
 		open(outputdir+truname+".tif");
 		print("Opened tif"+truname);
+		
+		getDimensions(width, height, channels, slices, frames);
+		if(channels==3){
+			run("Split Channels");
+			selectWindow("C1-"+truname+".tif");
+			run("Grays");
+			run("Merge Channels...", "c1=C1-"+truname+".tif c2=C3-"+truname+".tif c3=C2-"+truname+".tif create");
+		}
 		run("V3Draw...", "save="+outputdir+truname+".v3draw");
 		File.delete(outputdir+truname+".tif");
 		
