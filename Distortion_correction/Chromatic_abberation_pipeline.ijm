@@ -6,6 +6,9 @@ ScopeNum=0;
 
 //40x
 //argstr="/test/Dist_Correction_test/Scope6_40x/,FLFL_20170411171458477_279354.lsm,/test/Dist_Correction_test/Scope6_40x/Output/,Scope #5,40x"//for test
+//argstr="/test/Dist_Correction_test/40x_0/vnc/,FLFL_20170302124503877_268270_ch3.lsm,/test/Dist_Correction_test/40x_0/vnc/Output/,Scope #6,40x"//for test
+
+
 
 //args = split(argstr,",");
 
@@ -89,7 +92,7 @@ if(File.exists(JSONDIR)==1){
 		
 		imputdir=dir+filename;
 		
-		run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+"_"+ObjectiveST+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
+		run("apply lens", "stack1=["+imputdir+"] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+"_"+ObjectiveST+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
 		//	else if(CH3positive!=-1)
 		//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
 		
@@ -114,21 +117,30 @@ if(File.exists(JSONDIR)==1){
 		if(exi3ch0==1)
 		File.rename(outputdir+truname+"-1-3-0.tif", outputdir+truname+".tif"); // - Renames, or moves, a file or directory. Returns "1" (true) if successful. 
 		
-		
+	//	setBatchMode(true);
 		
 		open(outputdir+truname+".tif");
-		print("Opened tif"+truname);
-		
 		getDimensions(width, height, channels, slices, frames);
-		if(channels==3){
-			run("Split Channels");
-			selectWindow("C1-"+truname+".tif");
-			run("Grays");
-			run("Merge Channels...", "c1=C1-"+truname+".tif c2=C3-"+truname+".tif c3=C2-"+truname+".tif create");
-		}
+		print("Opened tif"+truname +"  channels"+channels);
+		
+	
+	//	if(channels==3){
+	//		run("Split Channels");
+	//		selectWindow("C1-"+truname+".tif");
+	//		run("Grays");
+			
+	//		selectWindow("C2-"+truname+".tif");
+		//	run("Blue");
+			
+		//	selectWindow("C3-"+truname+".tif");
+	//		run("Green");
+			
+		//	run("Merge Channels...", "c1=C1-"+truname+".tif c2=C2-"+truname+".tif c3=C3-"+truname+".tif create");
+		//	Stack.setDisplayMode("color");
+	//	}
 		run("V3Draw...", "save="+outputdir+truname+".v3draw");
 		File.delete(outputdir+truname+".tif");
-		
+	
 	}
 }else{//if(File.exists(JSONDIR)==1){
 	print("json file is not existing!!  "+JSONDIR);

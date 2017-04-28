@@ -64,11 +64,11 @@ import mpicbg.trakem2.transform.NonLinearCoordinateTransform;
 
 
 class Parameters {
-	String[] imageFilePaths = new String[]{"", ""};
+	String imageFilePaths =""; // new String[]{"", ""};
 	String transformsFilePath = "";
 	String outFilePath = "";
-	int cropWidth = 16;
-	int Step = 40;
+	int cropWidth = 0;
+	int Step = 1;
 }
 
 class Transform {
@@ -112,6 +112,7 @@ ImagePlus[] splitChannels(ImagePlus imp) {
 	ImagePlus[] channels = new ImagePlus[nChannels];
 	for (int c = 0; c < nChannels; ++c) {
 		ImageStack channelStack = new ImageStack(imp.getWidth(), imp.getHeight());
+		
 		for (int s = 0; s < nSlices; ++s)
 		channelStack.addSlice(stack.getProcessor(imp.getStackIndex(c + 1, s + 1, 1)));
 		
@@ -120,20 +121,26 @@ ImagePlus[] splitChannels(ImagePlus imp) {
 		channelImp.setDimensions(1, nSlices, 1);
 		channels[c] = channelImp;
 	}
+	
 	return channels;
 }
 
-ImagePlus combineChannels(ImagePlus[] channels, int startchannel, int endchannel) {
-	ImageStack stack = new ImageStack(channels[0].getWidth(), channels[0].getHeight());
-	int nSlices = channels[0].getNSlices();
+ImagePlus combineChannels(ImagePlus[] channels3, int startchannel, int endchannel) {
+	
+	IJ.log("combineChannels; start"+String.valueOf(startchannel)+"   end; "+String.valueOf(endchannel));
+	ImageStack stack = new ImageStack(channels3[0].getWidth(), channels3[0].getHeight());
+	int nSlices = channels3[0].getNSlices();
 	for (int s = 0; s < nSlices; ++s)
 	for (int c = startchannel; c < endchannel; ++c)
-	stack.addSlice(channels[c].getStack().getProcessor(s + 1));
+	stack.addSlice(channels3[c].getStack().getProcessor(s + 1));
 	
 	int channelsize= endchannel-startchannel;
 	
-	ImagePlus imp = new ImagePlus(channels[0].getTitle().replaceAll("\\.[^.]*$", "-1-" + endchannel), stack);
-	imp.setCalibration(channels[0].getCalibration());
+	ImagePlus imp = new ImagePlus(channels3[0].getTitle().replaceAll("\\.[^.]*$", "-1-" + endchannel), stack);
+	
+	for (int c2 = startchannel; c2 < endchannel; ++c2)
+	imp.setCalibration(channels3[c2].getCalibration());
+	
 	imp.setDimensions(channelsize, nSlices, 1);
 	return imp;
 }
@@ -167,17 +174,14 @@ int cropWidth) {
 
 void setup(Parameters p) {
 	GenericDialogPlus gd = new GenericDialogPlus("Apply Lens Correction");
-	gd.addFileField("Stack1 (2ch): ", p.imageFilePaths[0]);
-	gd.addFileField("Stack2 (3ch): ", p.imageFilePaths[1]);
+	gd.addFileField("Stack1 : ", p.imageFilePaths);
 	gd.addFileField("Transformations: ", p.transformsFilePath);
 	gd.addDirectoryField("Output: ", p.outFilePath);
 	gd.addNumericField("Crop_width: ", p.cropWidth, 0);
 	gd.addNumericField("MIP_Step_slices: ", p.Step, 0);
 	gd.showDialog();
 	if (!gd.wasCanceled()) {
-		p.imageFilePaths = new String[]{
-			gd.getNextString(),
-		gd.getNextString()};
+		p.imageFilePaths = gd.getNextString();
 		p.transformsFilePath = gd.getNextString();
 		p.outFilePath = gd.getNextString();
 		p.cropWidth = (int)gd.getNextNumber();
@@ -257,39 +261,54 @@ ImagePlus zresizeMIP (ImageStack st1, int chnum, ImagePlus[] channels, int Step)
  * Open a list of images, that each contain one or more channels as an array of single channel images.
  * Original order of channels is preserved.
  */
-ImagePlus[] openChannels(String[] filePaths) {
-	ImagePlus[] channels = new ImagePlus[0];
-	for (String filePath : filePaths) {
-		ImagePlus imp = openImagePlus(filePath);
-		if (imp != null)
-		channels = ArrayUtils.addAll(channels, splitChannels(imp));
-		
-	}
-	return channels;
+ImagePlus[] openChannels(String filePath) {
+	//	ImagePlus[] channels = new ImagePlus[0];
+	
+	ImagePlus imp = openImagePlus(filePath);
+	IJ.log("filePath; "+filePath );
+	
+	//	IJ.saveAsTiff(imp, OUTfilePaths + "/" + "_2Original.tif");
+	
+	//	if (imp != null)
+	//	channels = ArrayUtils.addAll(channels, splitChannels(imp));
+	
+	return imp;
 }
 
 void main() {
 	Parameters p = new Parameters();
 	setup(p);
-	ImagePlus[] channels = openChannels(p.imageFilePaths);
+	//	ImagePlus [] channels = openChannels(p.imageFilePaths);
+	
+	ImagePlus imp = openImagePlus(p.imageFilePaths);
+	int nChannels = imp.getNChannels();
+	
+	ImagePlus[] channels = new ImagePlus[nChannels];
+	channels = splitChannels(imp);
+	
+	
+	IJ.log("filePath; "+p.imageFilePaths );
+	
 	Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	TransformExport[] transformExports = gson.fromJson(new FileReader(p.transformsFilePath), TransformExport[].class);
 	
 	int startchannel=0; int endchannel=0; 
-	
 	int endimage=0; int StartJson=0; int EndJson=0;
 	
-	//IJ.log("channels.length; "+String.valueOf(channels.length));
 	
-	if(channels.length==5){
-		StartJson=0; EndJson=channels.length; endimage=2; 
-	}else if(channels.length==2){
+	IJ.log("291 here; nChannels; "+String.valueOf(nChannels));
+	
+	if(nChannels==2){
 		StartJson=0; EndJson=2; endimage=1; startchannel=0; endchannel=2;
-	}else if(channels.length==3){
+		IJ.log("Channel length 2");
+	}else if(nChannels==3){
 		StartJson=2; EndJson=5; endimage=1; startchannel=0; endchannel=3;
+		IJ.log("Channel length 3");
+		IJ.log("298 here");
 	}
 	
-	ImagePlus[] channels2 = new ImagePlus[channels.length];
+	
+	ImagePlus[] channels2 = new ImagePlus[nChannels];
 	int transChannel=0;
 	int usePlugin=1;
 	IJ.log("Transformation bigin");
@@ -307,55 +326,31 @@ void main() {
 		
 		transChannel=transChannel+1;
 	}
-	IJ.log("Transformation finished");
-	for(int ifile=0; ifile<endimage; ifile++){
+	IJ.log("Transformation finished, step size; " +String.valueOf(p.Step));
+
 		
-		if(channels.length==5){
-			if(ifile==0){
-				startchannel=0;
-				endchannel=2;
-			}else{
-				startchannel=2;
-				endchannel=channels.length;
-			}
-		}//if(channels.length==5){
+		ImagePlus impCombined;
+		if(usePlugin==1 && p.Step!=1){
+			impCombined0 = combineChannels(channels, startchannel, endchannel);
+			
+			
+			IJ.run(impCombined0, "Resize Z MIP", "mip="+p.Step+"");
+			impCombined=WindowManager.getCurrentImage();
+		}else
+		impCombined = combineChannels(channels, startchannel, endchannel);
 		
-		ImagePlus impCombined0 = combineChannels(channels, startchannel, endchannel);
-		
-		//	if(usePlugin==1){
-		IJ.run(impCombined0, "Resize Z MIP", "mip="+p.Step+"");
-	//	impCombined0.flush(); 
-	//	ImagePlus impCombined = WindowManager.getImage (impCombined0.getTitle()); 
-		ImagePlus impCombined=WindowManager.getCurrentImage();
-	//	results[i-starting_threshold] = res.getProcessor();  
-		//res.getWindow().setVisible(false); 
-		
-//		int wList [] = WindowManager.getIDList();
-//		IJ.log("wList"+String.valueOf(wList.length));
-	//		impCombined=WindowManager.getCurrentImage();
-		//		}
 		
 		File f = new File(p.outFilePath);
 		if (f == null || !(f.mkdirs() || f.exists())) return;
 		int SaveTif=1;
 		if(SaveTif==1){
 			
-			//		ImagePlus impCombined0=new CompositeImage(impCombined);
-			//		impCombined0.updateImage();
-			//		new StackConverter(impCombined0).convertToRGB();
-			
-			if(endimage==2)
-			IJ.saveAsTiff(new CompositeImage(impCombined), p.outFilePath + "/" + impCombined.getTitle() +"_"+ifile+".tif");
-			else
 			IJ.saveAsTiff(new CompositeImage(impCombined), p.outFilePath + "/" + impCombined.getTitle()+".tif");
 		}else{
 			//	IJ.saveAsTiff(new CompositeImage(impCombined), p.outFilePath + "/" + impCombined.getTitle() +"_"+ifile+".tif");
-			if(endimage==2)
-			new FileSaver (new CompositeImage(impCombined)).saveAsZip(p.outFilePath + "/" + impCombined.getTitle() +"_"+ifile+".zip");
-			else
 			new FileSaver (new CompositeImage(impCombined)).saveAsZip(p.outFilePath + "/" + impCombined.getTitle() +".zip");
 		}
-	}
+	
 }
 
 main();
