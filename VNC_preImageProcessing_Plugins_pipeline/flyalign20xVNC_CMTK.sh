@@ -431,20 +431,19 @@ then
 			echo -e "Error: CMTK reformatting Neuron separation failed"
 			exit -1
 		fi
+		echo "+----------------------------------------------------------------------+"
+		echo "| Running nrrd -> v3draw conversion                                    |"
+		echo "| $FIJI -macro $NRRD2V3DRAW_NS $Reformatted_Separator_result_nrrd      |"
+		echo "+----------------------------------------------------------------------+"
+		START=`date '+%F %T'`
+		$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
+		STOP=`date '+%F %T'`
+		if [ ! -e $Reformatted_Separator_result_v3draw ]
+			then
+			echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
+			exit -1
+		fi
 	fi
-
-    echo "+----------------------------------------------------------------------+"
-    echo "| Running nrrd -> v3draw conversion                                    |"
-    echo "| $FIJI -macro $NRRD2V3DRAW_NS $Reformatted_Separator_result_nrrd      |"
-    echo "+----------------------------------------------------------------------+"
-    START=`date '+%F %T'`
-    $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
-    STOP=`date '+%F %T'`
-    if [ ! -e $Reformatted_Separator_result_v3draw ]
-    then
-        echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
-        exit -1
-    fi
 fi
 
 
