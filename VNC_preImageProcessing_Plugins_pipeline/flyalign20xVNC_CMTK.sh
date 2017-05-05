@@ -406,7 +406,7 @@ then
 	fi
 fi
 
-if [ -e $Neuron_Separator_Result ]
+if [ -e $Unaligned_Neuron_Separator_Result_RAW || -e $Unaligned_Neuron_Separator_Result_V3DPBD ]
 then
 	#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
 	# -------------------------------------------------------------------------------------------
