@@ -406,46 +406,48 @@ then
 	fi
 fi
 
-if [ -e $Unaligned_Neuron_Separator_Result_RAW || -e $Unaligned_Neuron_Separator_Result_V3DPBD ]
+if [ -e $Unaligned_Neuron_Separator_Result_RAW ]
 then
-	#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
-	# -------------------------------------------------------------------------------------------
-	# CMTK reformatting for neuron separator result
+	if[ -e $Unaligned_Neuron_Separator_Result_V3DPBD ]
+	then
 
-
-	Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
-	if [ -e $Neuron_Separator_ResultNRRD ]
-		then
-		echo "+----------------------------------------------------------------------+"
-		echo "| Running CMTK reformatting for Neuron separator result                |"
-		echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
-		echo "+----------------------------------------------------------------------+"
-		START=`date '+%F %T'`
-
-		Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
-
-		$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
-		STOP=`date '+%F %T'`
-		if [ ! -e $Reformatted_Separator_result_nrrd ]
+		#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
+		# -------------------------------------------------------------------------------------------
+		# CMTK reformatting for neuron separator result
+	
+		Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
+		if [ -e $Neuron_Separator_ResultNRRD ]
 			then
-			echo -e "Error: CMTK reformatting Neuron separation failed"
-			exit -1
-		fi
-		echo "+----------------------------------------------------------------------+"
-		echo "| Running nrrd -> v3draw conversion                                    |"
-		echo "| $FIJI -macro $NRRD2V3DRAW_NS $Reformatted_Separator_result_nrrd      |"
-		echo "+----------------------------------------------------------------------+"
-		START=`date '+%F %T'`
-		$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
-		STOP=`date '+%F %T'`
-		if [ ! -e $Reformatted_Separator_result_v3draw ]
-			then
-			echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
-			exit -1
+			echo "+----------------------------------------------------------------------+"
+			echo "| Running CMTK reformatting for Neuron separator result                |"
+			echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
+			echo "+----------------------------------------------------------------------+"
+			START=`date '+%F %T'`
+	
+			Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
+	
+			$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
+			STOP=`date '+%F %T'`
+			if [ ! -e $Reformatted_Separator_result_nrrd ]
+				then
+				echo -e "Error: CMTK reformatting Neuron separation failed"
+				exit -1
+			fi
+			echo "+----------------------------------------------------------------------+"
+			echo "| Running nrrd -> v3draw conversion                                    |"
+			echo "| $FIJI -macro $NRRD2V3DRAW_NS $Reformatted_Separator_result_nrrd      |"
+			echo "+----------------------------------------------------------------------+"
+			START=`date '+%F %T'`
+			$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
+			STOP=`date '+%F %T'`
+			if [ ! -e $Reformatted_Separator_result_v3draw ]
+				then
+				echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
+				exit -1
+			fi
 		fi
 	fi
 fi
-
 
 
 #/usr/local/pipeline/bin/add_operation -operation cmtk_reformatting -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$CMTK/reformatx" -version '2.2.6' -parm alignment_target="$Tfile"
