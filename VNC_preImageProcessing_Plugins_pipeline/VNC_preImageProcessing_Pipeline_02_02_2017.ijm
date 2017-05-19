@@ -1847,6 +1847,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								realNeuron2=getImageID();
 							}//if(AdvanceDepth){
 							
+							if(bitd==8)
+							run("16-bit");
 							
 							if(ShapeProblem==0){
 								if(FrontAndBack>0)
