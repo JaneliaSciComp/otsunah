@@ -1759,6 +1759,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					}
 					print(" 1762; nImages; "+nImages);
 					selectImage(realVNC);
+					run("16-bit");
 					
 					if(ShapeProblem==0){
 						if(FrontAndBack==0)
