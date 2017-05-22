@@ -1939,7 +1939,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								realNeuron2=getImageID();
 							}//if(AdvanceDepth){
 							
-							
+							run("16-bit");
 							if(ShapeProblem==0){
 								if(FrontAndBack>0)
 								run("Nrrd Writer", "compressed nrrd="+savedir+"ConsolidatedLabel__Rev.nrrd");
