@@ -994,7 +994,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					/// Start and End slice decision /////////////////////////////////////////////
 					print("preskelton");
 					run("Size to Skelton");
-					print("postskelton");
+					print("postskelton; "+getTitle());
+					postskelton=getTitle();
 					
 					getDimensions(width, height, channels, slices, frames);
 					startslice=0;
@@ -1135,6 +1136,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				endslice=startslice+110;
 				
 				print("startslice; "+startslice+"  endslice; "+endslice);
+				
+				selectWindow(postskelton);
+				close();
 				
 				selectImage(DUP);
 				
@@ -1759,6 +1763,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					}
 					print(" 1762; nImages; "+nImages);
 					selectImage(realVNC);
+					
 					run("16-bit");
 					
 					if(ShapeProblem==0){
