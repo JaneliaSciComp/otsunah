@@ -2,12 +2,11 @@ ScopeNum=0;
 
 //for test
 //63x
-//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch3_FLFL_20161125150205110_242445.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1,63x,Thu Dec 08 19:01:25 EST 2016,1024"//for test
+//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch3_FLFL_20161125150205110_242445.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1,63x,Thu Dec 08 19:01:25 EST 2016,1024,getDirectory("plugins")+"Chromatic_Aberration"+File.separator"//for test
 
 //40x
 //argstr="/test/Dist_Correction_test/Scope6_40x/,FLFL_20170411171458477_279354.lsm,/test/Dist_Correction_test/Scope6_40x/Output/,Scope #5,40x"//for test
 //argstr="/test/Dist_Correction_test/40x_0/vnc/,FLFL_20170302124503877_268270_ch3.lsm,/test/Dist_Correction_test/40x_0/vnc/Output/,Scope #6,40x"//for test
-
 
 
 //args = split(argstr,",");
@@ -23,15 +22,17 @@ ScopeNumST = args[3];// scope number, "Scope #1" "Scope #2" "Scope #3" "Scope #4
 ObjectiveST= args[4];//Objective
 CapDate=args[5];//Capture Date
 Xdimension=args[6];//X Dimension
+JSONDIR=args[7];// distortion filed's location
 
-PluginsDir=getDirectory("plugins");
+Distlist=getFileList(JSONDIR);
+
 
 print("dir; "+dir);
 print("filename; "+filename);
 print("outputdir; "+outputdir);
 print("ScopeNumST; "+ScopeNumST);
 print("ObjectiveST; "+ObjectiveST);
-print("PluginsDir; "+PluginsDir);
+print("JSONDIR; "+JSONDIR);
 
 exi=File.exists(outputdir);
 if(exi!=1){
@@ -178,8 +179,6 @@ if(ScopeNum==0){
 	run("Quit");
 }
 
-JSONDIR=""+PluginsDir+"Chromatic_Aberration"+File.separator;
-Distlist=getFileList(JSONDIR);
 BestJson=" "; BestJsonDOBint=0;
 
 for(jsonScan=0; jsonScan<Distlist.length; jsonScan++){
@@ -205,16 +204,15 @@ for(jsonScan=0; jsonScan<Distlist.length; jsonScan++){
 					jsonIntGeneration(jsonArray);
 					BestJsonDOBint=jsonArray[2];
 					
-					print("156");
+					print("208");
 				}else if(CapTimeDOBint>JsonDOBint){
 					if(BestJsonDOBint<JsonDOBint){
 						BestJson=jsonname;
 						jsonArray=newArray(jsonname, ObjectiveIndex, 0);
 						jsonIntGeneration(jsonArray);
 						BestJsonDOBint=jsonArray[2];// best json is newest
-						print("161"); jsonScan=Distlist.length;
+						print("215"); jsonScan=Distlist.length;
 					}
-					
 				}//	if(BestJson==" "){
 				
 				if(ScopeNum=="scope1" && ObjectiveST=="63x"){
@@ -225,21 +223,21 @@ for(jsonScan=0; jsonScan<Distlist.length; jsonScan++){
 							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
 							jsonIntGeneration(jsonArray);
 							BestJsonDOBint=jsonArray[2];// best json is newest
-							print("172"); jsonScan=Distlist.length;
+							print("228"); jsonScan=Distlist.length;
 							
 						}else if(CapTimeDOBint>2016030700){//	if(CapTimeDOBint>082205 && YearNumint>=2016){
 							BestJson="scope1_63x1024_2016_072502";
 							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
 							jsonIntGeneration(jsonArray);
 							BestJsonDOBint=jsonArray[2];// best json is 2016_042805
-							print("176"); jsonScan=Distlist.length;
+							print("235"); jsonScan=Distlist.length;
 							
 						}else{//before 2016 0307
 							BestJson="scope1_63x1024_2016_072502";
 							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
 							jsonIntGeneration(jsonArray);
 							BestJsonDOBint=jsonArray[2];// oldest
-							print("180"); jsonScan=Distlist.length;
+							print("242"); jsonScan=Distlist.length;
 						}
 					}//	if(CapTimeDOBint<051712 && YearNumint<=2017){
 					
@@ -249,7 +247,7 @@ for(jsonScan=0; jsonScan<Distlist.length; jsonScan++){
 						jsonArray=newArray(BestJson, ObjectiveIndex, 0);
 						jsonIntGeneration(jsonArray);
 						BestJsonDOBint=jsonArray[2];// oldest
-						print("186"); jsonScan=Distlist.length;
+						print("252"); jsonScan=Distlist.length;
 					}//if(CapTimeDOBint>=051712 && YearNumint>=2017){
 				}//if(ScopeNum=="scope1" && ObjectiveST=="63x"){
 			}
@@ -287,16 +285,14 @@ if(BestJson==" "){
 	run("Quit");
 }
 
-JSONPATH=""+PluginsDir+"Chromatic_Aberration"+File.separator+BestJson+".json";
+JSONPATH=""+JSONDIR+BestJson+".json";
 if(File.exists(JSONPATH)==1){
 	
 	if(endsWith(filename,".lsm")){
 		
 		imputdir=dir+filename;
 		
-		run("apply lens", "stack1=["+imputdir+"] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+BestJson+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
-		//	else if(CH3positive!=-1)
-		//	run("apply lens", "stack1=["+imputdir+"] stack2=[] transformations=["+PluginsDir+"Chromatic_Aberration"+File.separator+ScopeNum+".json] output=["+mydir3+"] crop_width=0");
+		run("apply lens", "stack1=["+imputdir+"] transformations=["+JSONDIR+BestJson+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
 		
 		dotindex=lastIndexOf(filename,".lsm");
 		truname=substring(filename,0,dotindex);
@@ -325,27 +321,17 @@ if(File.exists(JSONPATH)==1){
 		getDimensions(width, height, channels, slices, frames);
 		print("Opened tif"+truname +"  channels"+channels);
 		
-		
-		//	if(channels==3){
-		//		run("Split Channels");
-		//		selectWindow("C1-"+truname+".tif");
-		//		run("Grays");
-		
-		//		selectWindow("C2-"+truname+".tif");
-		//	run("Blue");
-		
-		//	selectWindow("C3-"+truname+".tif");
-		//		run("Green");
-		
-		//	run("Merge Channels...", "c1=C1-"+truname+".tif c2=C2-"+truname+".tif c3=C3-"+truname+".tif create");
-		//	Stack.setDisplayMode("color");
-		//	}
 		run("V3Draw...", "save="+outputdir+truname+".v3draw");
 		File.delete(outputdir+truname+".tif");
 		
 	}
 }else{//if(File.exists(JSONPATH)==1){
 	print("json file is not existing!!  "+JSONPATH);
+	logsum=getInfo("log");
+	filepath=outputdir+"Distortion_Correction_log_error+"+filename+".txt";
+	File.saveString(logsum, filepath);
+	
+	run("Quit");
 }
 
 "Done"
