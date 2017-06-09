@@ -311,7 +311,7 @@ void main() {
 	ImagePlus[] channels2 = new ImagePlus[nChannels];
 	int transChannel=0;
 	int usePlugin=1;
-	IJ.log("Transformation bigin");
+	IJ.log("Transformation begin");
 	
 	for (int i = StartJson; i < EndJson; ++i) {
 		CoordinateTransform ct = createCoordinateTransform(transformExports[i].transform);
