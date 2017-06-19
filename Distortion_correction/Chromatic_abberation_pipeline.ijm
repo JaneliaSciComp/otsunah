@@ -2,11 +2,11 @@ ScopeNum=0;
 
 //for test
 //63x
-//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch3_FLFL_20161125150205110_242445.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1,63x,Thu Dec 08 19:01:25 EST 2016,1024,getDirectory("plugins")+"Chromatic_Aberration"+File.separator"//for test
+//argstr="/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/,GMR_75F10_AE_01-20161007_22_A3_Ch3_FLFL_20161125150205110_242445.lsm,/test/Dist_Correction_test/Scope1/GMR_75F10_AE_01-20161007_22_A3~63x/Output/,Scope #1,63x,Thu Dec 08 19:01:25 EST 2016,1024,"+getDirectory("plugins")+"Chromatic_Aberration"+File.separator;//for test
 
 //40x
-//argstr="/test/Dist_Correction_test/Scope6_40x/,FLFL_20170411171458477_279354.lsm,/test/Dist_Correction_test/Scope6_40x/Output/,Scope #5,40x"//for test
-//argstr="/test/Dist_Correction_test/40x_0/vnc/,FLFL_20170302124503877_268270_ch3.lsm,/test/Dist_Correction_test/40x_0/vnc/Output/,Scope #6,40x"//for test
+//argstr="/test/Dist_Correction_test/Scope6_40x/,FLFL_20170411171458477_279354.lsm,/test/Dist_Correction_test/Scope6_40x/Output/,Scope #5,40x";//for test
+//argstr="/test/Dist_Correction_test/40x_0/vnc/,FLFL_20170302124503877_268270_ch3.lsm,/test/Dist_Correction_test/40x_0/vnc/Output/,Scope #6,40x";//for test
 
 
 //args = split(argstr,",");
@@ -132,14 +132,14 @@ if(Month=="00"){
 }
 
 HourNum=substring(CapDate,MonthIndex+7,MonthIndex+9);
-HourNumint=parseFloat(HourNum);//Chaneg string to number
+HourNumint=parseFloat(HourNum);//Change string to number
 
 DateNum=substring(CapDate,MonthIndex+4,MonthIndex+6);
-DateNumint=parseFloat(DateNum);//Chaneg string to number
+DateNumint=parseFloat(DateNum);//Change string to number
 
 //Fri May 05 08:44:46 EDT 2017
 YearNum=substring(CapDate,MonthIndex+20,MonthIndex+24);
-YearNumint=parseFloat(YearNum);//Chaneg string to number
+YearNumint=parseFloat(YearNum);//Change string to number
 
 CapTime=0;
 CapTime=YearNum+"_"+Month+DateNum+HourNum;
@@ -204,52 +204,16 @@ for(jsonScan=0; jsonScan<Distlist.length; jsonScan++){
 					jsonIntGeneration(jsonArray);
 					BestJsonDOBint=jsonArray[2];
 					
-					print("208");
+					print("207");
 				}else if(CapTimeDOBint>JsonDOBint){
 					if(BestJsonDOBint<JsonDOBint){
 						BestJson=jsonname;
 						jsonArray=newArray(jsonname, ObjectiveIndex, 0);
 						jsonIntGeneration(jsonArray);
 						BestJsonDOBint=jsonArray[2];// best json is newest
-						print("215"); jsonScan=Distlist.length;
+						print("214"); //jsonScan=Distlist.length;
 					}
 				}//	if(BestJson==" "){
-				
-				if(ScopeNum=="scope1" && ObjectiveST=="63x"){
-					if(CapTimeDOBint<=2017051712){
-						
-						if(CapTimeDOBint>=2016082205){
-							BestJson="scope1_63x1024_2017_021812";
-							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
-							jsonIntGeneration(jsonArray);
-							BestJsonDOBint=jsonArray[2];// best json is newest
-							print("228"); jsonScan=Distlist.length;
-							
-						}else if(CapTimeDOBint>2016030700){//	if(CapTimeDOBint>082205 && YearNumint>=2016){
-							BestJson="scope1_63x1024_2016_072502";
-							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
-							jsonIntGeneration(jsonArray);
-							BestJsonDOBint=jsonArray[2];// best json is 2016_042805
-							print("235"); jsonScan=Distlist.length;
-							
-						}else{//before 2016 0307
-							BestJson="scope1_63x1024_2016_072502";
-							jsonArray=newArray(BestJson, ObjectiveIndex, 0);
-							jsonIntGeneration(jsonArray);
-							BestJsonDOBint=jsonArray[2];// oldest
-							print("242"); jsonScan=Distlist.length;
-						}
-					}//	if(CapTimeDOBint<051712 && YearNumint<=2017){
-					
-					if(CapTimeDOBint>=2017051712){
-						BestJson="scope1_63x1024_2017_051909";
-						
-						jsonArray=newArray(BestJson, ObjectiveIndex, 0);
-						jsonIntGeneration(jsonArray);
-						BestJsonDOBint=jsonArray[2];// oldest
-						print("252"); jsonScan=Distlist.length;
-					}//if(CapTimeDOBint>=051712 && YearNumint>=2017){
-				}//if(ScopeNum=="scope1" && ObjectiveST=="63x"){
 			}
 		}//	if(ObjectiveIndex!=-1){
 	}
@@ -269,7 +233,7 @@ function jsonIntGeneration(jsonArray){
 	
 	JsonYearNum=substring(dob,0,4);
 	JsonDOB=substring(dob,5,lengthOf(dob));//051505 like this
-	JsonDOB=JsonYearNum+JsonDOB;
+	JsonDOB=JsonYearNum+JsonDOB;//2017051505 like this
 	JsonDOBint=parseFloat(JsonDOB);
 	
 	jsonArray[2]=JsonDOBint;
@@ -284,7 +248,7 @@ if(BestJson==" "){
 	File.saveString(logsum, filepath);
 	run("Quit");
 }
-
+a
 JSONPATH=""+JSONDIR+BestJson+".json";
 if(File.exists(JSONPATH)==1){
 	
