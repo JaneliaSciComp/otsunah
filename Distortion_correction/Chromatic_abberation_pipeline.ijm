@@ -248,7 +248,7 @@ if(BestJson==" "){
 	File.saveString(logsum, filepath);
 	run("Quit");
 }
-a
+
 JSONPATH=""+JSONDIR+BestJson+".json";
 if(File.exists(JSONPATH)==1){
 	
