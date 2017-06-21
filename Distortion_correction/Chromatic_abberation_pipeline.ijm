@@ -249,7 +249,7 @@ if(BestJson==" "){
 	run("Quit");
 }
 
-JSONPATH=""+JSONDIR+BestJson+".json";
+JSONPATH=""+JSONDIR+BestJson;
 if(File.exists(JSONPATH)==1){
 	
 	if(endsWith(filename,".lsm")){
