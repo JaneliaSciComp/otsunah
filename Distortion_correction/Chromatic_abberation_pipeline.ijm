@@ -256,7 +256,7 @@ if(File.exists(JSONPATH)==1){
 		
 		imputdir=dir+filename;
 		
-		run("apply lens", "stack1=["+imputdir+"] transformations=["+JSONDIR+BestJson+".json] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
+		run("apply lens", "stack1=["+imputdir+"] transformations=["+JSONDIR+BestJson+"] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
 		
 		dotindex=lastIndexOf(filename,".lsm");
 		truname=substring(filename,0,dotindex);
