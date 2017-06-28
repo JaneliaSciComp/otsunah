@@ -40,7 +40,7 @@ if(exi!=1){
 	print("outputdir created!");
 }
 logsum=getInfo("log");
-filepath=outputdir+"Distortion_Correction_log.txt";
+filepath=outputdir+"Distortion_Correction_log_"+filename+".txt";
 
 if(File.exists(filepath)!=1)
 File.saveString(logsum, filepath);
@@ -244,7 +244,7 @@ print("BestJson; "+BestJson+"   BestJsonDOBint; "+BestJsonDOBint);
 if(BestJson==" "){
 	print("No json file for; "+ScopeNumST+"  "+ObjectiveST+"  "+Xdimension+"  "+CapDate);
 	logsum=getInfo("log");
-	filepath=outputdir+"Distortion_Correction_log_error.txt";
+	filepath=outputdir+"Distortion_Correction_log_error_"+filename+".txt";
 	File.saveString(logsum, filepath);
 	run("Quit");
 }
@@ -292,7 +292,7 @@ if(File.exists(JSONPATH)==1){
 }else{//if(File.exists(JSONPATH)==1){
 	print("json file is not existing!!  "+JSONPATH);
 	logsum=getInfo("log");
-	filepath=outputdir+"Distortion_Correction_log_error+"+filename+".txt";
+	filepath=outputdir+"Distortion_Correction_log_error_"+filename+".txt";
 	File.saveString(logsum, filepath);
 	
 	run("Quit");
@@ -301,6 +301,6 @@ if(File.exists(JSONPATH)==1){
 "Done"
 ""
 logsum=getInfo("log");
-filepath=outputdir+"Distortion_Correction_log.txt";
+filepath=outputdir+"Distortion_Correction_log_"+filename+".txt";
 File.append(logsum, filepath);
 run("Quit");
