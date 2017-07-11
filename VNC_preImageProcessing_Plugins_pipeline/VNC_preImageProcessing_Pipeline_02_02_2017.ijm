@@ -58,7 +58,7 @@ print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
 print("ConsolidatedLabel path; "+PathConsolidatedLabel);
 
-print("Plugin Dir; "+getDirectory("Plugins"));
+print("Plugin Dir; "+getDirectory("plugins"));
 
 exi=File.exists(savedir);
 if(exi!=1){
