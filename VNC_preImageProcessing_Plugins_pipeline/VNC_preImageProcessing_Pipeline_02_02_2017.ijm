@@ -20,9 +20,9 @@ AdvanceDepth=true;
 
 //argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
-//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd"//for test
-//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd"//for test
-//argstr="/test/VNC_pipeline/,tile-2310500072061665317,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/tile-2310500072061665317.v3draw,sr,0.51,0.51,f,???"//for test
+//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
+//argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
+//argstr="/test/VNC_pipeline/,tile-2310500072061665317,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_pipeline/tile-2310500072061665317.v3draw,sr,0.51,0.51,f,???,4"//for test
 //args = split(argstr,",");
 
 args = split(getArgument(),",");
@@ -35,7 +35,7 @@ Xresolution = toUpperCase(args[5]);
 Yresolution = toLowerCase(args[6]);
 temptype=args[7];//"f" or "m"
 PathConsolidatedLabel=args[8];// full file path for ConsolidatedLabel.v3dpbd
-
+numCPU=args[9];
 
 print("java.runtime.version; "+getInfo("java.runtime.version"));
 print("java.version; "+getInfo("java.version"));
@@ -57,6 +57,8 @@ print("X resolution: "+Xresolution);
 print("Y resolution: "+Yresolution);
 print("Gender: "+temptype);
 print("ConsolidatedLabel path; "+PathConsolidatedLabel);
+print("CPU number: "+numCPU);
+
 
 print("Plugin Dir; "+getDirectory("plugins"));
 
@@ -123,7 +125,7 @@ origi=getTitle();
 //		C1C20102Takeout(takeout);
 noext = prefix;
 
-God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel);
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel,numCPU);
 
 //nrrd2v3draw(savedir, noext);
 
@@ -139,7 +141,7 @@ print("line 100; log file saved");
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,VNC_Lateral_small,PathConsolidatedLabel,numCPU){
 	
 	bitd=bitDepth();
 	CLAHEwithMASK=0;
@@ -329,7 +331,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 			}//if(CLAHEwithMASK==1){//CLAHE with Mask
 			
 			selectImage(nc82);
-			run("Gamma ", "gamma=1.60 3d in=InMacro cpu=6");
+			run("Gamma ", "gamma=1.60 3d in=InMacro cpu="+numCPU+"");
 			DUP=getImageID();
 			DUPst2=getTitle();
 			
@@ -993,7 +995,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					/// Start and End slice decision /////////////////////////////////////////////
 					print("preskelton");
-					run("Size to Skelton");
+					run("Size to Skelton", "parallel="+numCPU+"");
 					print("postskelton; "+getTitle());
 					postskelton=getTitle();
 					
@@ -1305,7 +1307,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					run("Z Project...", "projection=[Max Intensity]");
 					resetMinAndMax();
 					origiMIPID0=getImageID();
-					run("Gamma ", "gamma=0.60 3d in=InMacro cpu=6");
+					run("Gamma ", "gamma=0.60 3d in=InMacro cpu="+numCPU+"");
 					origiMIPID=getImageID();
 					resetMinAndMax();
 					run("8-bit");
@@ -1327,7 +1329,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					lowthreMIP=0; MaxARshape=0; MaxAngle=0; Angle_AR_measure=1; FirstAR=0;
 					
 					SmeasurementArray=newArray(origiMIPID,0,2,3,4,MaxARshape,MaxAngle,Angle_AR_measure,0,0,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight,savedir);
-					shapeMeasurement(SmeasurementArray);
+					shapeMeasurement(numCPU,SmeasurementArray);
 					
 					lowthreMIP=SmeasurementArray[2];
 					LXminsd=SmeasurementArray[3];
@@ -1355,7 +1357,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						Angle_AR_measure=0;
 						SmeasurementArray=newArray(origiMIPID,0,2,LXminsd,LYminsd,MaxARshape,MaxAngle,Angle_AR_measure,0,ShapeProblem,MarkProblem,11,12,13,invertON,realVNC,0,FirstAR,StackWidth,StackHeight,savedir);
-						shapeMeasurement(SmeasurementArray);
+						shapeMeasurement(numCPU,SmeasurementArray);
 						
 						lowthreMIP=SmeasurementArray[2];
 						LXminsd=SmeasurementArray[3];
@@ -1413,7 +1415,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					
 					if(MaxShapeNo==4){
 						//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-						run("Gamma ", "gamma=1.60 3d in=InMacro cpu=6");
+						run("Gamma ", "gamma=1.60 3d in=InMacro cpu="+numCPU+"");
 					}
 					
 					if(MaxShapeNo<=6 || MaxShapeNo>=8)
@@ -1562,7 +1564,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Duplicate...", "title=DUPnc82.tif");
 								DUP3=getImageID();
 								
-								run("Gamma ", "gamma=1.2 in=InMacro cpu=6");
+								run("Gamma ", "gamma=1.2 in=InMacro cpu="+numCPU+"");
 								DUP2=getImageID();
 								print(" 1559; nImages; "+nImages);
 								//				PrintWindows ();
@@ -1602,8 +1604,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								//run("Image Correlation Atomic", "samp=DUPnc82.tif temp=VNC_Lateral_F.tif +=5 -=5 overlap=90 parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								
 								//for new log version;
-								print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=6 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
-								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=6 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel="+numCPU+" rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+								run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel="+numCPU+" rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 								
 								//for old bigdecimal
 						//		print("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=3 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
@@ -2260,7 +2262,7 @@ function addingslice(slicePosition){
 }//function addingslice(startslice,endslice){
 
 
-function shapeMeasurement(SmeasurementArray){
+function shapeMeasurement(numCPU,SmeasurementArray){
 	ResultNstep=0;
 	origiMIPID=SmeasurementArray[0];
 	MaxARshape=SmeasurementArray[5];
@@ -2368,7 +2370,7 @@ function shapeMeasurement(SmeasurementArray){
 				VNCDUP3=getImageID();
 				
 				//	run("Enhance Local Contrast (CLAHE)", "blocksize=60 histogram=256 maximum=6 mask=*None* fast_(less_accurate)");
-				run("Gamma ", "gamma=1.60 in=InMacro cpu=6");
+				run("Gamma ", "gamma=1.60 in=InMacro cpu="+numCPU+"");
 				setAutoThreshold("Default dark");
 				getThreshold(LowThreMax, upperM);
 				setThreshold(LowThreMax, upperM2);
