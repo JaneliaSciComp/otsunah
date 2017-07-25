@@ -256,15 +256,17 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				
 				
 				if(imageNum==1){
-					if(AutoBRV==1)
-					save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+					if(AutoBRV==1)//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 					else
-					save(dirCOLOR+DataName+".tif");
+					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 				}else{
 					if(AutoBRV==1)
-					save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+					//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 					else
-					save(dirCOLOR+DataName+".tif");
+					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 					
 					print("AutoBRV; "+AutoBRV+"   MIP saved; "+dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
 				}
