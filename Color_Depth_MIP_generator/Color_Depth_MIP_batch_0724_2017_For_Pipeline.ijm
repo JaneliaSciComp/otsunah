@@ -4,7 +4,7 @@
 setBatchMode(true);
 
 AutoBRV=true;
-desiredmean=180;
+desiredmean=190;
 usingLUT="PsychedelicRainBow2";
 
 lowerweight=0.7;
@@ -21,7 +21,7 @@ argstr=" ";
 
 run("Close All");
 pluginDir=getDirectory("plugins");
-///argstr="/test/Color_depthMIP_Test/,GMR_26D12_AE_01_74-fA01b_C110503_20110503110552859.zip,/test/Color_depthMIP_Test/result/,"+pluginDir+"JFRC2010_Mask.tif,"+pluginDir+"Mask_VNC_Female.tif,Brain";
+///argstr="/test/Color_depthMIP_Test/,GMR_45H06_AE_01-20161123_19_B6.h5j,/test/Color_depthMIP_Test/result/,"+pluginDir+",Brain";
 
 if(argstr==" ")
 argstr = getArgument();//Argument
@@ -180,6 +180,11 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				sigsizethre=round(sigsizethre);
 				sigsize=round(sigsize);
 				
+				if(isOpen("test.tif")){
+					selectWindow("test.tif");
+					close();
+				}
+				
 			}//	if(AutoBRV==1){
 			
 			if(colorcoding==true){
@@ -255,16 +260,16 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				
 				if(imageNum==1){
 					if(AutoBRV==1){//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
-					//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+						//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
 						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
 					}else
 					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					
-									
+					
 				}else{
 					if(AutoBRV==1){
-					//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+						//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
 						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
 					}else
@@ -555,10 +560,10 @@ function DSLTfun(dsltarray){
 		
 		if(bitd==8)
 		//	run("DSLT ", "radius_r_max=4 radius_r_min=2 radius_r_step=2 rotation=6 weight=14 filter=GAUSSIAN close=None noise=5px");
-		run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=6 weight=3 filter=GAUSSIAN close=None noise=5px");
+		run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=6 weight=3 filter=GAUSSIAN close=None noise=7px");
 		
 		if(bitd==16){
-			run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=6 weight=130 filter=GAUSSIAN close=None noise=5px");
+			run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=6 weight=130 filter=GAUSSIAN close=None noise=9px");
 			
 			run("16-bit");
 			run("Mask255 to 4095");
@@ -580,26 +585,29 @@ function DSLTfun(dsltarray){
 	run("8-bit");
 	
 	run("Create Selection");
-	getStatistics(area, mean, min, max, std, histogram);
-	print("Area 1402;  "+area+"   mean; "+mean+"  totalpix; "+totalpix+"   bitd; "+bitd);
+	getStatistics(area1, mean, min, max, std, histogram);
 	
-	if(area!=totalpix){
+	
+	if(area1!=totalpix){
 		if(mean<200){
 			selectWindow("test2.tif");
 			run("Make Inverse");
+			getStatistics(area1, mean, min, max, std, histogram);
 		}
 	}
-	getStatistics(area2, mean, min, max, std, histogram);
+	
 	close();//test2.tif
 	
 	//	print("Area 1412;  "+area+"   mean; "+mean);
 	
-	presize=area2/totalpix;
+	presize=area1/totalpix;
 	
-	if(area==totalpix){
+	if(area1==totalpix){
 		presize=0.0001;
 		print("Equal");
 	}
+	print("Area 1st time;  "+area1+"   mean; "+mean+"  totalpix; "+totalpix+"   presize; "+presize+"   bitd; "+bitd);
+	realArea=area1;
 	
 	if(multiDSLT==1){
 		if(presize<0.05){// set DSLT more sensitive, too dim images, less than 5%
@@ -619,30 +627,32 @@ function DSLTfun(dsltarray){
 			
 			if(bitd==8){
 				//run("DSLT ", "radius_r_max=4 radius_r_min=2 radius_r_step=2 rotation=6 weight=5 filter=GAUSSIAN close=None noise=10px");
-				run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=6 weight=2 filter=GAUSSIAN close=None noise=6px");
-				getStatistics(area2, mean, min, max, std, histogram);
+				run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=8 weight=2 filter=GAUSSIAN close=None noise=7px");
+				
 			}
-			if(bitd==16){
-				run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=8 weight=60 filter=GAUSSIAN close=None noise=10px");
-				
-				
-				
-				
-				run("Create Selection");
-				getStatistics(area2, mean, min, max, std, histogram);
-				if(area2!=totalpix){
-					if(mean<200)
+			if(bitd==16)
+			run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=8 weight=60 filter=GAUSSIAN close=None noise=9px");
+			
+			run("Create Selection");
+			getStatistics(area2, mean, min, max, std, histogram);
+			if(area2!=totalpix){
+				if(mean<200){
 					run("Make Inverse");
 					print("Inverted 1430");
+					getStatistics(area2, mean, min, max, std, histogram);
 				}
-				getStatistics(area2, mean, min, max, std, histogram);
-				
+			}
+			
+			if(bitd==16){
 				run("16-bit");
 				run("Mask255 to 4095");
 			}//if(bitd==16){
 			
+			
 			rename("test.tif");//new window from DSLT
 			run("Select All");
+			print("2nd measured size;"+area2);
+			realArea=area2;
 			
 			sizediff=(area2/totalpix)/presize;
 			print("2nd_sizediff; 	"+sizediff);
@@ -685,7 +695,7 @@ function DSLTfun(dsltarray){
 	}//	if(multiDSLT==1){
 	
 	dsltarray[3]=desiredmean;
-	dsltarray[4]=area2;
+	dsltarray[4]=realArea;
 }//function DSLTfun
 
 function applyVcalculation(applyvv){
@@ -1340,10 +1350,10 @@ function BackgroundMask (tissue,MaskDir,MIPapply,bitd){
 		MaskName="Mask_VNC_Male.tif";
 	}
 	openPath=MaskDir+MaskName;
-	
+	print("Mask path; "+openPath);
 	maskExist=File.exists(openPath);
 	if(maskExist==1){
-		
+		print("Used a Mask for background subtraction.");
 		open(openPath);
 		filename=getTitle();
 		
