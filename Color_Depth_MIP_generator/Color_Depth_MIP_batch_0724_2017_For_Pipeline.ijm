@@ -31,7 +31,7 @@ if (lengthOf(args)>1) {
 	dir=args[0];//input directory
 	DataName = args[1];//input file Name
 	dirCOLOR = args[2];//save directory
-	MaskDir = args[3];//JFRC2010_Mask.tif: JFRC2010 mask etc...
+	MaskDir = args[3];//Directory of masks.tif
 	AnatomicalArea= args [4];//"VNC" or "Brain"
 	//chanspec = toLowerCase(args[5]);// channel spec
 }
@@ -212,7 +212,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 					}
 				}
 				
-				TimeLapseColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP,expand);
+				ColorCoder(slices, applyV, width, AutoBRV, bitd, CLAHE, colorscale, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP,expand);
 				
 				if(AutoBRV==1){
 					if(sigsize>9)
@@ -243,24 +243,33 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				if(CropYN==true)
 				CropOP(MIPtype,applyV,colorscale);
 				
+				TrueMaxValue=0;
+				if(DefMaxValue<4096){
+					
+					TrueMaxValue=4095;
+					if(DefMaxValue<256)
+					TrueMaxValue=255;
+					
+				}else if(DefMaxValue>4095)
+				TrueMaxValue=65535;
 				
 				if(imageNum==1){
-					if(AutoBRV==1)//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					if(AutoBRV==1){//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 					//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
-					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
-					else
+						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
+					}else
 					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					
-					
-					save as TXT (dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties")
+									
 				}else{
-					if(AutoBRV==1)
+					if(AutoBRV==1){
 					//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
-					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
-					else
+						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
+					}else
 					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					
-					print("AutoBRV; "+AutoBRV+"   MIP saved; "+dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
 				}
 				
 				close();
@@ -1023,7 +1032,7 @@ function basicoperation(BasicMIP){
 	BasicMIP[1]=max;
 }
 
-function TimeLapseColorCoder(slicesOri, applyV, width, AutoBRV, bitd, CLAHE, GFrameColorScaleCheck, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP,expand) {//"Time-Lapse Color Coder" 
+function ColorCoder(slicesOri, applyV, width, AutoBRV, bitd, CLAHE, GFrameColorScaleCheck, reverse0, colorcoding, usingLUT,DefMaxValue,startMIP,endMIP,expand) {//"Time-Lapse Color Coder" 
 	
 	if(usingLUT=="royal")
 	var Glut = "royal";	//default LUT
@@ -1146,7 +1155,7 @@ function TimeLapseColorCoder(slicesOri, applyV, width, AutoBRV, bitd, CLAHE, GFr
 	}//if (GFrameColorScaleCheck==1){
 	run("Select All");
 	
-}//function TimeLapseColorCoder(slicesOri, applyV, width, AutoBRV, bitd) {//"Time-Lapse Color Coder" 
+}//function ColorCoder(slicesOri, applyV, width, AutoBRV, bitd) {//"Time-Lapse Color Coder" 
 
 function CreateScale(lutstr, beginf, endf, reverse0){
 	ww = 256;
