@@ -28,19 +28,18 @@ argstr = getArgument();//Argument
 args = split(argstr,",");
 
 if (lengthOf(args)>1) {
-	dir=args[0];
-	DataName = args[1];//Name for save
+	dir=args[0];//input directory
+	DataName = args[1];//input file Name
 	dirCOLOR = args[2];//save directory
-	JFRCpath = args[3];//JFRC2010_Mask.tif: JFRC2010 mask
-	VncMaskpath = args[4];//Mask_VNC_Female.tif: VNCfemale mask
-	AnatomicalArea= args [5];//"VNC" or "Brain"
+	MaskDir = args[3];//JFRC2010_Mask.tif: JFRC2010 mask etc...
+	AnatomicalArea= args [4];//"VNC" or "Brain"
 	//chanspec = toLowerCase(args[5]);// channel spec
 }
 print("Input Dir: "+dir);
 print("Output Name: "+DataName);//file name
 print("Output dir: "+dirCOLOR);// save location
-print("JFRCpath: "+JFRCpath);
-print("VncMaskpath: "+VncMaskpath);
+print("MaskDir: "+MaskDir);
+
 print("AnatomicalArea: "+AnatomicalArea);
 //print("Desired mean; "+desiredmean);
 
@@ -58,9 +57,9 @@ expand=false;
 if(AnatomicalArea=="VNC")
 expand=true;
 
-JFRCexist=File.exists(JFRCpath);
+JFRCexist=File.exists(MaskDir);
 if(JFRCexist==0){
-	print("JFRCpath is not exist; "+JFRCpath);
+	print("MaskDir is not exist; "+MaskDir);
 	
 	logsum=getInfo("log");
 	filepath=dirCOLOR+"Color_depthMIP_log.txt";
@@ -69,18 +68,8 @@ if(JFRCexist==0){
 	run("Quit");
 }
 
-VNCmaskexist=File.exists(VncMaskpath);
-if(VNCmaskexist==0){
-	print("VNCmaskexist is not exist; "+VNCmaskexist);
-	
-	logsum=getInfo("log");
-	filepath=dirCOLOR+"Color_depthMIP_log.txt";
-	File.saveString(logsum, filepath);
-	run("Quit");
-}
 
-
-mipfunction(dir,DataName, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usingLUT,lowerweight,lowthreM,startMIP,endMIP,unsharp,expand,secondjump,JFRCpath,VncMaskpath);
+mipfunction(dir,DataName, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usingLUT,lowerweight,lowthreM,startMIP,endMIP,unsharp,expand,secondjump,MaskDir);
 
 
 logsum=getInfo("log");
@@ -91,7 +80,7 @@ run("Quit");
 
 
 /////////Function//////////////////////////////////////////////////////////////////
-function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usingLUT,lowerweight,lowthreM,startMIP,endMIP,unsharp,expand,secondjump,JFRCpath,VncMaskpath){ 
+function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usingLUT,lowerweight,lowthreM,startMIP,endMIP,unsharp,expand,secondjump,MaskDir){ 
 	
 	KeiNrrdShrink=0;
 	GradientDim=false;
@@ -207,7 +196,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				run("Maximum...", "radius=1.5 stack");
 				
 				if(AutoBRV==1)
-				brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,JFRCpath,VncMaskpath);
+				brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir);
 				
 				if(reverse0==1)
 				run("Reverse");
@@ -258,15 +247,18 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				if(imageNum==1){
 					if(AutoBRV==1)//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 					//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
-					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					else
-					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+					
+					
+					save as TXT (dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties")
 				}else{
 					if(AutoBRV==1)
 					//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
-					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					else
-					saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
+					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
 					
 					print("AutoBRV; "+AutoBRV+"   MIP saved; "+dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
 				}
@@ -745,7 +737,7 @@ function stackconcatinate(){
 	run("Reverse");
 }
 
-function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,JFRCpath,VncMaskpath){
+function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 	stacktoApply=getTitle();
 	
 	
@@ -763,13 +755,14 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,JFRCpath,VncMas
 				if(getHeight==512 || getHeight==592){
 					if(getWidth==1024 || getWidth==1184){
 						tissue="Brain";
-						BackgroundMask (tissue,JFRCpath,VncMaskpath,MIPapply,bitd);
+						BackgroundMask (tissue,MaskDir,MIPapply,bitd);
 					}
-				}else if (getHeight==1024 && getWidth==512){// VNC
-					
-					tissue="VNC";
-					BackgroundMask (tissue,JFRCpath,VncMaskpath,MIPapply,bitd);
-					
+				}else if (getHeight==1024 || getHeight==1100 ){// VNC
+					if(getWidth==512){
+						
+						tissue="VNC";
+						BackgroundMask (tissue,MaskDir,MIPapply,bitd);
+					}
 				}//	if(getHeight==512 && getWidth==1024){
 				
 				if(lowthreM=="Peak Histogram"){//lowthre measurement
@@ -863,12 +856,13 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,JFRCpath,VncMas
 		if(getHeight==512 || getHeight==592){
 			if(getWidth==1024 || getWidth==1184){
 				tissue="Brain";
-				BackgroundMask (tissue,JFRCpath,VncMaskpath,MIPthresholding,bitd);
+				BackgroundMask (tissue,MaskDir,MIPthresholding,bitd);
 			}
-		}else if (getHeight==1024 && getWidth==512){
-			tissue="VNC";
-			BackgroundMask (tissue,JFRCpath,VncMaskpath,MIPthresholding,bitd);
-			
+		}else if (getHeight==1024 || getHeight==1100){
+			if(getWidth==512){
+				tissue="VNC";
+				BackgroundMask (tissue,MaskDir,MIPthresholding,bitd);
+			}
 		}//	if(getHeight==512 && getWidth==1024){
 		
 		maxi=0;
@@ -1318,24 +1312,40 @@ function CropOP (MIPtype,applyV,colorscale){
 	setPasteMode("Copy");
 }
 
-function BackgroundMask (tissue,JFRCpath,VncMaskpath,MIPapply,bitd){
+function BackgroundMask (tissue,MaskDir,MIPapply,bitd){
+	MaskName=0;
+	if(tissue=="Brain"){
+		
+		if(getHeight==512)
+		MaskName="JFRC2010_Mask.tif";
+		
+		if(getHeight==592)
+		MaskName="JFRC2013_20x_Mask.tif";
+		
+	}else if (tissue=="VNC"){
+		
+		if(getHeight==1024)
+		MaskName="Mask_VNC_Female.tif";
+		
+		if(getHeight==1100)
+		MaskName="Mask_VNC_Male.tif";
+	}
+	openPath=MaskDir+MaskName;
 	
-	if(tissue=="Brain")
-	openPath=JFRCpath;
-	else if (tissue=="VNC")
-	openPath=VncMaskpath;
-	
-	
-	open(openPath);
-	filename=getTitle();;
-	
-	if(bitd==8)
-	run("8-bit");
-	
-	imageCalculator("Max", MIPapply,filename);
-	
-	selectWindow(filename);
-	close();
+	maskExist=File.exists(openPath);
+	if(maskExist==1){
+		
+		open(openPath);
+		filename=getTitle();
+		
+		if(bitd==8)
+		run("8-bit");
+		
+		imageCalculator("Max", MIPapply,filename);
+		
+		selectWindow(filename);
+		close();
+	}
 	
 	selectWindow(MIPapply);
 }
