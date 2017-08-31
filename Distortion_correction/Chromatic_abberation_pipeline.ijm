@@ -9,6 +9,8 @@ ScopeNum=0;
 //argstr="/test/Dist_Correction_test/40x_0/vnc/,FLFL_20170302124503877_268270_ch3.lsm,/test/Dist_Correction_test/40x_0/vnc/Output/,Scope #6,40x";//for test
 
 
+//argstr="/test/Dist_Correction_test/40x/,I1_ZB49_T1_LC_20170622_62_40X_R1_L18.lsm,/test/Dist_Correction_test/40x/Output/,Scope #9,40x,Thu Dec 08 19:01:25 EST 2016,688,"+getDirectory("plugins")+"Chromatic_Aberration"+File.separator;//for test
+
 //args = split(argstr,",");
 
 //args will be like this; "dir,filename,outputdir,Scope #1,Objective"
@@ -169,6 +171,9 @@ ScopeNum="scope5";
 else if(ScopeNumST=="Scope #6")
 ScopeNum="scope6";
 
+else if(ScopeNumST=="Scope #9")
+ScopeNum="scope9";
+
 if(ScopeNum==0){
 	print("ScopeNumST; "+ScopeNumST+" is wrong string. It must be Scope #1,Scope #2,Scope #3,Scope #4,Scope #5,Scope #6");
 	
@@ -257,7 +262,7 @@ if(File.exists(JSONPATH)==1){
 		imputdir=dir+filename;
 		
 		run("apply lens", "stack1=["+imputdir+"] transformations=["+JSONDIR+BestJson+"] output=["+outputdir+"] crop_width=0 mip_step_slices=1");
-		
+		print("apply lens finished!");
 		dotindex=lastIndexOf(filename,".lsm");
 		truname=substring(filename,0,dotindex);
 		
