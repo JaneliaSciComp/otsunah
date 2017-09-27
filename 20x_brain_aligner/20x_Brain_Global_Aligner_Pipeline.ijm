@@ -1273,6 +1273,18 @@ if(SizeM!=0){
 			
 			
 			if(NRRD_02_ext==0){
+				oriwindow=getTitle();
+				
+				run("Gamma ", "gamma=1.60 3d in=InMacro cpu=7");
+				gumnc82=getImageID();
+				
+				selectWindow(oriwindow);
+				close();
+				
+				selectImage(gumnc82);
+				nc82=getImageID();
+				rename("nc82.tif");
+				
 				if(sizediff2>OpticLobeSizeGap || sizediff1>OpticLobeSizeGap || y1_opl==cropHeight*2)
 				run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_01.nrrd");
 				else
@@ -1409,26 +1421,15 @@ if(SizeM!=0){
 				rename("RealSignal.tif");
 				RealSignal=getImageID();
 				
-								
+				run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width="+widthVx+" pixel_height="+heightVx+" voxel_depth="+incredepth+"");
+
 				if(Nrrdnumber==0){
 					
-					run("Gamma ", "gamma=1.60 3d in=InMacro cpu="+numCPU+"");
-					gumnc82=getImageID();
-					
-					selectWindow("RealSignal.tif");
-					close();
-					
-					selectImage(gumnc82);
-					nc82=getImageID();
-					rename("RealSignal.tif");
-					run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width="+widthVx+" pixel_height="+heightVx+" voxel_depth="+incredepth+"");
-
 					if(sizediff2>OpticLobeSizeGap || sizediff1>OpticLobeSizeGap|| y1_opl==cropHeight*2)
 					run("Nrrd Writer", "compressed nrrd="+myDir0+noext+"_0"+neuronNum+1+".nrrd");
 					else
 					run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_0"+neuronNum+1+".nrrd");
 				}else{
-					run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width="+widthVx+" pixel_height="+heightVx+" voxel_depth="+incredepth+"");
 					run("Nrrd Writer", "compressed nrrd="+savedir+noext+"_0"+Nrrdnumber+".nrrd");					
 				}
 				if(ChannelInfo!="Both formats"){
