@@ -27,58 +27,33 @@ OUT=$3
 
 #/nrs/scicompsoft/otsuna/Masayoshi_MCFO/images
 RegFolder=$4
-OneNrrdOnly=0
 
-if [[ $OneNrrdOnly -ne 1 ]]
-then
-	for i in $RegFolder/images/*_01.nrrd;
-    do
-    echo $i
-	if [[ -e $i ]]
-    then 
-        j=${i%_*d}; 
-		if [[ ! -e $j ]]
+echo $INPUTDIR " ;INPUT"
+
+	
+if [[ -e $INPUTDIR ]]
+	then 
+	j=${INPUTDIR%_*d}
+	OUT=$j/alignCmd.sh
+	echo $OUT  "OUTTT"
+	if [[ ! -e $j ]]
 		then
-			echo $j
-			OUT=$j/alignCmd.sh
-			echo $OUT  "OUTTT"
-			mkdir $j; 
-			mkdir $j/images;
-		fi
-		if [[ ! -e $j/images/*_01.nrrd ]]
-		then
-			echo $j
-			echo $j/images/*._01nrrd
-			mv $i $j/images/;
-		fi
+		echo $j " ; j"
+		
+		mkdir $j
+		mkdir $j/images
 	fi
- done
+		
+	if [[ ! -e $j/images/*.nrrd ]]
+	then
+#	echo $j/images/*.nrrd
+
+		
+		mv $INPUTDIR $j/images/
+	
+	fi
 fi
 
-if [[ $OneNrrdOnly -eq 1 ]]
-then
-G=$RegFolder/images/*_01.nrrd
-echo $G G is here
-#	if [[ -e $i ]]
-#then 
-echo exist
-		j=${G%_*d}; 
-		if [[ ! -e $j ]]
-			then
-			echo $j
-OUT=$j/alignCmd.sh
-echo $OUT  "OUTTT"
-			mkdir $j
-			mkdir $j/images
-		fi
-		if [[ ! -e $j/images/*_01.nrrd ]]
-		then
-			echo $j
-			echo $j/images/*._01nrrd
-			mv $G $j/images/
-		fi
-#	fi
-fi
 
 #for i in $RegFolder/*.nrrd; do j=${i%*_*}; mv $j* $j/images/; done
 
@@ -87,15 +62,15 @@ then
 	mkdir $RegFolder/Registration/
 	mkdir $RegFolder/Registration/affine/
 	mkdir $RegFolder/Registration/warp/
+	mkdir $RegFolder/reformatted/
 fi
 
-echo "sh /nrs/scicompsoft/otsuna/MCFO_20x_Project/Masayoshi_MCFO/brainAlignerJfrc2010Cmtk.sh $INPUTDIR $THREAD;" > $OUT
+echo "sh /nrs/scicompsoft/otsuna/JFRC2010_BrainAligner/JFRC2010_awr.sh $j $THREAD;" > $OUT
 echo "mv $INPUTDIR/Registration/affine/* $RegFolder/Registration/affine/;" >> $OUT
 echo "mv $INPUTDIR/Registration/warp/* $RegFolder/Registration/warp/;" >> $OUT
-#echo "for i in $INPUTDIR/images/*.nrrd; do mv ${i%*/*}/*/images/*.nrrd $RegFolder/images/; done" >> $OUT
+echo "mv $INPUTDIR/reformatted/* $RegFolder/reformatted/;" >> $OUT
 echo "mv $INPUTDIR/images/*.nrrd $RegFolder/images/;" >> $OUT
 echo "echo file moved *nrrd ;" >> $OUT
-#echo "mv $INPUTDIR/images/*.nrrd; $RegFolder/images/;" >> $OUT
-#echo "mv $INPUTDIR/images/*.nrrd; $RegFolder/images/;" >> $OUT
-#echo "mv $INPUTDIR/images/*.nrrd; $RegFolder/images/;" >> $OUT
+
+
 chmod 755 $OUT
