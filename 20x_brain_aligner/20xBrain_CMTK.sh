@@ -421,43 +421,43 @@ then
 # -------------------------------------------------------------------------------------------
 # CMTK reformatting for neuron separator result
 
-Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
-if [ -e $Neuron_Separator_ResultNRRD ]
-then
-echo "+----------------------------------------------------------------------+"
-echo "| Running CMTK reformatting for Neuron separator result                |"
-echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
+#Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
+#if [ -e $Neuron_Separator_ResultNRRD ]
+#then
+#echo "+----------------------------------------------------------------------+"
+#echo "| Running CMTK reformatting for Neuron separator result                |"
+#echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
+#echo "+----------------------------------------------------------------------+"
+#START=`date '+%F %T'`
 
-Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
+#Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
 
-$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
-STOP=`date '+%F %T'`
-echo "neuron_reformatting start: $START"
-echo "neuron_reformatting stop: $STOP"
-if [ ! -e $Reformatted_Separator_result_nrrd ]
-then
-echo -e "Error: CMTK reformatting Neuron separation failed"
-exit -1
-fi
-echo "+----------------------------------------------------------------------+"
-echo "| Running nrrd -> v3draw conversion                                    |"
-echo "| $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/" |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
-$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
-STOP=`date '+%F %T'`
-if [ ! -e $Aligned_Consolidated_Label_V3DPBD ]
-then
-echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
-exit -1
-fi
-echo "neuron_conversion start: $START"
-echo "neuron_conversion stop: $STOP"
+#$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
+#STOP=`date '+%F %T'`
+#echo "neuron_reformatting start: $START"
+#echo "neuron_reformatting stop: $STOP"
+#if [ ! -e $Reformatted_Separator_result_nrrd ]
+#then
+#echo -e "Error: CMTK reformatting Neuron separation failed"
+#exit -1
+#fi
+#echo "+----------------------------------------------------------------------+"
+#echo "| Running nrrd -> v3draw conversion                                    |"
+#echo "| $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/" |"
+#echo "+----------------------------------------------------------------------+"
+#START=`date '+%F %T'`
+#$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
+#STOP=`date '+%F %T'`
+#if [ ! -e $Aligned_Consolidated_Label_V3DPBD ]
+#then
+#echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
+#exit -1
+#fi
+#echo "neuron_conversion start: $START"
+#echo "neuron_conversion stop: $STOP"
 
-fi
-fi
+#fi
+#fi
 
 
 #/usr/local/pipeline/bin/add_operation -operation cmtk_reformatting -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$CMTK/reformatx" -version '2.2.6' -parm alignment_target="$Tfile"
