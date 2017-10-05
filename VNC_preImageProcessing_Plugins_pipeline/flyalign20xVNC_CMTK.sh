@@ -326,10 +326,10 @@ echo "cmtk_registration stop: $STOP"
 # CMTK warping
 echo "+----------------------------------------------------------------------+"
 echo "| Running CMTK warping                                                 |"
-echo "| $CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 4 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd |"
+echo "| $CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 8 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd |"
 echo "+----------------------------------------------------------------------+"
 START=`date '+%F %T'`
-$CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 4 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd
+$CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 8 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_warp_xform ]
 then
