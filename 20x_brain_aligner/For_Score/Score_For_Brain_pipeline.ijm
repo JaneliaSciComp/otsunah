@@ -1,7 +1,7 @@
-//VNC score macro. Wrote by Hideo Otsuna Jan 2016.
-//This macro requires VNC template (flyVNCtemplate20xA_CLAHE_16bit.nrrd") and the mask (flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd)
+//JFRC2010 score macro. Wrote by Hideo Otsuna Jan 2016.
+//This macro requires JFRC2010 template (flyVNCtemplate20xA_CLAHE_16bit.nrrd") and the mask (flyVNCtemplate20xA_CLAHE_MASK2nd.nrrd)
 //This macro requires "ObjPearsonCoeff_.class" plugin
-//The input data is the signal of nc82 of 20x VNC (aligned)
+//The input data is the signal of nc82 of 20x JFRC2010 (aligned)
 //This macro will generate .avi movie; template: purple, sample: green
 
 
@@ -85,7 +85,7 @@ minvalue0=round(minvalue0);
 
 setMinAndMax(minvalue0, maxvalue0);
 		
-if(nSlices==218){// aligned VNC should have 220 slices
+if(nSlices==218){// aligned JFRC2010 should have 218 slices
 		
 	Sample=getImageID();// Sample
 			
