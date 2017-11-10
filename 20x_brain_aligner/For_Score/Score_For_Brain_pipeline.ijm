@@ -45,6 +45,7 @@ else{
 
 JFRC2010index=indexOf(tempMasklocation, "JFRC2010");
 JFRC2013index=indexOf(tempMasklocation, "JFRC2013");
+JFRC2014index=indexOf(tempMasklocation, "JFRC2014");
 
 OrigiMask2=getImageID();// Template Mask
 tempMaskName=getTitle();
@@ -69,6 +70,8 @@ if(JFRC2010index!=-1)
 tempAve=73.77;
 else if(JFRC2013index!=-1)
 tempAve=69.34;
+else if (JFRC2014index!=-1)
+tempAve=61.56;
 
 setMinAndMax(0, 65535);
 tempName=getTitle();

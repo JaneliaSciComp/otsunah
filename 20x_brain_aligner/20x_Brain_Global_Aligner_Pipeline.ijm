@@ -1,5 +1,5 @@
 //Pre-Image processing for VNC before CMTK operation
-//Wrote by Hideo Otsuna, July 27, 2015
+//Wrote by Hideo Otsuna, July 27, 2017
 run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
 MIPsave=1;
 templateBR="JFRC2010";//JFRC2010 OR JFRC2013 for voxel size adjustment
@@ -243,6 +243,9 @@ maxvalue0=65535;
 
 maxsizeData=0; SizeM=0;
 
+ID20xMIP=0; positiveAR=0; lowerM=3; threTry=0; prelower=0; finalMIP=0; ABSMaxARShape=0; ABSmaxSize=0;
+maxARshape=1.7; ABSmaxCirc=0; MaxOBJScore=0; MaxRot=0; angle=400;
+
 elipsoidArea = 0;//area of mask
 elipsoldAngle = 0;//angle of mask
 numberResults=0; mask1st=0; invertON=0; shortARshapeGap=0;
@@ -292,7 +295,7 @@ print("772 BrainShape; "+BrainShape+"   OBJScore; "+OBJScoreOri+"  OriginalRot; 
 logsum=getInfo("log");
 File.saveString(logsum, filepath);
 
-if(OBJScoreOri<600){
+//if(OBJScoreOri<600){
 	
 	ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
 	ImageCorrelation(ImageCorrelationArray,widthVx,numCPU);// with zoom adjustment
@@ -308,77 +311,97 @@ if(OBJScoreOri<600){
 		widthVx=widthVx*MaxZoom; heightVx=heightVx*MaxZoom;
 	}
 	
-	if(OBJScoreOri<500){
-		print("  Optic lobe checking!!  OBJScoreOri; "+OBJScoreOri);
-		selectWindow("JFRC2010_AvePro.png");
-		run("Duplicate...", "title=JFRC2010_AvePro-Rop.png");
-		makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
-		setForegroundColor(0, 0, 0);
-		run("Fill", "slice");
+	//	if(OBJScoreOri<500){
+	print("  Optic lobe checking!!  OBJScoreOri; "+OBJScoreOri);
+	selectWindow("JFRC2010_AvePro.png");
+	run("Duplicate...", "title=JFRC2010_AvePro-Rop.png");
+	makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
+	setForegroundColor(0, 0, 0);
+	run("Fill", "slice");
+	
+	ImageCarray=newArray(0, 0, 0, 0);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro-Rop.png", rotSearch,ImageCarray,70,numCPU);
+	
+	OBJScoreR=ImageCarray[0];
+	RotR=ImageCarray[1];
+	ShiftYR = ImageCarray[2];
+	ShiftXR = ImageCarray[3];
+	selectWindow("JFRC2010_AvePro-Rop.png");
+	close();//"JFRC2010_AvePro-Rop.png"
+	print("OBJScoreR; "+OBJScoreR);
+	
+	selectWindow("JFRC2010_AvePro.png");
+	makePolygon(17,31,22,42,31,51,37,65,31,79,14,79,2,74,2,54,1,38);//L-OP elimination
+	run("Fill", "slice");
+	ImageCarray=newArray(0, 0, 0, 0);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
+	
+	OBJScoreL=ImageCarray[0];
+	RotL=ImageCarray[1];
+	ShiftYL = ImageCarray[2];
+	ShiftXL = ImageCarray[3];
+	print("OBJScoreL; "+OBJScoreL);
+	
+	selectWindow("JFRC2010_AvePro.png");
+	makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
+	run("Fill", "slice");
+	ImageCarray=newArray(0, 0, 0, 0);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
+	
+	OBJScoreBoth=ImageCarray[0];
+	RotBoth=ImageCarray[1];
+	ShiftYboth = ImageCarray[2];
+	ShiftXboth = ImageCarray[3];
+	print("OBJScoreBoth; "+OBJScoreBoth);
+	
+	if(OBJScoreL>OBJScoreR && OBJScoreL>OBJScoreOri && OBJScoreL>OBJScoreBoth){
+		OBJScoreOri = OBJScoreL;
+		BrainShape="Left_OP_missing";
+		OriginalRot=RotL;
+		OriginalXshift = ShiftXL;
+		OriginalYshift = ShiftYL;
+		ID20xMIP=1;
+		finalMIP="Max projection";
+		SizeM=1; 
 		
-		ImageCarray=newArray(0, 0, 0, 0);
-		ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro-Rop.png", rotSearch,ImageCarray,70,numCPU);
-		
-		OBJScoreR=ImageCarray[0];
-		RotR=ImageCarray[1];
-		ShiftYR = ImageCarray[2];
-		ShiftXR = ImageCarray[3];
-		selectWindow("JFRC2010_AvePro-Rop.png");
-		close();//"JFRC2010_AvePro-Rop.png"
-		
-		selectWindow("JFRC2010_AvePro.png");
-		makePolygon(17,31,22,42,31,51,37,65,31,79,14,79,2,74,2,54,1,38);//L-OP elimination
-		run("Fill", "slice");
-		ImageCarray=newArray(0, 0, 0, 0);
-		ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
-		
-		OBJScoreL=ImageCarray[0];
-		RotL=ImageCarray[1];
-		ShiftYL = ImageCarray[2];
-		ShiftXL = ImageCarray[3];
-		
-		selectWindow("JFRC2010_AvePro.png");
-		makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
-		run("Fill", "slice");
-		ImageCarray=newArray(0, 0, 0, 0);
-		ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
-		
-		OBJScoreBoth=ImageCarray[0];
-		RotBoth=ImageCarray[1];
-		ShiftYboth = ImageCarray[2];
-		ShiftXboth = ImageCarray[3];
-		
-		if(OBJScoreL>OBJScoreR && OBJScoreL>OBJScoreOri && OBJScoreL>OBJScoreBoth){
-			OBJScoreOri = OBJScoreL;
-			BrainShape="Left_OP_missing";
-			OriginalRot=RotL;
-			OriginalXshift = ShiftXL;
-			OriginalYshift = ShiftYL;
-		}
-		if(OBJScoreR>OBJScoreL && OBJScoreR>OBJScoreOri && OBJScoreR>OBJScoreBoth){
-			OBJScoreOri = OBJScoreR;
-			BrainShape="Right_OP_missing";
-			OriginalRot=RotR;
-			OriginalXshift = ShiftXR;
-			OriginalYshift = ShiftYR;
-		}
-		if(OBJScoreBoth>OBJScoreR && OBJScoreBoth>OBJScoreL && OBJScoreBoth>OBJScoreOri){
-			OBJScoreOri = OBJScoreBoth;
-			BrainShape="Both_OP_missing";
-			OriginalRot=RotBoth;
-			OriginalXshift = ShiftXboth;
-			OriginalYshift = ShiftYboth;
-		}
 	}
+	if(OBJScoreR>OBJScoreL && OBJScoreR>OBJScoreOri && OBJScoreR>OBJScoreBoth){
+		OBJScoreOri = OBJScoreR;
+		BrainShape="Right_OP_missing";
+		OriginalRot=RotR;
+		OriginalXshift = ShiftXR;
+		OriginalYshift = ShiftYR;
+		
+		ID20xMIP=1;
+		finalMIP="Max projection";
+		SizeM=1; 
+	}
+	if(OBJScoreBoth>OBJScoreR && OBJScoreBoth>OBJScoreL && OBJScoreBoth>OBJScoreOri){
+		OBJScoreOri = OBJScoreBoth;
+		BrainShape="Both_OP_missing";
+		OriginalRot=RotBoth;
+		OriginalXshift = ShiftXboth;
+		OriginalYshift = ShiftYboth;
+		
+		ID20xMIP=1;
+		finalMIP="Max projection";
+		SizeM=1; 
+	}
+	//	}
+	
 	maxX=OriginalXshift;
 	maxY=OriginalYshift;
-}//if(OBJScore<400){
+//}//if(OBJScore<400){
+
 
 selectWindow("JFRC2010_AvePro.png");
 close();//"JFRC2010_AvePro.png"
 
 selectWindow("DUPaveP.tif");
 close();
+
+elipsoidAngle=OriginalRot;
+OBJScore=OBJScoreOri;
 
 print("BrainShape; "+BrainShape+"   OBJScore; "+OBJScoreOri+"  OriginalRot; "+OriginalRot);
 print("MaxZoom; "+MaxZoom+"   Zoomratio; "+Zoomratio);
@@ -392,8 +415,8 @@ while(isOpen("OriginalProjection.tif")){
 }
 
 
-ID20xMIP=0; positiveAR=0; lowerM=3; threTry=0; prelower=0; finalMIP=0; ABSMaxARShape=0; ABSmaxSize=0;
-maxARshape=1.7; ABSmaxCirc=0; MaxOBJScore=0; MaxRot=0; angle=400;
+
+
 
 if(BrainShape=="Intact"){
 	firstTime=0; 
@@ -700,7 +723,7 @@ if(BrainShape=="Intact"){
 	SizeM=1; 
 }
 if(ID20xMIP==0){
-	
+	print("could not segment by normal method");
 	/// rescue code with Image correlation ////////////////////////////
 	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
 	ImageCorrelation (ImageCorrelationArray,widthVx,numCPU);
@@ -1010,54 +1033,56 @@ if(SizeM!=0){
 			
 			// if optioc lobe is not exist ///////////////////////////
 			if(sizediff2>OpticLobeSizeGap || sizediff1>OpticLobeSizeGap){
-				print("Optic lobe shape / segmentation problem!!!!!!!!!");
-				print("Opticlobe1 size gap; "+sizediff1+"  Opticlobe1 center X,Y; ("+x1_opl+" , "+y1_opl+") / "+ycenterCrop+"  Opticlobe2 size gap; "+sizediff2+"  Opticlobe2 center X,Y; ("+x2_opl+" , "+y2_opl+")");
-				
-				ImageCorrelationArray=newArray(nc82, ImageAligned2,0,0,0,0,0);
-				ImageCorrelation (ImageCorrelationArray,widthVx,numCPU);
-				ImageAligned2=ImageCorrelationArray[1];
-				
-				print("ImageAligned2; "+ImageAligned2);
-				
-				logsum=getInfo("log");
-				File.saveString(logsum, filepath);
-				
-				maxX=ImageCorrelationArray[2];
-				maxY=ImageCorrelationArray[3];
-				//		elipsoidAngle=ImageCorrelationArray[4];
-				ImageAligned=ImageAligned2;// obj score, if more than 0.6, will be 1
-				OBJScore=ImageCorrelationArray[5];
-				
-				if(ImageAligned2==0){// if shape problem
-					selectImage(DupMask);
-					run("Grays");
+				if(BrainShape=="Intact"){		
+					print("Optic lobe shape / segmentation problem!!!!!!!!!");
+					print("Opticlobe1 size gap; "+sizediff1+"  Opticlobe1 center X,Y; ("+x1_opl+" , "+y1_opl+") / "+ycenterCrop+"  Opticlobe2 size gap; "+sizediff2+"  Opticlobe2 center X,Y; ("+x2_opl+" , "+y2_opl+")");
 					
-					saveAs("PNG", ""+myDir0+noext+"_OP_Shape_MASK.png");//save 20x MIP mask
-					saveAs("PNG", ""+savedir+noext+"_OP_Shape_MASK.png");
+					ImageCorrelationArray=newArray(nc82, ImageAligned2,0,0,0,0,0);
+					ImageCorrelation (ImageCorrelationArray,widthVx,numCPU);
+					ImageAligned2=ImageCorrelationArray[1];
 					
-					selectImage(nc82);
-					run("Z Project...", "start=15 stop="+nSlices-10+" projection=[Max Intensity]");// imageID is AR
-					MIP2ID=getImageID();
-					run("Enhance Contrast", "saturated=0.35");
-					getMinAndMax(min, max);
-					setMinAndMax(min, max);
-					print("max; "+max);
+					print("ImageAligned2; "+ImageAligned2);
 					
-					if(max!=maxvalue0 && max!=255)
-					run("Apply LUT");
+					logsum=getInfo("log");
+					File.saveString(logsum, filepath);
 					
-					run("8-bit");
-					run("Grays");
-					saveAs("PNG", ""+myDir0+noext+"_OP_Shape.png");//save 20x MIP mask
+					maxX=ImageCorrelationArray[2];
+					maxY=ImageCorrelationArray[3];
+					//		elipsoidAngle=ImageCorrelationArray[4];
+					ImageAligned=ImageAligned2;// obj score, if more than 0.6, will be 1
+					OBJScore=ImageCorrelationArray[5];
 					
-					selectImage(MIP2ID);
-					close();
-					
-					y1_opl=cropHeight*2;
-					y2_opl=cropHeight;
-				}// if(ImageAligned2==0){// if shape problem
-				//		selectImage(ID20xMIP);
-				//		close();
+					if(ImageAligned2==0){// if shape problem
+						selectImage(DupMask);
+						run("Grays");
+						
+						saveAs("PNG", ""+myDir0+noext+"_OP_Shape_MASK.png");//save 20x MIP mask
+						saveAs("PNG", ""+savedir+noext+"_OP_Shape_MASK.png");
+						
+						selectImage(nc82);
+						run("Z Project...", "start=15 stop="+nSlices-10+" projection=[Max Intensity]");// imageID is AR
+						MIP2ID=getImageID();
+						run("Enhance Contrast", "saturated=0.35");
+						getMinAndMax(min, max);
+						setMinAndMax(min, max);
+						print("max; "+max);
+						
+						if(max!=maxvalue0 && max!=255)
+						run("Apply LUT");
+						
+						run("8-bit");
+						run("Grays");
+						saveAs("PNG", ""+myDir0+noext+"_OP_Shape.png");//save 20x MIP mask
+						
+						selectImage(MIP2ID);
+						close();
+						
+						y1_opl=cropHeight*2;
+						y2_opl=cropHeight;
+					}// if(ImageAligned2==0){// if shape problem
+					//		selectImage(ID20xMIP);
+					//		close();
+				}
 			}//if(sizediff2>50000 || sizediff1>50000){
 			
 			selectImage(DupMask);
@@ -1214,6 +1239,7 @@ if(SizeM!=0){
 			logsum=getInfo("log");
 			File.saveString(logsum, filepath);
 			
+			if(NRRD_02_ext==0){
 			selectImage(nc82);
 			lateralArray=newArray(0, 0,0,0,0,0);
 			lateralDepthAdjustment(x1_opl,x2_opl,lateralArray,nc82,templateBr,numCPU);
@@ -1223,6 +1249,7 @@ if(SizeM!=0){
 			LateralXtrans=lateralArray[3];
 			LateralYtrans=lateralArray[4];
 			OBJL=lateralArray[5];
+			}
 			
 			if(widthVx==1 || ForceUSE==true){
 				heightVx=DesireX;
@@ -1396,7 +1423,7 @@ if(SizeM!=0){
 					else
 					maxvalue1[neuronNum]=realresetArray[0];
 				}
-				print("run properties; 1380");
+				print("run properties; 1426");
 				rename("signalCH.tif");
 				signalCH=getImageID();
 				
@@ -1421,8 +1448,9 @@ if(SizeM!=0){
 				rename("RealSignal.tif");
 				RealSignal=getImageID();
 				
+				print("Neuron reslice & rotated; "+neuronNum);
 				run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width="+widthVx+" pixel_height="+heightVx+" voxel_depth="+incredepth+"");
-
+				
 				if(Nrrdnumber==0){
 					
 					if(sizediff2>OpticLobeSizeGap || sizediff1>OpticLobeSizeGap|| y1_opl==cropHeight*2)
@@ -2301,7 +2329,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	if(templateBr=="JFRC2010")
 	Zsize=190;
 	else
-	Zsize=200;
+	Zsize=190;
 	
 	realzMicron=((MaxWidth*(29/65))*xyRatio);//39/102 is template brain size from 102px window
 	Realvxdepth=(FinalWsize+MaxWidth-65)/FinalWsize;
