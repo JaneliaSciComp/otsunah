@@ -265,18 +265,49 @@ selectImage(nc82);
 
 run("Z Project...", "start=10 stop="+nSlices-10+" projection=[Average Intensity]");// imageID is AR
 rename("OriginalProjection.tif");
+xcenter=round(getWidth/2); ycenter=round(getHeight/2);
 
-xcenter=round(getWidth/2);
-ycenter=round(getHeight/2);
-
-Zoomratio=widthVx/0.62;
+ZoomratioSmall=widthVx/6.2243;
+Zoomratio=widthVx/0.62243;
 run("Duplicate...", "title=DUPaveP.tif");
+
+//run("Gamma ", "gamma=2.1 in=InMacro cpu=7");
+//gammaup=getTitle();
+
+//selectWindow("DUPaveP.tif");
+//close();
+
+//selectWindow(gammaup);
+//rename("DUPaveP.tif");
+
+newImage("mask.tif", "8-bit white", oriwidth, oriheight, 1);
+run("Mask Median Subtraction", "mask=mask.tif data=nc82.tif %=100 histogram=100");
+
+selectWindow("mask.tif");
+close();
+
+selectWindow("DUPaveP.tif");
+
 run("Enhance Contrast", "saturated=0.35");
+getMinAndMax(min, max);
+
+bitd=bitDepth();
+if(bitd==8)
+run("16-bit");
 run("Apply LUT");
-run("Size...", "width="+round((getWidth/10)*Zoomratio)+" height="+round((getHeight/10)*Zoomratio)+" depth=1 constrain interpolation=None");
+
+print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth*ZoomratioSmall); "+round(getWidth*ZoomratioSmall));
+run("Size...", "width="+round(getWidth*ZoomratioSmall)+" height="+round(getHeight*ZoomratioSmall)+" depth=1 constrain interpolation=None");
 run("Canvas Size...", "width=102 height=102 position=Center zero");
 
-rotSearch=179;
+
+//	setBatchMode(false);
+//		updateDisplay();
+//		"do"
+//		exit();
+
+
+rotSearch=60;
 ImageCarray=newArray(0, 0, 0, 0);
 ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,90,numCPU);
 
@@ -300,11 +331,11 @@ File.saveString(logsum, filepath);
 	ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
 	ImageCorrelation(ImageCorrelationArray,widthVx,numCPU);// with zoom adjustment
 	
-	OriginalRot=ImageCorrelationArray[4];
-	OBJScoreOri=ImageCorrelationArray[5];
+	//		OriginalRot=ImageCorrelationArray[4];
+	//		OBJScoreOri=ImageCorrelationArray[5];
 	MaxZoom=ImageCorrelationArray[6];
-	OriginalXshift = ImageCorrelationArray[2];
-	OriginalYshift = ImageCorrelationArray[3];
+	//		OriginalXshift = ImageCorrelationArray[2];
+	//		OriginalYshift = ImageCorrelationArray[3];
 	
 	if(MaxZoom!=1){
 		
@@ -320,7 +351,7 @@ File.saveString(logsum, filepath);
 	run("Fill", "slice");
 	
 	ImageCarray=newArray(0, 0, 0, 0);
-	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro-Rop.png", rotSearch,ImageCarray,70,numCPU);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro-Rop.png", rotSearch,ImageCarray,80,numCPU);
 	
 	OBJScoreR=ImageCarray[0];
 	RotR=ImageCarray[1];
@@ -334,7 +365,7 @@ File.saveString(logsum, filepath);
 	makePolygon(17,31,22,42,31,51,37,65,31,79,14,79,2,74,2,54,1,38);//L-OP elimination
 	run("Fill", "slice");
 	ImageCarray=newArray(0, 0, 0, 0);
-	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,80,numCPU);
 	
 	OBJScoreL=ImageCarray[0];
 	RotL=ImageCarray[1];
@@ -346,7 +377,7 @@ File.saveString(logsum, filepath);
 	makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
 	run("Fill", "slice");
 	ImageCarray=newArray(0, 0, 0, 0);
-	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,70,numCPU);
+	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,80,numCPU);
 	
 	OBJScoreBoth=ImageCarray[0];
 	RotBoth=ImageCarray[1];
@@ -553,6 +584,7 @@ if(BrainShape=="Intact"){
 						
 						ixcenter=getResult("X", inn);
 						iycenter=getResult("Y", inn);
+						
 						//					print("maxsizeData; "+maxsizeData+"   ARshape; "+ARshape);
 					}
 				}//for(inn=0; inn<nResults; inn++){
@@ -572,7 +604,7 @@ if(BrainShape=="Intact"){
 					//					updateDisplay();
 					//					aa
 					
-					run("Size...", "width="+round((getWidth/10)*Zoomratio)+" height="+round((getHeight/10)*Zoomratio)+" depth=1 constrain interpolation=None");
+					run("Size...", "width="+round(getWidth*ZoomratioSmall)+" height="+round(getHeight*ZoomratioSmall)+" depth=1 constrain interpolation=None");
 					run("Canvas Size...", "width=102 height=102 position=Center zero");
 					if(bitDepth==8)
 					run("16-bit");
@@ -636,8 +668,8 @@ if(BrainShape=="Intact"){
 								
 								positiveAR=0; firstTime=1;
 								lowerM=lower; threTry=ThreTry; angle=elipsoidAngle; SizeM=maxsizeData;
-								xcenter=ixcenter; ycenter=iycenter;
 								
+								xcenter=ixcenter; ycenter=iycenter;
 								//		if(MIPstep==2){
 								//			setBatchMode(false);
 								//			updateDisplay();
@@ -761,10 +793,8 @@ if(ID20xMIP==0){
 		close();
 	}
 }
-
 logsum=getInfo("log");
 File.saveString(logsum, filepath);
-
 if(NRRD_02_ext==1 || nrrdEx==true){
 	ID20xMIP=1;
 	SizeM=1;
@@ -1111,13 +1141,13 @@ if(SizeM!=0){
 				
 				xgapleft=0;
 				if(xcenter2 <= (cropWidth/2))
-				xgapleft=(cropWidth/2)/Zoomratio-xcenter2;
+				xgapleft=(cropWidth/2)*Zoomratio-xcenter2;
 				canvasenlarge(xcenter2,cropWidth);
 				
 				rotationYN="Yes";
 				print("xcenter2; "+xcenter2+" , xgapleft; "+xgapleft+" , xsize; "+xsize+"  cropWidth/2; "+cropWidth/2);
 				
-				makeRectangle(round(xcenter2+xgapleft-(cropWidth/2)/Zoomratio), round(ycenter-round(cropHeight/2)/Zoomratio-shiftY), round(cropWidth/Zoomratio), round(cropHeight/Zoomratio));//cropping brain Mask
+				makeRectangle(round(xcenter2+xgapleft-(cropWidth/2)*Zoomratio), round(ycenter-round(cropHeight/2)*Zoomratio-shiftY), round(cropWidth*Zoomratio), round(cropHeight*Zoomratio));//cropping brain Mask
 				run("Crop");
 			}//if(y1_opl<ycenterCrop && y2_opl<ycenterCrop){// if optic lobe is higer position, upside down
 			
@@ -1135,7 +1165,7 @@ if(SizeM!=0){
 					run("Translate...", "x="+round(maxX*20*Zoomratio)+" y="+round(maxY*20*Zoomratio)+" interpolation=None stack");
 					
 					setVoxelSize(LVxWidth*MaxZoom, LVxHeight*MaxZoom, LVxDepth, LVxUnit);//reslice
-					run("Canvas Size...", "width="+round(cropWidth/Zoomratio)+" height="+round(cropHeight/Zoomratio)+" position=Center zero");
+					run("Canvas Size...", "width="+round(cropWidth*Zoomratio)+" height="+round(cropHeight*Zoomratio)+" position=Center zero");
 					OBJV="_"+OBJScore;
 				}
 				
@@ -1222,13 +1252,14 @@ if(SizeM!=0){
 			}
 			resetBrightness(maxvalue0);				
 			
-			for(slii=1; slii<=NC82SliceNum; slii++){
-				setSlice(slii);
-				if(bitDepth==16)
-				run("Enhance Local Contrast (CLAHE)", "blocksize=125 histogram=4095 maximum=8 mask=*None* fast_(less_accurate)");
-				else if (bitDepth==8)
-				run("Enhance Local Contrast (CLAHE)", "blocksize=125 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
-			}
+	//		for(slii=1; slii<=NC82SliceNum; slii++){
+	//			setSlice(slii);
+	//			if(bitDepth==16)
+	//			run("Enhance Local Contrast (CLAHE)", "blocksize=125 histogram=4095 maximum=8 mask=*None* fast_(less_accurate)");
+	//			else if (bitDepth==8)
+	//			run("Enhance Local Contrast (CLAHE)", "blocksize=125 histogram=256 maximum=3 mask=*None* fast_(less_accurate)");
+			//		}
+			
 		}//if(NRRD_02_ext==0){
 		if(ChannelInfo=="01 02 nrrd files" || ChannelInfo=="Both formats"){
 			//		setVoxelSize(widthVx, heightVx, incredepth, unit);
@@ -1438,7 +1469,7 @@ if(SizeM!=0){
 				
 				run("Reslice [/]...", "output=1.000 start=Left rotate avoid");
 				rename("resliceN.tif");
-				
+				print("Reslice Done 1462");
 				if(bitDepth==8)
 				run("16-bit");
 				
@@ -1746,6 +1777,11 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,numCPU){
 	selectWindow("SampMIP.tif");
 	run("Size...", "width="+round((getWidth/20)*Zoomratio)+" height="+round((getHeight/20)*Zoomratio)+" depth=1 constrain interpolation=None");
 	run("Canvas Size...", "width=60 height=60 position=Center zero");
+	
+	//	setBatchMode(false);
+	//		updateDisplay();
+	//			"do"
+	//		exit();
 	
 	run("Image Correlation Atomic", "samp=SampMIP.tif temp=JFRC2010_50pxMIP.tif +=179 -=180 overlap=80 parallel="+numCPU+" rotation=1 result calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 	
