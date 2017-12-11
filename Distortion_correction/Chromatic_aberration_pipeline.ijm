@@ -174,8 +174,14 @@ ScopeNum="scope6";
 else if(ScopeNumST=="Scope #9")
 ScopeNum="scope9";
 
+else if(ScopeNumST=="Scope #10")
+ScopeNum="scope10";
+
+else if(ScopeNumST=="Scope #11")
+ScopeNum="scope11";
+
 if(ScopeNum==0){
-	print("ScopeNumST; "+ScopeNumST+" is wrong string. It must be Scope #1,Scope #2,Scope #3,Scope #4,Scope #5,Scope #6");
+	print("ScopeNumST; "+ScopeNumST+" is wrong string. It must be Scope #1 ~ Scope #11");
 	
 	logsum=getInfo("log");
 	filepath=outputdir+"Distortion_Correction_log_error Scope num; "+ScopeNumST+".txt";
