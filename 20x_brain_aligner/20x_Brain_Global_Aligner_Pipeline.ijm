@@ -154,7 +154,6 @@ longlength=height;
 else
 longlength=width;
 
-
 if(channels==2 || channels==3 || channels==4)
 run("Split Channels");
 
@@ -265,11 +264,15 @@ selectImage(nc82);
 
 run("Z Project...", "start=10 stop="+nSlices-10+" projection=[Average Intensity]");// imageID is AR
 rename("OriginalProjection.tif");
+
 xcenter=round(getWidth/2); ycenter=round(getHeight/2);
 
 ZoomratioSmall=widthVx/6.2243;
 Zoomratio=widthVx/0.62243;
 run("Duplicate...", "title=DUPaveP.tif");
+//getMinAndMax(min, max);
+//if(min!=0 && max!=255)
+//run("Apply LUT");
 
 //run("Gamma ", "gamma=2.1 in=InMacro cpu=7");
 //gammaup=getTitle();
@@ -280,6 +283,13 @@ run("Duplicate...", "title=DUPaveP.tif");
 //selectWindow(gammaup);
 //rename("DUPaveP.tif");
 
+run("Enhance Contrast", "saturated=0.35");
+getMinAndMax(min, max);
+
+bitd=bitDepth();
+if(bitd==8)
+run("16-bit");
+
 newImage("mask.tif", "8-bit white", oriwidth, oriheight, 1);
 run("Mask Median Subtraction", "mask=mask.tif data=nc82.tif %=100 histogram=100");
 
@@ -288,12 +298,7 @@ close();
 
 selectWindow("DUPaveP.tif");
 
-run("Enhance Contrast", "saturated=0.35");
-getMinAndMax(min, max);
-
-bitd=bitDepth();
-if(bitd==8)
-run("16-bit");
+setMinAndMax(min, max);
 run("Apply LUT");
 
 print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth*ZoomratioSmall); "+round(getWidth*ZoomratioSmall));
@@ -326,7 +331,6 @@ print("772 BrainShape; "+BrainShape+"   OBJScore; "+OBJScoreOri+"  OriginalRot; 
 logsum=getInfo("log");
 File.saveString(logsum, filepath);
 
-//if(OBJScoreOri<600){
 	
 	ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
 	ImageCorrelation(ImageCorrelationArray,widthVx,numCPU);// with zoom adjustment
@@ -1128,6 +1132,10 @@ if(SizeM!=0){
 			
 			logsum=getInfo("log");
 			File.saveString(logsum, filepath);
+			
+			wait(100);
+			call("java.lang.System.gc");
+			
 			/// if brain is upside down /////////////////////////////
 			xcenter2=xcenter;
 			if(y1_opl<ycenterCrop && y2_opl<ycenterCrop && ImageAligned==0){// if optic lobe is higer position, upside down
@@ -1194,7 +1202,8 @@ if(SizeM!=0){
 			File.saveString(logsum, filepath);
 			
 			selectImage(nc82);
-			
+			wait(100);
+			call("java.lang.System.gc");
 			if(ImageAligned==0){
 				
 				run("Canvas Size...", "width="+xsize+" height="+ysize+" position=Center zero");
@@ -1289,22 +1298,22 @@ if(SizeM!=0){
 			}
 			
 			if(OBJL<500){
-				if(templateBr=="JFRC2010"){
+				if(templateBr=="JFRC2010" || templateBr=="JFRC2013"){
 					incredepth=218/NC82SliceNum;//ADJUSTING sample depth size to template , z=1 micron template
 					
 					if(TwentyMore!=0)
 					incredepth=incredepth*(1+TwentyMore/100);
 					
 					
-				}else if(templateBr=="JFRC2013"){
+				}else if(templateBr=="JFRC2014"){
 					
 					if(depth!=1){
-						tempthinkness=185;
+						tempthinkness=151;
 						sampthickness=depth*NC82SliceNum;
 						
 						incredepth=tempthinkness/sampthickness;//ADJUSTING sample depth size to template 
 					}else
-					incredepth=(218/NC82SliceNum)*0.85;
+					incredepth=(218/NC82SliceNum)*0.69;
 					
 				}//	if(templateBr=="JFRC2010"){
 			}//if(OBJL<700){
@@ -1333,7 +1342,7 @@ if(SizeM!=0){
 			if(NRRD_02_ext==0){
 				oriwindow=getTitle();
 				
-				run("Gamma ", "gamma=1.60 3d in=InMacro cpu=7");
+				run("Gamma ", "gamma=1.60 3d in=InMacro cpu="+numCPU+"");
 				gumnc82=getImageID();
 				
 				selectWindow(oriwindow);
@@ -2305,7 +2314,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	MaxOBJL=0; MaxWidth=0; negativeOBJ=0;
 	run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width="+VxWidthF*xyRatio+" pixel_height="+VxHeightF*xyRatio+" voxel_depth="+VxDepthF+"");
 	
-	for(iWidth=65; iWidth<110; iWidth++){
+	for(iWidth=65; iWidth<180; iWidth++){
 		run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width="+VxWidthF*xyRatio+" pixel_height="+VxHeightF*xyRatio+" voxel_depth="+VxDepthF+"");
 		
 		selectWindow("smallMIP.tif");
@@ -2362,14 +2371,15 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		close();
 	}
 	
-	if(templateBr=="JFRC2010")
+	if(templateBr=="JFRC2010" || templateBr=="JFRC2013")
 	Zsize=190;
 	else
-	Zsize=190;
+	Zsize=151;
 	
 	realzMicron=((MaxWidth*(29/65))*xyRatio);//39/102 is template brain size from 102px window
+	
 	Realvxdepth=(FinalWsize+MaxWidth-65)/FinalWsize;
-	Realvxdepth2=(190/realzMicron)*Realvxdepth;
+	Realvxdepth2=(Zsize/realzMicron)*Realvxdepth;
 	maxrotation=elipsoidAngle/(Realvxdepth2/VxWidthF);
 	
 	//	if(realzMicron>210 && orizslice>110)
