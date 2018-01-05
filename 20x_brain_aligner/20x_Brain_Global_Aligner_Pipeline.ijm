@@ -2433,7 +2433,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	lateralArray[1]=nc82;
 	lateralArray[2]=maxrotation;
 	lateralArray[3]=round((maxX*xyRatio)/2);
-	lateralArray[4]=maxY*xyRatio;
+	lateralArray[4]=maxY*yRatio;
 	lateralArray[5]=MaxOBJL;
 }
 
