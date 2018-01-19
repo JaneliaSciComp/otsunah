@@ -1,5 +1,5 @@
-//Pre-Image processing for VNC before CMTK operation
-//Wrote by Hideo Otsuna, July 27, 2017
+//Pre-Image processing for Brain before CMTK operation
+//Wrote by Hideo Otsuna, Jan 16, 2018
 run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
 MIPsave=1;
 templateBR="JFRC2010";//JFRC2010 OR JFRC2013 for voxel size adjustment
@@ -13,8 +13,8 @@ ForceUSE=false;
 nrrdEx=true;
 revstack=false;
 
-cropWidth=1260;
-cropHeight=700;
+cropWidth=1200;
+cropHeight=750;
 ChannelInfo = "01 02 nrrd files";
 blockposition=1;
 totalblock=1;
@@ -33,7 +33,7 @@ saveOK=0;
 lsmOK=0;
 rotationYN="No";
 BrainShape="Unknown";//"Intact", "Both_OP_missing (40x)", "Unknown"
-shrinkTo2010=true;
+shrinkTo2010=false;
 
 shiftY=15;
 DesireX=512;
@@ -41,7 +41,11 @@ DesireX=512;
 setBatchMode(true);
 testArg=0;
 
-testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,GMR_31E05.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/GMR_31E05.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.62,1,7,20x"
+// 40x
+testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.44,0.44,7,40x"
+
+//for 20x
+//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,GMR_31E05.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/GMR_31E05.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.62,1,7,20x"
 
 if(testArg!=0)
 args = split(testArg,",");
@@ -84,8 +88,10 @@ print("Slice50pxPath; "+Slice50pxPath);
 print("ShapeMatchingMaskPath; "+ShapeMatchingMaskPath);
 print("JFRC2010AveProPath; "+JFRC2010AveProPath);
 print("NumCPU; "+NumCPU);
+print("objective; "+objective);
 print("");
 print("BrainShape; "+BrainShape);
+print("cropWidth; "+cropWidth+"   cropHeight; "+cropHeight);
 
 savedirext=File.exists(savedir);
 if(savedirext!=1)
@@ -159,13 +165,24 @@ fileopentime=(afteropen-beforeopen)/1000;
 print("file open time; "+fileopentime+" sec");
 
 starta=getTime();
+getDimensions(width, height, channels, slices, frames);
 
-setVoxelSize(1, 1, 1, "pixels");
+
+if(Ori_widthVx>0.44 && objective=="40x" && Ori_widthVx<0.46){
+	print("40x vx size changed!! from "+Ori_widthVx+" to 0.4713");
+	Ori_widthVx = 0.4713;
+	Ori_heightVx = 0.4713;
+	widthVx = Ori_widthVx;
+	heightVx = Ori_heightVx;
+	
+	run("Properties...", "channels="+channels+" slices="+nSlices/channels+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
+}else
+run("Properties...", "channels="+channels+" slices="+nSlices/channels+" frames=1 unit=microns pixel_width="+widthVx+" pixel_height="+widthVx+" voxel_depth="+depth+"");
+
+
 print(bitDepth+" bit");
 
 noext = "PreAligned";
-
-getDimensions(width, height, channels, slices, frames);
 
 if(width<height)
 longlength=height;
@@ -287,7 +304,7 @@ run("Duplicate...", "title=nc82_Ori.tif duplicate");
 selectWindow("nc82.tif");
 
 VoxSizeADJArray=newArray(widthVx,heightVx,depth);
-VoxSizeADJ(VoxSizeADJArray,DesireX);
+VoxSizeADJ(VoxSizeADJArray,DesireX,objective);
 
 widthVx = VoxSizeADJArray[0];
 heightVx = VoxSizeADJArray[1];
@@ -312,6 +329,9 @@ run("Canvas Size...", "width=102 height=102 position=Center zero");
 
 rotSearch=60; 	MaxZoom=1; 	setForegroundColor(0, 0, 0);
 
+if(objective=="40x")
+BrainShape="Both_OP_missing (40x)";
+
 if(BrainShape=="Intact" || BrainShape=="Unknown"){
 	ImageCarray=newArray(0, 0, 0, 0);
 	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,90,NumCPU);
@@ -329,64 +349,68 @@ if(BrainShape=="Intact" || BrainShape=="Unknown"){
 	logsum=getInfo("log");
 	File.saveString(logsum, filepath);
 	
-	ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
-	ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU);// with zoom adjustment
-	
-	//		OriginalRot=ImageCorrelationArray[4];
-	//		OBJScoreOri=ImageCorrelationArray[5];
-	MaxZoom=ImageCorrelationArray[6];
-	//		OriginalXshift = ImageCorrelationArray[2];
-	//		OriginalYshift = ImageCorrelationArray[3];
-	
-	if(MaxZoom!=1){
-		widthVx=widthVx*MaxZoom; heightVx=heightVx*MaxZoom;
+	if(objective=="20x"){
+		ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
+		ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU);// with zoom adjustment
 		
-		Ori_widthVx = Ori_widthVx*MaxZoom; Ori_heightVx = Ori_heightVx*MaxZoom;
-		ZoomratioSmall=ZoomratioSmall*MaxZoom; Zoomratio = Zoomratio*MaxZoom;
+		//		OriginalRot=ImageCorrelationArray[4];
+		//		OBJScoreOri=ImageCorrelationArray[5];
+		MaxZoom=ImageCorrelationArray[6];
+		//		OriginalXshift = ImageCorrelationArray[2];
+		//		OriginalYshift = ImageCorrelationArray[3];
 		
-		selectWindow("OriginalProjection.tif");
-		close();
-		
-		selectWindow("DUPaveP.tif");
-		close();
-		
-		while(isOpen("nc82.tif")){
-			selectWindow("nc82.tif");
+		if(MaxZoom!=1){
+			print("MaxZoom is not 1; "+MaxZoom);
+			
+			widthVx=widthVx*MaxZoom; heightVx=heightVx*MaxZoom;
+			
+			Ori_widthVx = Ori_widthVx*MaxZoom; Ori_heightVx = Ori_heightVx*MaxZoom;
+			ZoomratioSmall=ZoomratioSmall*MaxZoom; Zoomratio = Zoomratio*MaxZoom;
+			
+			selectWindow("OriginalProjection.tif");
 			close();
-		}
-		if(isOpen("nc82.tif"))
-		exit("nc82 cannot close 897");
-		
-		selectWindow("nc82_Ori.tif");
-		rename("nc82.tif");
-		nc82=getImageID();
-		
-		run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
-		
-		run("Duplicate...", "title=nc82_Ori.tif duplicate");
-		nc82Ori=getImageID();
-		
-		selectWindow("nc82.tif");
-		
-		DupAvePprocessing (nc82,NumCPU);// DUPaveP.tif creation from nc82.tif
-		
-		selectWindow("DUPaveP.tif");
-		print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth/ZoomratioSmall); "+round(getWidth/ZoomratioSmall));
-		run("Size...", "width="+round(getWidth*ZoomratioSmall)+" height="+round(getHeight*ZoomratioSmall)+" depth=1 constrain interpolation=None");
-		run("Canvas Size...", "width=102 height=102 position=Center zero");
-		
-		ImageCarray=newArray(0, 0, 0, 0);
-		ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,90,NumCPU);
-		
-		OBJScoreOri=ImageCarray[0];
-		OriginalRot=ImageCarray[1];
-		OriginalYshift=ImageCarray[2];
-		OriginalXshift=ImageCarray[3];
-		
-		maxX=OriginalXshift/2;
-		maxY=OriginalYshift/2;
-		
-		print("   OBJScore after Zoom; "+OBJScoreOri+"  OriginalRot; "+OriginalRot);	
+			
+			selectWindow("DUPaveP.tif");
+			close();
+			
+			while(isOpen("nc82.tif")){
+				selectWindow("nc82.tif");
+				close();
+			}
+			if(isOpen("nc82.tif"))
+			exit("nc82 cannot close 897");
+			
+			selectWindow("nc82_Ori.tif");
+			rename("nc82.tif");
+			nc82=getImageID();
+			
+			run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
+			
+			run("Duplicate...", "title=nc82_Ori.tif duplicate");
+			nc82Ori=getImageID();
+			
+			selectWindow("nc82.tif");
+			
+			DupAvePprocessing (nc82,NumCPU);// DUPaveP.tif creation from nc82.tif
+			
+			selectWindow("DUPaveP.tif");
+			print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth/ZoomratioSmall); "+round(getWidth/ZoomratioSmall));
+			run("Size...", "width="+round(getWidth*ZoomratioSmall)+" height="+round(getHeight*ZoomratioSmall)+" depth=1 constrain interpolation=None");
+			run("Canvas Size...", "width=102 height=102 position=Center zero");
+			
+			ImageCarray=newArray(0, 0, 0, 0);
+			ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro.png", rotSearch,ImageCarray,90,NumCPU);
+			
+			OBJScoreOri=ImageCarray[0];
+			OriginalRot=ImageCarray[1];
+			OriginalYshift=ImageCarray[2];
+			OriginalXshift=ImageCarray[3];
+			
+			maxX=OriginalXshift/2;
+			maxY=OriginalYshift/2;
+			
+			print("   OBJScore after Zoom; "+OBJScoreOri+"  OriginalRot; "+OriginalRot);	
+		}//if(objective=="20x"){
 	}
 	print("MaxZoom; "+MaxZoom+"   widthVx; "+Ori_widthVx+"   heightVx; "+Ori_heightVx+"   Zoomratio; "+Zoomratio);
 }//	if(BrainShape=="Intact" || BrainShape=="Unknown"){
@@ -399,6 +423,7 @@ if(BrainShape=="Unknown"){
 	makePolygon(82,34,74,52,66,65,69,76,90,80,99,72,101,58,100,34);// elimination of the R-Op
 	
 	run("Fill", "slice");
+	BrainShape="Intact";
 	
 	ImageCarray=newArray(0, 0, 0, 0);
 	ImageCorrelation2 ("DUPaveP.tif", "JFRC2010_AvePro-Rop.png", rotSearch,ImageCarray,80,NumCPU);
@@ -477,7 +502,7 @@ if(BrainShape=="Unknown"){
 	}
 	maxX=OriginalXshift;
 	maxY=OriginalYshift;
-}
+}//if(BrainShape=="Unknown"){
 
 if(BrainShape=="Both_OP_missing (40x)"){
 	selectWindow("JFRC2010_AvePro.png");
@@ -1311,7 +1336,7 @@ if(SizeM!=0){
 			
 			selectImage(nc82);
 			lateralArray=newArray(0, 0,0,0,0,0);
-			lateralDepthAdjustment(x1_opl,x2_opl,lateralArray,nc82,templateBr,NumCPU,shrinkTo2010);
+			lateralDepthAdjustment(x1_opl,x2_opl,lateralArray,nc82,templateBr,NumCPU,shrinkTo2010,objective);
 			incredepth=lateralArray[0];
 			nc82=lateralArray[1];
 			maxrotation=lateralArray[2];
@@ -1390,7 +1415,7 @@ if(SizeM!=0){
 				
 				if(shrinkTo2010==true){
 					VoxSizeADJArray=newArray(Ori_widthVx,Ori_heightVx,incredepth);
-					VoxSizeADJ(VoxSizeADJArray,DesireX);
+					VoxSizeADJ(VoxSizeADJArray,DesireX,objective);
 				}
 				
 				nc82=getImageID();
@@ -1405,8 +1430,8 @@ if(SizeM!=0){
 				run("16-bit");
 				
 				run("Rotation Hideo", "rotate="+maxrotation+" 3d in=InMacro");
-				run("Translate...", "x=0 y="+LateralYtrans+" interpolation=None stack");
-				print("nc82 Lateral Trans Y; "+LateralYtrans);
+				//		run("Translate...", "x=0 y="+LateralYtrans+" interpolation=None stack");
+				//		print("nc82 Lateral Trans Y; "+LateralYtrans);
 				
 				run("Reslice [/]...", "output=1 start=Left rotate avoid");
 				rename("RealSignal.tif");
@@ -1525,7 +1550,7 @@ if(SizeM!=0){
 				
 				if(shrinkTo2010==true){
 					VoxSizeADJArray=newArray(Ori_widthVx,Ori_heightVx,incredepth);
-					VoxSizeADJ(VoxSizeADJArray,DesireX);
+					VoxSizeADJ(VoxSizeADJArray,DesireX,objective);
 				}
 				
 				if(neuronNum==startNeuronNum)
@@ -1534,22 +1559,6 @@ if(SizeM!=0){
 				neuron2 = getImageID();
 				
 				rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);			
-				
-				//		if(bitDepth==16){
-				
-				//			realresetArray=newArray(maxvalue1,0);
-				//			RealReset(realresetArray);
-				
-				//			if(neuronNum==startNeuronNum)
-				//			selectImage(neuron);
-				//			else if (neuronNum==startNeuronNum+1)
-				//			selectImage(neuron2);
-				
-				//			if(neuronNum!=0)
-				//			maxvalue1[neuronNum-1]=realresetArray[0];
-				//			else
-				//			maxvalue1[neuronNum]=realresetArray[0];
-				//		}
 				
 				rename("signalCH.tif");
 				signalCH=getImageID();
@@ -1565,8 +1574,8 @@ if(SizeM!=0){
 				run("16-bit");
 				
 				run("Rotation Hideo", "rotate="+maxrotation+" 3d in=InMacro");
-				run("Translate...", "x=0 y="+LateralYtrans+" interpolation=None stack");
-				print("signal Lateral Trans Y; "+LateralYtrans);
+				//		run("Translate...", "x=0 y="+LateralYtrans+" interpolation=None stack");
+				//		print("signal Lateral Trans Y; "+LateralYtrans);
 				
 				run("Reslice [/]...", "output=1 start=Left rotate avoid");
 				rename("RealSignal.tif");
@@ -1711,8 +1720,7 @@ if(SizeM!=0){
 			saveAs("ZIP", ""+savedir+noext+".zip");
 		}//if(ChannelInfo=="multi-colors, single file .tif.zip"){
 	}//if(ID20xMIP!=0){
-	if(channels>2)
-	print(channels+" exist!! "+list[filen]+"; "+filen);
+	
 }else{//if(maxsizeData!=0){
 	
 	selectImage(nc82);
@@ -1852,7 +1860,7 @@ function fileOpen(FilePathArray){
 	FilePathArray[0]=FilePath;
 }
 
-function VoxSizeADJ (VoxSizeADJArray,DesireX){
+function VoxSizeADJ (VoxSizeADJArray,DesireX,objective){
 	
 	widthVx = VoxSizeADJArray[0];
 	heightVx = VoxSizeADJArray[1];
@@ -1860,7 +1868,12 @@ function VoxSizeADJ (VoxSizeADJArray,DesireX){
 	
 	if(widthVx!=1 && heightVx!=1){
 		getDimensions(Oriwidth, Oriheight, channels, slices, frames);
+		
+		if(objective!="40x")
 		changeratio=widthVx/0.5189;
+		else
+		changeratio=1.1;
+		
 		if(changeratio!=1){
 			run("Size...", "width="+round(Oriwidth*changeratio)+" height="+round(Oriheight*changeratio)+" depth="+nSlices+" constrain interpolation=None");
 			run("Canvas Size...", "width="+Oriwidth+" height="+Oriheight+" position=Center zero");
@@ -2366,17 +2379,17 @@ function FILL_HOLES(DD2, DD3) {
 	}//if (2DD==1){
 }
 
-function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr,NumCPU,shrinkTo2010){
+function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr,NumCPU,shrinkTo2010,objective){
 	
 	nc82ID=getImageID();
 	orizslice=nSlices();
 	
 	run("Reslice [/]...", "output=1.000 start=Left rotate avoid");
 	resliceW=getWidth(); resliceH=getHeight();
-	
+	print("Original op1center; "+op1center+"  op2center; "+op2center);
 	wait(100);
 	call("java.lang.System.gc");	
-	
+
 	rename("reslice.tif");
 	Resliced=getImageID();
 	
@@ -2390,31 +2403,31 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		op1center=280; op2center=921;
 	}
 	
-	gapop=op2center-op1center;
-	centerpoint=op1center+round(gapop/2);
-	
-	run("Z Project...", "start="+op1center+120+" stop="+centerpoint+" projection=[Max Intensity]");
+	print("lateral Z-Projection; from "+op1center+200+" to "+op2center-200+"  or center of image; "+round(nSlices/2));
+	run("Z Project...", "start="+op1center+200+" stop="+op2center-200+" projection=[Max Intensity]");
 	
 	getVoxelSize(VxWidthF, VxHeightF, VxDepthF, VxUnitF);
 	getDimensions(widthF, heightF, channelsF, slicesF, frames);
 	rename("smallMIP.tif");
 	print("widthF Lateral (z-slice); "+widthF);
 	
-	newImage("mask1.tif", "8-bit white", widthF, heightF, 1);
-	run("Mask Median Subtraction", "mask=mask1.tif data=smallMIP.tif %=100 histogram=100");
+	//	newImage("mask1.tif", "8-bit white", widthF, heightF, 1);
+	//	run("Mask Median Subtraction", "mask=mask1.tif data=smallMIP.tif %=100 histogram=100");
 	
-	selectWindow("mask1.tif");
-	close();
+	//	selectWindow("mask1.tif");
+	//	close();
 	
-	selectWindow("smallMIP.tif");
+	//selectWindow("smallMIP.tif");
 	
 	run("Enhance Contrast", "saturated=2");
 	getMinAndMax(a,b);
 	
 	run("16-bit");
-	
-	if(a!=0 && b!=65535 && b!=255)
-	run("Apply LUT");
+	print("a; "+a+"  b; "+b);
+	if(a!=0 && b!=65535 && b!=255 && round(b*1.1)!=65535){
+		setMinAndMax(0, round(b*1.1));
+		run("Apply LUT");
+	}
 	
 	print("VxWidthF; "+VxWidthF+"   VxHeightF; "+VxHeightF+"  VxDepthF; "+VxDepthF);
 	
@@ -2435,6 +2448,13 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	
 	selectWindow("LateralMIP.tif");
 	rename("smallMIP.tif");
+	
+	
+	//	setBatchMode(false);
+	//	updateDisplay();
+	//	"do"
+	//	exit();
+	
 	
 	setAutoThreshold("Otsu dark");//Mean
 	getThreshold(lower, upper);
@@ -2458,8 +2478,9 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width="+VxWidthF*xyRatio+" pixel_height="+VxHeightF*xyRatio+" voxel_depth="+VxDepthF+"");
 		
 		selectWindow("smallMIP.tif");
-		run("Size...", "width="+iWidth+" height=110 interpolation=None");
 		
+		run("Size...", "width="+iWidth+" height=110 interpolation=None");
+		run("Fill Holes");
 		
 		run("Canvas Size...", "width=65 height=110 position=Center zero");
 		
@@ -2502,7 +2523,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	
 	run("Size...", "width="+MaxWidth+" height=110 interpolation=None");
 	run("Canvas Size...", "width=65 height=110 position=Center zero");
-	setMinAndMax(0, 255);
+	setMinAndMax(0, 254);
 	run("Apply LUT");
 	run("8-bit");
 	saveAs("PNG", ""+savedir+noext+"_Lateral.png");
@@ -2518,22 +2539,17 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		close();
 	}
 	
-	if(templateBr=="JFRC2010" || templateBr=="JFRC2013")
-	Zsize=190;
-	else
+	if(templateBr=="JFRC2010" || templateBr=="JFRC2013"){
+		if(objective=="20x")
+		Zsize=190;
+		else
+		Zsize=200;
+	}else
 	Zsize=151;
 	
 	Realvxdepth2=Zsize/((35/((FinalWsize/65)*MaxWidth))*widthF); //is real width of stack Z 
 	
-	//	realzMicron=((MaxWidth*(29/65))*xyRatio);//39/102 is template brain size from 102px window
-	
-	//	Realvxdepth=(FinalWsize+MaxWidth-75)/FinalWsize;
-	//	Realvxdepth2=(Zsize/realzMicron)*Realvxdepth;
 	maxrotation=elipsoidAngle/(Realvxdepth2/VxWidthF);
-	
-	//	if(realzMicron>210 && orizslice>110)
-	//	Realvxdepth=Realvxdepth*(200/realzMicron);
-	
 	
 	print("MaxOBJL Lateral; "+MaxOBJL+"   BestiW; "+MaxWidth+"  Yshift; "+maxY+"  maxX; "+maxX+"  lateral rotation; "+maxrotation+"   Realvxdepth; "+Realvxdepth2);
 	
@@ -2663,7 +2679,6 @@ function rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shri
 	
 	Zoomratio=orizoomratio;
 }
-
 
 
 
