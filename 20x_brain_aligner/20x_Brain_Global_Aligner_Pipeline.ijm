@@ -42,7 +42,7 @@ setBatchMode(true);
 testArg=0;
 
 // 40x
-testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.44,0.44,7,40x"
+//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.44,0.44,7,40x"
 
 //for 20x
 //testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,GMR_31E05.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/GMR_31E05.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.62,1,7,20x"
@@ -2541,7 +2541,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	
 	if(templateBr=="JFRC2010" || templateBr=="JFRC2013"){
 		if(objective=="20x")
-		Zsize=190;
+		Zsize=195;
 		else
 		Zsize=200;
 	}else
