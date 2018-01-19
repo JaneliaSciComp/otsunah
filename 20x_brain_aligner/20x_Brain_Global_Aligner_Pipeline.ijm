@@ -168,7 +168,7 @@ starta=getTime();
 getDimensions(width, height, channels, slices, frames);
 
 
-if(Ori_widthVx>0.44 && objective=="40x" && Ori_widthVx<0.46){
+if(Ori_widthVx>0.43 && objective=="40x" && Ori_widthVx<0.46){
 	print("40x vx size changed!! from "+Ori_widthVx+" to 0.4713");
 	Ori_widthVx = 0.4713;
 	Ori_heightVx = 0.4713;
@@ -1275,7 +1275,7 @@ if(SizeM!=0){
 					OBJV="";
 					if(ImageAligned2==1){
 						
-						rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
+						rotateshift3D (ZoomratioSmall,resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
 						
 						OBJV="_"+OBJScore;
 					}
@@ -1318,7 +1318,7 @@ if(SizeM!=0){
 			selectImage(nc82);
 			print("nc82 selected 1837; "+getTitle());
 			
-			rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
+			rotateshift3D (ZoomratioSmall,resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
 			
 			if(ImageAligned==1){
 				sizediff2=OpticLobeSizeGap; sizediff1=OpticLobeSizeGap;
@@ -1420,7 +1420,7 @@ if(SizeM!=0){
 				
 				nc82=getImageID();
 				
-				rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);
+				rotateshift3D (ZoomratioSmall,resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);
 				
 				run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
 				run("Reslice [/]...", "output=1.000 start=Left rotate avoid");
@@ -1558,7 +1558,7 @@ if(SizeM!=0){
 				else if (neuronNum==startNeuronNum+1)
 				neuron2 = getImageID();
 				
-				rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);			
+				rotateshift3D (ZoomratioSmall,resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);			
 				
 				rename("signalCH.tif");
 				signalCH=getImageID();
@@ -2659,16 +2659,16 @@ function DupAvePprocessing (nc82,NumCPU){
 	run("Apply LUT");
 }
 
-function rotateshift3D (resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth){
+function rotateshift3D (ZoomratioSmall,resliceLongLength,maxX,Zoomratio,maxY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth){
 	run("Canvas Size...", "width="+resliceLongLength+" height="+resliceLongLength+" position=Center zero");
 	run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
 	
-	print("3311 Translated X; "+round(maxX*20/Zoomratio)+"  Y; "+round(maxY*20/Zoomratio)+", nc82, elipsoidAngle; "+elipsoidAngle+"   Zoomratio; "+Zoomratio+"  Canvas W; "+round(cropWidth/Zoomratio)+"   Canvas H; "+round(cropHeight/Zoomratio));
+	print("3311 Translated X; "+round(maxX*(1/ZoomratioSmall)/Zoomratio)+"  Y; "+round(maxY*(1/ZoomratioSmall)/Zoomratio)+", nc82, elipsoidAngle; "+elipsoidAngle+"   Zoomratio; "+Zoomratio+"  Canvas W; "+round(cropWidth/Zoomratio)+"   Canvas H; "+round(cropHeight/Zoomratio));
 	if(bitDepth==8)
 	run("16-bit");
 	run("Rotation Hideo", "rotate="+elipsoidAngle+" 3d in=InMacro");
 	
-	run("Translate...", "x="+round(maxX*20/Zoomratio)+" y="+round(maxY*20/Zoomratio)+" interpolation=None stack");
+	run("Translate...", "x="+round(maxX*(1/ZoomratioSmall)/Zoomratio)+" y="+round(maxY*(1/ZoomratioSmall)/Zoomratio)+" interpolation=None stack");
 	
 	run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
 	
