@@ -42,10 +42,10 @@ setBatchMode(true);
 testArg=0;
 
 // 40x
-//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.44,0.44,7,40x"
+//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.44,0.44,7,40x"
 
 //for 20x
-//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,GMR_31E05.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/GMR_31E05.h5j,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/Lateral_JFRC2010_5time_smallerMIP.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_50pxSlice.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_ShapeMatchingMask.tif,/Users/otsunah/Dropbox\ \(HHMI\)/20X_PROJECT/JFRC2010_AvePro.png,0.62,1,7,20x"
+//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,GMR_31E05.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/GMR_31E05.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.62,1,7,20x"
 
 if(testArg!=0)
 args = split(testArg,",");
@@ -55,16 +55,18 @@ args = split(getArgument(),",");
 savedir = args[0];// save dir
 filename = args[1];//file name
 path = args[2];// full file path for inport LSM
-Frontal50pxPath = args[3];// full file path for "JFRC2010_50pxMIP.tif"
-LateralMIPPath = args[4];//  full file path for "Lateral_JFRC2010_5time_smallerMIP.tif"
-Slice50pxPath = args[5];//  full file path for "JFRC2010_50pxSlice.tif"
-ShapeMatchingMaskPath = args[6];//"JFRC2010_ShapeMatchingMask.tif";
-JFRC2010AveProPath = args[7]; //"JFRC2010_AvePro.png"
+MatchingFilesDir = args[3];
+widthVx = args[4];// X voxel size
+depth = args[5];// slice depth
+NumCPU=args[6];
+objective = args [7];
 
-widthVx = args[8];// X voxel size
-depth = args[9];// slice depth
-NumCPU=args[10];
-objective = args [11];
+
+Frontal50pxPath = MatchingFilesDir+"JFRC2010_50pxMIP.tif";// full file path for "JFRC2010_50pxMIP.tif"
+LateralMIPPath = MatchingFilesDir+"Lateral_JFRC2010_5time_smallerMIP.tif";//  full file path for "Lateral_JFRC2010_5time_smallerMIP.tif"
+Slice50pxPath = MatchingFilesDir+"JFRC2010_50pxSlice.tif";//  full file path for "JFRC2010_50pxSlice.tif"
+ShapeMatchingMaskPath = MatchingFilesDir+"JFRC2010_ShapeMatchingMask.tif";//"JFRC2010_ShapeMatchingMask.tif";
+JFRC2010AveProPath = MatchingFilesDir+"JFRC2010_AvePro.png"; //"JFRC2010_AvePro.png"
 
 widthVx=parseFloat(widthVx);//Chaneg string to number
 depth=parseFloat(depth);//Chaneg string to number
