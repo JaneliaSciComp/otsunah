@@ -312,12 +312,15 @@ depthVox = VoxSizeADJArray[2];
 
 ZoomratioSmall=Ori_widthVx/6.2243;
 Zoomratio=Ori_widthVx/0.62243;
+if(Zoomratio>0.99 && Zoomratio<1.01)
+Zoomratio=1;
+
 xcenter=round(getWidth/2); ycenter=round(getHeight/2);
 
 DupAvePprocessing (nc82,NumCPU);// DUPaveP.tif creation from nc82.tif
 
 selectWindow("DUPaveP.tif");
-print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth/ZoomratioSmall); "+round(getWidth/ZoomratioSmall));
+print("ZoomratioSmall; "+ZoomratioSmall+"   widthVx; "+widthVx+"  round(getWidth/ZoomratioSmall); "+round(getWidth/ZoomratioSmall)+"   Zoomratio; "+Zoomratio);
 run("Size...", "width="+round(getWidth*ZoomratioSmall)+" height="+round(getHeight*ZoomratioSmall)+" depth=1 constrain interpolation=None");
 run("Canvas Size...", "width=102 height=102 position=Center zero");
 
