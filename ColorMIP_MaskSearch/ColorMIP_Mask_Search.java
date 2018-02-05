@@ -1,4 +1,5 @@
 import ij.*;
+import ij.io.*;
 import ij.plugin.filter.*;
 import ij.plugin.PlugIn;
 import ij.process.*;
@@ -15,7 +16,7 @@ import java.util.*;
 import java.lang.*;
 
 
-public class ColorMIP_Mask_Search implements PlugInFilter
+public class ColorMIP_Mask_Search2 implements PlugInFilter
 {
 	ImagePlus imp, imp2;
 	ImageProcessor ip1, nip1, ip2, ip3, ip4, ip5, ip6, ip33;
@@ -29,7 +30,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 	
 	public int setup(String arg, ImagePlus imp)
 	{
-		IJ.register (ColorMIP_Mask_Search.class);
+		IJ.register (ColorMIP_Mask_Search2.class);
 		if (IJ.versionLessThan("1.32c")){
 			IJ.showMessage("Error", "Please Update ImageJ.");
 			return 0;
@@ -88,10 +89,10 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		return strd;
 	}
 
-	public int calc_score(ImageProcessor src, ImageProcessor tar, int[] maskposi, int th, double pixfludub, ImageProcessor coloc) {
+	public int calc_score(ImageProcessor src, byte[] tar, int[] maskposi, int th, double pixfludub, ImageProcessor coloc) {
 		int masksize = maskposi.length;
 		int width = src.getWidth();
-		int height = tar.getHeight();
+		int height = src.getHeight();
 		ColorProcessor ipnew=  new ColorProcessor(width, height);
 				
 		//IJ.log(" linename;"+linename);
@@ -103,236 +104,17 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			int red1 = (pix1>>>16) & 0xff;//mask
 			int green1 = (pix1>>>8) & 0xff;//mask
 			int blue1 = pix1 & 0xff;//mask
-			
-			int pix2= tar.get(maskposi[masksig]);// data
-			int red2 = (pix2>>>16) & 0xff;//data
-			int green2 = (pix2>>>8) & 0xff;//data
-			int blue2 = pix2 & 0xff;//data
+
+			int p = maskposi[masksig]*3;
+			int red2 = tar[p] & 0xff;//data
+			int green2 = tar[p+1] & 0xff;//data
+			int blue2 = tar[p+2] & 0xff;//data
+			int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
 			
 			if(red2>th || green2>th || blue2>th){
 				
-				int RG1=0; int BG1=0; int GR1=0; int GB1=0; int RB1=0; int BR1=0;
-				int RG2=0; int BG2=0; int GR2=0; int GB2=0; int RB2=0; int BR2=0;
-				int MIPtwo=0; int max1=0; int max2=0;
-				double rb1=0; double rg1=0; double gb1=0; double gr1=0; double br1=0; double bg1=0;
-				double rb2=0; double rg2=0; double gb2=0; double gr2=0; double br2=0; double bg2=0;
-				double pxGap=10000; 
-				double BrBg=0.354862745; double BgGb=0.996078431; double GbGr=0.505882353; double GrRg=0.996078431; double RgRb=0.505882353;
-				double BrGap=0; double BgGap=0; double GbGap=0; double GrGap=0; double RgGap=0; double RbGap=0;
+				double pxGap = calc_score_px(red1, green1, blue1, red2, green2, blue2); 
 				
-				String checkborder="";
-				
-				if(blue1>red1 && blue1>green1){//1,2
-					if(red1>green1){
-						BR1=blue1+red1;//1
-						if(blue1!=0 && red1!=0)
-						br1= (double) red1 / (double) blue1;
-					}else{
-						BG1=blue1+green1;//2
-						if(blue1!=0 && green1!=0)
-						bg1= (double) green1 / (double) blue1;
-					}
-				}else if(green1>blue1 && green1>red1){//3,4
-					if(blue1>red1){
-						GB1=green1+blue1;//3
-						if(green1!=0 && blue1!=0)
-						gb1= (double) blue1 / (double) green1;
-					}else{
-						GR1=green1+red1;//4
-						if(green1!=0 && red1!=0)
-						gr1= (double) red1 / (double) green1;
-					}
-				}else if(red1>blue1 && red1>green1){//5,6
-					if(green1>blue1){
-						RG1=red1+green1;//5
-						if(red1!=0 && green1!=0)
-						rg1= (double) green1 / (double) red1;
-					}else{
-						RB1=red1+blue1;//6
-						if(red1!=0 && blue1!=0)
-						rb1= (double) blue1 / (double) red1;
-					}
-				}
-				
-				if(blue2>red2 && blue2>green2){
-					if(red2>green2){//1, data
-						BR2=blue2+red2;
-						if(blue2!=0 && red2!=0)
-						br2= (double) red2 / (double) blue2;
-					}else{//2, data
-						BG2=blue2+green2;
-						if(blue2!=0 && green2!=0)
-						bg2= (double) green2 / (double) blue2;
-					}
-				}else if(green2>blue2 && green2>red2){
-					if(blue2>red2){//3, data
-						GB2=green2+blue2;
-						if(green2!=0 && blue2!=0)
-						gb2= (double) blue2 / (double) green2;
-					}else{//4, data
-						GR2=green2+red2;
-						if(green2!=0 && red2!=0)
-						gr2= (double) red2 / (double) green2;
-					}
-				}else if(red2>blue2 && red2>green2){
-					if(green2>blue2){//5, data
-						RG2=red2+green2;
-						if(red2!=0 && green2!=0)
-						rg2= (double) green2 / (double) red2;
-					}else{//6, data
-						RB2=red2+blue2;
-						if(red2!=0 && blue2!=0)
-						rb2= (double) blue2 / (double) red2;
-					}
-				}
-				
-				///////////////////////////////////////////////////////					
-				if(BR1>0){//1, mask// 2 color advance core
-					if(BR2>0){//1, data
-						if(br1>0 && br2>0){
-							if(br1!=br2){
-								pxGap=br2-br1;
-								pxGap=Math.abs(pxGap);
-							}else
-							pxGap=0;
-							
-							if(br1==255 & br2==255)
-							pxGap=1000;
-						}
-					}else if (BG2>0){//2, data
-						if(br1<0.44 && bg2<0.54){
-							BrGap=br1-BrBg;//BrBg=0.354862745;
-							BgGap=bg2-BrBg;//BrBg=0.354862745;
-							pxGap=BrGap+BgGap;
-						}
-					}
-					//		IJ.log("pxGap; "+String.valueOf(pxGap)+"  BR1;"+String.valueOf(BR1)+", br1; "+String.valueOf(br1)+", BR2; "+String.valueOf(BR2)+", br2; "+String.valueOf(br2)+", BG2; "+String.valueOf(BG2)+", bg2; "+String.valueOf(bg2));
-				}else if(BG1>0){//2, mask/////////////////////////////
-					if(BG2>0){//2, data, 2,mask
-						
-						if(bg1>0 && bg2>0){
-							if(bg1!=bg2){
-								pxGap=bg2-bg1;
-								pxGap=Math.abs(pxGap);
-								
-							}else if(bg1==bg2)
-							pxGap=0;
-							if(bg1==255 & bg2==255)
-							pxGap=1000;
-						}
-						//	IJ.log(" pxGap BG2;"+String.valueOf(pxGap)+", bg1; "+String.valueOf(bg1)+", bg2; "+String.valueOf(bg2));
-					}else if(GB2>0){//3, data, 2,mask
-						if(bg1>0.8 && gb2>0.8){
-							BgGap=BgGb-bg1;//BgGb=0.996078431;
-							GbGap=BgGb-gb2;//BgGb=0.996078431;
-							pxGap=BgGap+GbGap;
-							//			IJ.log(" pxGap GB2;"+String.valueOf(pxGap));
-						}
-					}else if(BR2>0){//1, data, 2,mask
-						if(bg1<0.54 && br2<0.44){
-							BgGap=bg1-BrBg;//BrBg=0.354862745;
-							BrGap=br2-BrBg;//BrBg=0.354862745;
-							pxGap=BrGap+BgGap;
-						}
-					}
-					//		IJ.log("pxGap; "+String.valueOf(pxGap)+"  BG1;"+String.valueOf(BG1)+"  BG2;"+String.valueOf(BG2)+", bg1; "+String.valueOf(bg1)+", bg2; "+String.valueOf(bg2)+", GB2; "+String.valueOf(GB2)+", gb2; "+String.valueOf(gb2)+", BR2; "+String.valueOf(BR2)+", br2; "+String.valueOf(br2));
-				}else if(GB1>0){//3, mask/////////////////////////////
-					if(GB2>0){//3, data, 3mask
-						if(gb1>0 && gb2>0){
-							if(gb1!=gb2){
-								pxGap=gb2-gb1;
-								pxGap=Math.abs(pxGap);
-								
-								//	IJ.log(" pxGap GB2;"+String.valueOf(pxGap));
-							}else
-							pxGap=0;
-							if(gb1==255 & gb2==255)
-							pxGap=1000;
-						}
-					}else if(BG2>0){//2, data, 3mask
-						if(gb1>0.8 && bg2>0.8){
-							BgGap=BgGb-gb1;//BgGb=0.996078431;
-							GbGap=BgGb-bg2;//BgGb=0.996078431;
-							pxGap=BgGap+GbGap;
-						}
-					}else if(GR2>0){//4, data, 3mask
-						if(gb1<0.7 && gr2<0.7){
-							GbGap=gb1-GbGr;//GbGr=0.505882353;
-							GrGap=gr2-GbGr;//GbGr=0.505882353;
-							pxGap=GbGap+GrGap;
-						}
-					}//2,3,4 data, 3mask
-				}else if(GR1>0){//4mask/////////////////////////////
-					if(GR2>0){//4, data, 4mask
-						if(gr1>0 && gr2>0){
-							if(gr1!=gr2){
-								pxGap=gr2-gr1;
-								pxGap=Math.abs(pxGap);
-							}else
-							pxGap=0;
-							if(gr1==255 & gr2==255)
-							pxGap=1000;
-						}
-					}else if(GB2>0){//3, data, 4mask
-						if(gr1<0.7 && gb2<0.7){
-							GrGap=gr1-GbGr;//GbGr=0.505882353;
-							GbGap=gb2-GbGr;//GbGr=0.505882353;
-							pxGap=GrGap+GbGap;
-						}
-					}else if(RG2>0){//5, data, 4mask
-						if(gr1>0.8 && rg2>0.8){
-							GrGap=GrRg-gr1;//GrRg=0.996078431;
-							RgGap=GrRg-rg2;
-							pxGap=GrGap+RgGap;
-						}
-					}//3,4,5 data
-				}else if(RG1>0){//5, mask/////////////////////////////
-					if(RG2>0){//5, data, 5mask
-						if(rg1>0 && rg2>0){
-							if(rg1!=rg2){
-								pxGap=rg2-rg1;
-								pxGap=Math.abs(pxGap);
-							}else
-							pxGap=0;
-							if(rg1==255 & rg2==255)
-							pxGap=1000;
-						}
-						
-					}else if(GR2>0){//4 data, 5mask
-						if(rg1>0.8 && gr2>0.8){
-							GrGap=GrRg-gr2;//GrRg=0.996078431;
-							RgGap=GrRg-rg1;//GrRg=0.996078431;
-							pxGap=GrGap+RgGap;
-							//	IJ.log(" pxGap GR2;"+String.valueOf(pxGap));
-						}
-					}else if(RB2>0){//6 data, 5mask
-						if(rg1<0.7 && rb2<0.7){
-							RgGap=rg1-RgRb;//RgRb=0.505882353;
-							RbGap=rb2-RgRb;//RgRb=0.505882353;
-							pxGap=RbGap+RgGap;
-						}
-					}//4,5,6 data
-				}else if(RB1>0){//6, mask/////////////////////////////
-					if(RB2>0){//6, data, 6mask
-						if(rb1>0 && rb2>0){
-							if(rb1!=rb2){
-								pxGap=rb2-rb1;
-								pxGap=Math.abs(pxGap);
-							}else if(rb1==rb2)
-							pxGap=0;
-							if(rb1==255 & rb2==255)
-							pxGap=1000;
-						}
-					}else if(RG2>0){//5, data, 6mask
-						if(rg2<0.7 && rb1<0.7){
-							RgGap=rg2-RgRb;//RgRb=0.505882353;
-							RbGap=rb1-RgRb;//RgRb=0.505882353;
-							pxGap=RgGap+RbGap;
-							//	IJ.log(" pxGap RG;"+String.valueOf(pxGap));
-						}
-					}
-				}//2 color advance core
-					
 				if(pxGap<=pixfludub){
 					if(coloc!=null)
 						coloc.set(maskposi[masksig], pix2);// new RGB image
@@ -344,6 +126,269 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		}//for(int masksig=0; masksig<masksize; masksig++){
 
 		return posi;
+	}
+
+	public int calc_score(ImageProcessor src, ImageProcessor tar, int[] maskposi, int th, double pixfludub, ImageProcessor coloc) {
+		int masksize = maskposi.length;
+		int width = src.getWidth();
+		int height = src.getHeight();
+		ColorProcessor ipnew=  new ColorProcessor(width, height);
+				
+		//IJ.log(" linename;"+linename);
+		int posi = 0;
+		for(int masksig=0; masksig<masksize; masksig++){
+			
+			int pix1= src.get(maskposi[masksig]);//Mask, array
+			int red1 = (pix1>>>16) & 0xff;//mask
+			int green1 = (pix1>>>8) & 0xff;//mask
+			int blue1 = pix1 & 0xff;//mask
+
+			int pix2= tar.get(maskposi[masksig]);//data, array
+			int red2 = (pix2>>>16) & 0xff;//data
+			int green2 = (pix2>>>8) & 0xff;//data
+			int blue2 = pix2 & 0xff;//data
+
+			if(red2>th || green2>th || blue2>th){
+				
+				double pxGap = calc_score_px(red1, green1, blue1, red2, green2, blue2); 
+				
+				if(pxGap<=pixfludub){
+					if(coloc!=null)
+						coloc.set(maskposi[masksig], pix2);// new RGB image
+					posi++;
+				}else if(pxGap==1000)
+				IJ.log("There is 255 x2 value");
+				
+			}//if(red2>th || green2>th || blue2>th){
+		}//for(int masksig=0; masksig<masksize; masksig++){
+
+		return posi;
+	}
+
+	public double calc_score_px(int red1, int green1, int blue1, int red2, int green2, int blue2) {
+		int RG1=0; int BG1=0; int GR1=0; int GB1=0; int RB1=0; int BR1=0;
+		int RG2=0; int BG2=0; int GR2=0; int GB2=0; int RB2=0; int BR2=0;
+		int MIPtwo=0; int max1=0; int max2=0;
+		double rb1=0; double rg1=0; double gb1=0; double gr1=0; double br1=0; double bg1=0;
+		double rb2=0; double rg2=0; double gb2=0; double gr2=0; double br2=0; double bg2=0;
+		double pxGap=10000; 
+		double BrBg=0.354862745; double BgGb=0.996078431; double GbGr=0.505882353; double GrRg=0.996078431; double RgRb=0.505882353;
+		double BrGap=0; double BgGap=0; double GbGap=0; double GrGap=0; double RgGap=0; double RbGap=0;
+				
+		String checkborder="";
+				
+		if(blue1>red1 && blue1>green1){//1,2
+			if(red1>green1){
+				BR1=blue1+red1;//1
+				if(blue1!=0 && red1!=0)
+					br1= (double) red1 / (double) blue1;
+			}else{
+				BG1=blue1+green1;//2
+				if(blue1!=0 && green1!=0)
+					bg1= (double) green1 / (double) blue1;
+			}
+		}else if(green1>blue1 && green1>red1){//3,4
+			if(blue1>red1){
+				GB1=green1+blue1;//3
+				if(green1!=0 && blue1!=0)
+					gb1= (double) blue1 / (double) green1;
+			}else{
+				GR1=green1+red1;//4
+				if(green1!=0 && red1!=0)
+					gr1= (double) red1 / (double) green1;
+			}
+		}else if(red1>blue1 && red1>green1){//5,6
+			if(green1>blue1){
+				RG1=red1+green1;//5
+				if(red1!=0 && green1!=0)
+					rg1= (double) green1 / (double) red1;
+			}else{
+				RB1=red1+blue1;//6
+				if(red1!=0 && blue1!=0)
+					rb1= (double) blue1 / (double) red1;
+			}
+		}
+				
+		if(blue2>red2 && blue2>green2){
+			if(red2>green2){//1, data
+				BR2=blue2+red2;
+				if(blue2!=0 && red2!=0)
+					br2= (double) red2 / (double) blue2;
+			}else{//2, data
+				BG2=blue2+green2;
+				if(blue2!=0 && green2!=0)
+					bg2= (double) green2 / (double) blue2;
+			}
+		}else if(green2>blue2 && green2>red2){
+			if(blue2>red2){//3, data
+				GB2=green2+blue2;
+				if(green2!=0 && blue2!=0)
+					gb2= (double) blue2 / (double) green2;
+			}else{//4, data
+				GR2=green2+red2;
+				if(green2!=0 && red2!=0)
+					gr2= (double) red2 / (double) green2;
+			}
+		}else if(red2>blue2 && red2>green2){
+			if(green2>blue2){//5, data
+				RG2=red2+green2;
+				if(red2!=0 && green2!=0)
+					rg2= (double) green2 / (double) red2;
+			}else{//6, data
+				RB2=red2+blue2;
+				if(red2!=0 && blue2!=0)
+					rb2= (double) blue2 / (double) red2;
+			}
+		}
+				
+		///////////////////////////////////////////////////////					
+		if(BR1>0){//1, mask// 2 color advance core
+			if(BR2>0){//1, data
+				if(br1>0 && br2>0){
+					if(br1!=br2){
+						pxGap=br2-br1;
+						pxGap=Math.abs(pxGap);
+					}else
+						pxGap=0;
+					
+					if(br1==255 & br2==255)
+						pxGap=1000;
+				}
+			}else if (BG2>0){//2, data
+				if(br1<0.44 && bg2<0.54){
+					BrGap=br1-BrBg;//BrBg=0.354862745;
+					BgGap=bg2-BrBg;//BrBg=0.354862745;
+					pxGap=BrGap+BgGap;
+				}
+			}
+			//		IJ.log("pxGap; "+String.valueOf(pxGap)+"  BR1;"+String.valueOf(BR1)+", br1; "+String.valueOf(br1)+", BR2; "+String.valueOf(BR2)+", br2; "+String.valueOf(br2)+", BG2; "+String.valueOf(BG2)+", bg2; "+String.valueOf(bg2));
+		}else if(BG1>0){//2, mask/////////////////////////////
+			if(BG2>0){//2, data, 2,mask
+				
+				if(bg1>0 && bg2>0){
+					if(bg1!=bg2){
+						pxGap=bg2-bg1;
+						pxGap=Math.abs(pxGap);
+						
+					}else if(bg1==bg2)
+						pxGap=0;
+					if(bg1==255 & bg2==255)
+						pxGap=1000;
+				}
+				//	IJ.log(" pxGap BG2;"+String.valueOf(pxGap)+", bg1; "+String.valueOf(bg1)+", bg2; "+String.valueOf(bg2));
+			}else if(GB2>0){//3, data, 2,mask
+				if(bg1>0.8 && gb2>0.8){
+					BgGap=BgGb-bg1;//BgGb=0.996078431;
+					GbGap=BgGb-gb2;//BgGb=0.996078431;
+					pxGap=BgGap+GbGap;
+					//			IJ.log(" pxGap GB2;"+String.valueOf(pxGap));
+				}
+			}else if(BR2>0){//1, data, 2,mask
+				if(bg1<0.54 && br2<0.44){
+					BgGap=bg1-BrBg;//BrBg=0.354862745;
+					BrGap=br2-BrBg;//BrBg=0.354862745;
+					pxGap=BrGap+BgGap;
+				}
+			}
+			//		IJ.log("pxGap; "+String.valueOf(pxGap)+"  BG1;"+String.valueOf(BG1)+"  BG2;"+String.valueOf(BG2)+", bg1; "+String.valueOf(bg1)+", bg2; "+String.valueOf(bg2)+", GB2; "+String.valueOf(GB2)+", gb2; "+String.valueOf(gb2)+", BR2; "+String.valueOf(BR2)+", br2; "+String.valueOf(br2));
+		}else if(GB1>0){//3, mask/////////////////////////////
+			if(GB2>0){//3, data, 3mask
+				if(gb1>0 && gb2>0){
+					if(gb1!=gb2){
+						pxGap=gb2-gb1;
+						pxGap=Math.abs(pxGap);
+						
+						//	IJ.log(" pxGap GB2;"+String.valueOf(pxGap));
+					}else
+						pxGap=0;
+					if(gb1==255 & gb2==255)
+						pxGap=1000;
+				}
+			}else if(BG2>0){//2, data, 3mask
+				if(gb1>0.8 && bg2>0.8){
+					BgGap=BgGb-gb1;//BgGb=0.996078431;
+					GbGap=BgGb-bg2;//BgGb=0.996078431;
+					pxGap=BgGap+GbGap;
+				}
+			}else if(GR2>0){//4, data, 3mask
+				if(gb1<0.7 && gr2<0.7){
+					GbGap=gb1-GbGr;//GbGr=0.505882353;
+					GrGap=gr2-GbGr;//GbGr=0.505882353;
+					pxGap=GbGap+GrGap;
+				}
+			}//2,3,4 data, 3mask
+		}else if(GR1>0){//4mask/////////////////////////////
+			if(GR2>0){//4, data, 4mask
+				if(gr1>0 && gr2>0){
+					if(gr1!=gr2){
+						pxGap=gr2-gr1;
+						pxGap=Math.abs(pxGap);
+					}else
+						pxGap=0;
+					if(gr1==255 & gr2==255)
+						pxGap=1000;
+				}
+			}else if(GB2>0){//3, data, 4mask
+				if(gr1<0.7 && gb2<0.7){
+					GrGap=gr1-GbGr;//GbGr=0.505882353;
+					GbGap=gb2-GbGr;//GbGr=0.505882353;
+					pxGap=GrGap+GbGap;
+				}
+			}else if(RG2>0){//5, data, 4mask
+				if(gr1>0.8 && rg2>0.8){
+					GrGap=GrRg-gr1;//GrRg=0.996078431;
+					RgGap=GrRg-rg2;
+					pxGap=GrGap+RgGap;
+				}
+			}//3,4,5 data
+		}else if(RG1>0){//5, mask/////////////////////////////
+			if(RG2>0){//5, data, 5mask
+				if(rg1>0 && rg2>0){
+					if(rg1!=rg2){
+						pxGap=rg2-rg1;
+						pxGap=Math.abs(pxGap);
+					}else
+						pxGap=0;
+					if(rg1==255 & rg2==255)
+						pxGap=1000;
+				}
+				
+			}else if(GR2>0){//4 data, 5mask
+				if(rg1>0.8 && gr2>0.8){
+					GrGap=GrRg-gr2;//GrRg=0.996078431;
+					RgGap=GrRg-rg1;//GrRg=0.996078431;
+					pxGap=GrGap+RgGap;
+					//	IJ.log(" pxGap GR2;"+String.valueOf(pxGap));
+				}
+			}else if(RB2>0){//6 data, 5mask
+				if(rg1<0.7 && rb2<0.7){
+					RgGap=rg1-RgRb;//RgRb=0.505882353;
+					RbGap=rb2-RgRb;//RgRb=0.505882353;
+					pxGap=RbGap+RgGap;
+				}
+			}//4,5,6 data
+		}else if(RB1>0){//6, mask/////////////////////////////
+			if(RB2>0){//6, data, 6mask
+				if(rb1>0 && rb2>0){
+					if(rb1!=rb2){
+						pxGap=rb2-rb1;
+						pxGap=Math.abs(pxGap);
+					}else if(rb1==rb2)
+						pxGap=0;
+					if(rb1==255 & rb2==255)
+						pxGap=1000;
+				}
+			}else if(RG2>0){//5, data, 6mask
+				if(rg2<0.7 && rb1<0.7){
+					RgGap=rg2-RgRb;//RgRb=0.505882353;
+					RbGap=rb1-RgRb;//RgRb=0.505882353;
+					pxGap=RgGap+RbGap;
+					//	IJ.log(" pxGap RG;"+String.valueOf(pxGap));
+				}
+			}
+		}//2 color advance core
+	
+		return pxGap;
 	}
 	
 	public void run(ImageProcessor ip){
@@ -590,81 +635,190 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		int masksize = maskposi.length;
 		int negmasksize = nip1 != null ? negmaskposi.length : 0;
 
+		long start, end;
+		start = System.nanoTime();
+
 		//IJ.log(" masksize;"+String.valueOf(masksize));
 		
-		for (int islice=1; islice<=slicenumber ; islice++){
-			if(IJ.escapePressed())
-				break;
+		try{
+			if (st3.isVirtual()) {
+				FileInfo fi = idata.getOriginalFileInfo();
+				String datapath = fi.directory + fi.fileName;
+				if (fi.directory.length()>0 && !(fi.directory.endsWith(Prefs.separator)||fi.directory.endsWith("/")))
+					fi.directory += Prefs.separator;
+				RandomAccessFile f = new RandomAccessFile(datapath, "r");
+				long size = fi.width*fi.height*fi.getBytesPerPixel();
+				long loffset = fi.getOffset();
+				int maskpos_st = negmaskposi != null ? Math.min(maskposi[0], negmaskposi[0])*3 : maskposi[0]*3;
+				int maskpos_ed = negmaskposi != null ? Math.max(maskposi[masksize-1], negmaskposi[negmasksize-1])*3 : maskposi[masksize-1]*3;
+				int stripsize = maskpos_ed-maskpos_st+3;
+				byte [] impxs = new byte[(int)size];
 			
-			IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
-			IJ.showProgress((double)islice/(double)slicenumber);
-			
-			ColorProcessor ipnew=  new ColorProcessor(width, height);
-			ip3 = st3.getProcessor(islice);// data
-			linename=st3.getSliceLabel(islice);
-			
-			//IJ.log(" linename;"+linename);
-
-			int posi = calc_score(ip1, ip3, maskposi, Thres, pixfludub, ShowCo ? ipnew : null);
-			double posipersent= (double) posi/ (double) masksize;
-			
-			if (nip1 != null) {
-				int nega = calc_score(nip1, ip3, negmaskposi, Thres, pixfludub, null);
-				double negapersent= (double) nega/ (double) negmasksize;
-				//posipersent *= 1.0 - negapersent;
-				posipersent -= negapersent;
-				posi = (int)Math.round((double)posi*(1.0-negapersent));
-			}
-			
-			if(posipersent<=pixThresdub){
-				if (logon==true && logNan==true)
-				IJ.log("NaN");
-			}else if(posipersent>pixThresdub){
-				
-				double posipersent3=posipersent*100;
-				double pixThresdub3=pixThresdub*100;
-				
-				posipersent3 = posipersent3*100;
-				posipersent3 = Math.round(posipersent3);
-				posipersent2 = posipersent3 /100;
-				
-				pixThresdub3 = pixThresdub3*100;
-				pixThresdub3 = Math.round(pixThresdub3);
-				pixThresdub2 = pixThresdub3 /100;
-				
-				if(logon==true && logNan==true)// sort by name
-				IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
-				
-				if(NumberSTint==0){
-					String numstr = getZeroFilledNumString(posipersent2, 3, 2);
-					if(labelmethod==0 || labelmethod==1){// on top of labeling
-						dcStackOrigi.addSlice(numstr+"_"+linename, ip3);
-						if(ShowCo==true)
-							dcStack.addSlice(numstr+"_"+linename, ipnew);
-					}else{// at bottom labeling
-						dcStackOrigi.addSlice(linename+"_"+numstr, ip3);
-						if(ShowCo==true)
-							dcStack.addSlice(linename+"_"+numstr, ipnew);
-					}//if(labelmethod==0){
-				}//if(NumberSTint==0){
-				
-				if(NumberSTint==1){
-					String posiST=getZeroFilledNumString(posi, 4);
-					if(labelmethod==0 || labelmethod==1){// on top of labeling
-						dcStackOrigi.addSlice(posiST+"_"+linename, ip3);
-						if(ShowCo==true)
-							dcStack.addSlice(posiST+"_"+linename, ipnew);
-					}else{// at bottom labeling
-						dcStackOrigi.addSlice(linename+"_"+posiST, ip3);
-						if(ShowCo==true)
-							dcStack.addSlice(linename+"_"+posiST, ipnew);
-					}//if(labelmethod==0){
-				}//if(NumberSTint==1){
-				posislice=posislice+1;
-			}//if(posipersent>pixThresdub){
-			
-		}//for (int islice=1; islice<=slicenumber ; islice++){
+				for (int islice=1; islice<=slicenumber ; islice++){
+					if(IJ.escapePressed())
+						break;
 		
+					loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages) + maskpos_st;
+					f.seek(loffset);
+					f.read(impxs, maskpos_st, stripsize);
+					
+					IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
+					IJ.showProgress((double)islice/(double)slicenumber);
+					
+					ColorProcessor ipnew = new ColorProcessor(width, height);
+					linename=st3.getSliceLabel(islice);
+					
+					int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, ShowCo ? ipnew : null);
+					double posipersent= (double) posi/ (double) masksize;
+					
+					if (nip1 != null) {
+						int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
+						double negapersent= (double) nega/ (double) negmasksize;
+						posipersent -= negapersent;
+						posi = (int)Math.round((double)posi*(1.0-negapersent));
+					}
+					
+					if(posipersent<=pixThresdub){
+						if (logon==true && logNan==true)
+						IJ.log("NaN");
+					}else if(posipersent>pixThresdub){
+						loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages);
+						f.seek(loffset);
+						f.read(impxs, 0, maskpos_st);
+						f.seek(loffset+maskpos_ed+3);
+						f.read(impxs, maskpos_ed+3, impxs.length-maskpos_ed-3);
+						ColorProcessor cp = new ColorProcessor(width, height);
+						for (int i = 0, id = 0; i < size; i+=3,id++) {
+							int red2 = impxs[i] & 0xff;//data
+							int green2 = impxs[i+1] & 0xff;//data
+							int blue2 = impxs[i+2] & 0xff;//data
+							int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+							cp.set(id, pix2);
+						}
+						
+						ip3 = (ImageProcessor)cp;
+						
+						double posipersent3=posipersent*100;
+						double pixThresdub3=pixThresdub*100;
+						
+						posipersent3 = posipersent3*100;
+						posipersent3 = Math.round(posipersent3);
+						posipersent2 = posipersent3 /100;
+						
+						pixThresdub3 = pixThresdub3*100;
+						pixThresdub3 = Math.round(pixThresdub3);
+						pixThresdub2 = pixThresdub3 /100;
+						
+						if(logon==true && logNan==true)// sort by name
+						IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
+						
+						if(NumberSTint==0){
+							String numstr = getZeroFilledNumString(posipersent2, 3, 2);
+							if(labelmethod==0 || labelmethod==1){// on top of labeling
+								dcStackOrigi.addSlice(numstr+"_"+linename, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(numstr+"_"+linename, ipnew);
+							}else{// at bottom labeling
+								dcStackOrigi.addSlice(linename+"_"+numstr, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(linename+"_"+numstr, ipnew);
+							}//if(labelmethod==0){
+						}//if(NumberSTint==0){
+						
+						if(NumberSTint==1){
+							String posiST=getZeroFilledNumString(posi, 4);
+							if(labelmethod==0 || labelmethod==1){// on top of labeling
+								dcStackOrigi.addSlice(posiST+"_"+linename, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(posiST+"_"+linename, ipnew);
+							}else{// at bottom labeling
+								dcStackOrigi.addSlice(linename+"_"+posiST, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(linename+"_"+posiST, ipnew);
+							}//if(labelmethod==0){
+						}//if(NumberSTint==1){
+						posislice=posislice+1;
+					}//if(posipersent>pixThresdub){
+					
+				}//for (int islice=1; islice<=slicenumber ; islice++){
+		
+			} else {
+				for (int islice=1; islice<=slicenumber ; islice++){
+					if(IJ.escapePressed())
+						break;
+		
+					IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
+					IJ.showProgress((double)islice/(double)slicenumber);
+					
+					ColorProcessor ipnew = new ColorProcessor(width, height);
+					ip3 = st3.getProcessor(islice);// data
+					linename=st3.getSliceLabel(islice);
+					
+					int posi = calc_score(ip1, ip3, maskposi, Thres, pixfludub, ShowCo ? ipnew : null);
+					double posipersent= (double) posi/ (double) masksize;
+					
+					if (nip1 != null) {
+						int nega = calc_score(nip1, ip3, negmaskposi, Thres, pixfludub, null);
+						double negapersent= (double) nega/ (double) negmasksize;
+						posipersent -= negapersent;
+						posi = (int)Math.round((double)posi*(1.0-negapersent));
+					}
+					
+					if(posipersent<=pixThresdub){
+						if (logon==true && logNan==true)
+						IJ.log("NaN");
+					}else if(posipersent>pixThresdub){
+						double posipersent3=posipersent*100;
+						double pixThresdub3=pixThresdub*100;
+						
+						posipersent3 = posipersent3*100;
+						posipersent3 = Math.round(posipersent3);
+						posipersent2 = posipersent3 /100;
+						
+						pixThresdub3 = pixThresdub3*100;
+						pixThresdub3 = Math.round(pixThresdub3);
+						pixThresdub2 = pixThresdub3 /100;
+						
+						if(logon==true && logNan==true)// sort by name
+						IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
+						
+						if(NumberSTint==0){
+							String numstr = getZeroFilledNumString(posipersent2, 3, 2);
+							if(labelmethod==0 || labelmethod==1){// on top of labeling
+								dcStackOrigi.addSlice(numstr+"_"+linename, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(numstr+"_"+linename, ipnew);
+							}else{// at bottom labeling
+								dcStackOrigi.addSlice(linename+"_"+numstr, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(linename+"_"+numstr, ipnew);
+							}//if(labelmethod==0){
+						}//if(NumberSTint==0){
+						
+						if(NumberSTint==1){
+							String posiST=getZeroFilledNumString(posi, 4);
+							if(labelmethod==0 || labelmethod==1){// on top of labeling
+								dcStackOrigi.addSlice(posiST+"_"+linename, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(posiST+"_"+linename, ipnew);
+							}else{// at bottom labeling
+								dcStackOrigi.addSlice(linename+"_"+posiST, ip3);
+								if(ShowCo==true)
+									dcStack.addSlice(linename+"_"+posiST, ipnew);
+							}//if(labelmethod==0){
+						}//if(NumberSTint==1){
+						posislice=posislice+1;
+					}//if(posipersent>pixThresdub){
+					
+				}//for (int islice=1; islice<=slicenumber ; islice++){
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+		}	
+		
+		end = System.nanoTime();
+		IJ.log("time: "+((float)(end-start)/1000000.0)+"msec");
+
 		IJ.log(" positive slice No.;"+String.valueOf(posislice));
 		
 		int PositiveSlices=posislice;
