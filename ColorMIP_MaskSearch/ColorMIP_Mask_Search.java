@@ -16,7 +16,7 @@ import java.util.*;
 import java.lang.*;
 
 
-public class ColorMIP_Mask_Search2 implements PlugInFilter
+public class ColorMIP_Mask_Search implements PlugInFilter
 {
 	ImagePlus imp, imp2;
 	ImageProcessor ip1, nip1, ip2, ip3, ip4, ip5, ip6, ip33;
@@ -30,7 +30,7 @@ public class ColorMIP_Mask_Search2 implements PlugInFilter
 	
 	public int setup(String arg, ImagePlus imp)
 	{
-		IJ.register (ColorMIP_Mask_Search2.class);
+		IJ.register (ColorMIP_Mask_Search.class);
 		if (IJ.versionLessThan("1.32c")){
 			IJ.showMessage("Error", "Please Update ImageJ.");
 			return 0;
