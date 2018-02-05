@@ -643,9 +643,9 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		try{
 			if (st3.isVirtual()) {
 				FileInfo fi = idata.getOriginalFileInfo();
-				String datapath = fi.directory + fi.fileName;
 				if (fi.directory.length()>0 && !(fi.directory.endsWith(Prefs.separator)||fi.directory.endsWith("/")))
 					fi.directory += Prefs.separator;
+				String datapath = fi.directory + fi.fileName;
 				RandomAccessFile f = new RandomAccessFile(datapath, "r");
 				long size = fi.width*fi.height*fi.getBytesPerPixel();
 				long loffset = fi.getOffset();
