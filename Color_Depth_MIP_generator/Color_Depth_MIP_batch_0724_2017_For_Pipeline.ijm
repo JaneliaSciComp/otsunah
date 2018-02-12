@@ -11,7 +11,7 @@ lowerweight=0.7;
 lowthreM="Peak Histogram";
 unsharp="NA";//"NA", "Unsharp", "Max"
 
-secondjump=235;
+secondjump=245;
 CropYN=false;// crop optic lobe
 MIPtype="MCFO_MIP";
 
@@ -168,7 +168,11 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 			DefMaxValue=BasicMIP[1];//actual max value in stack
 			sigsize=0;
 			
-			print("basicoperation done");
+			print("basico  peration done");
+			
+			//			setBatchMode(false);
+			//				updateDisplay();
+			//				a
 			
 			if(AutoBRV==1){//to get brightness value from MIP
 				selectImage(MIP);
@@ -184,7 +188,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 					selectWindow("test.tif");
 					close();
 				}
-				
+				print("Auto-bri finished");
 			}//	if(AutoBRV==1){
 			
 			if(colorcoding==true){
@@ -201,7 +205,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				run("Maximum...", "radius=1.5 stack");
 				
 				if(AutoBRV==1)
-				brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir);
+				brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir,secondjump);
 				
 				if(reverse0==1)
 				run("Reverse");
@@ -245,8 +249,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 					}
 				}
 				
-				if(CropYN==true)
-				CropOP(MIPtype,applyV,colorscale);
+
 				
 				TrueMaxValue=0;
 				if(DefMaxValue<4096){
@@ -258,23 +261,55 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 				}else if(DefMaxValue>4095)
 				TrueMaxValue=65535;
 				
+				saveFormat="TIF";//"PNG"
+				
 				if(imageNum==1){
 					if(AutoBRV==1){//saveAs("PNG", dirCOLOR+DataName+"_MIP.png");
 						//save(dirCOLOR+DataName+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+						if(saveFormat=="PNG")
 						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						else
+						save(dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.tif");
+						
 						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
-					}else
-					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
-					
+						
+						if(CropYN==true){
+							CropOP(MIPtype,applyV,colorscale);
+							if(saveFormat=="PNG")
+							saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_Crop_MIP.png");
+							else
+							save(dirCOLOR+DataName+"_CH"+MIPtry+"_Crop_MIP.tif");
+						}
+					}else{
+						if(saveFormat=="PNG")
+						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						else
+						save(dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.tif");
+					}
 					
 				}else{
 					if(AutoBRV==1){
 						//save(dirCOLOR+DataName+"_CH"+MIPtry+applyVST+applyV+DSLTst+sigsize+threST+sigsizethre+".tif");
+						if(saveFormat=="PNG")
 						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						else
+						save(dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.tif");
+						
 						File.saveString("applied.brightness="+applyV+" / "+TrueMaxValue+"\n"+"dslt.signal.amount="+sigsize+"\n"+"thresholding.signal.amount="+sigsizethre, dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.properties");
-					}else
-					saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
-					
+						
+						if(CropYN==true){
+							CropOP(MIPtype,applyV,colorscale);
+							if(saveFormat=="PNG")
+							saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_Crop_MIP.png");
+							else
+							save(dirCOLOR+DataName+"_CH"+MIPtry+"_Crop_MIP.tif");
+						}
+					}else{
+						if(saveFormat=="PNG")
+						saveAs("PNG", dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.png");
+						else
+						save(dirCOLOR+DataName+"_CH"+MIPtry+"_MIP.tif");
+					}
 				}
 				
 				close();
@@ -313,7 +348,7 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 } //function mipfunction(mipbatch) { 
 ///////////////////////////////////////////////////////////////
 function autobradjustment(briadj){
-	DOUBLEdslt=0;
+	DOUBLEdslt=1;
 	desiredmean=briadj[0];
 	lowerweight=briadj[4];
 	lowthreM=briadj[5];
@@ -400,7 +435,7 @@ function autobradjustment(briadj){
 	
 	selectImage(MIP);
 	
-	dsltarray=newArray(autothre, bitd, totalpix, desiredmean, 0,multiDSLT);
+	dsltarray=newArray(autothre, bitd, totalpix, desiredmean, 0,multiDSLT,DSLTver);
 	DSLTfun(dsltarray);
 	desiredmean=dsltarray[3];
 	area2=dsltarray[4];
@@ -450,7 +485,7 @@ function autobradjustment(briadj){
 	
 	if(fff=="MIP.tif"){
 		if(bitd==16)
-		applyV=400;
+		applyV=150;
 		
 		if(bitd==8)
 		applyV=40;
@@ -464,7 +499,7 @@ function autobradjustment(briadj){
 	/////////////////2nd time DSLT for picking up dimmer neurons/////////////////////
 	
 	
-	if(applyV>50 && applyV<secondjump && bitd==8 && DOUBLEdslt==1){
+	if(applyV>30 && desiredmean<secondjump && bitd==8 && DOUBLEdslt==1 && applyV<80){
 		applyVpre=applyV;
 		selectImage(MIP);
 		
@@ -504,7 +539,7 @@ function autobradjustment(briadj){
 		
 		desiredmean=secondjump;//230 for GMR
 		
-		dsltarray=newArray(autothre, bitd, totalpix, desiredmean, 0, multiDSLT);
+		dsltarray=newArray(autothre, bitd, totalpix, desiredmean, 0, multiDSLT,DSLTver);
 		DSLTfun(dsltarray);//will generate test.tif DSLT thresholded mask
 		desiredmean=dsltarray[3];
 		area2=dsltarray[4];
@@ -535,6 +570,10 @@ function autobradjustment(briadj){
 		close();
 	}//	if(applyV>50 && applyV<150 && bitd==8){
 	
+	if(isOpen("test.tif")){
+		selectWindow("test.tif");
+		close();
+	}
 	
 	sigsize=area2/totalpix;
 	if(sigsize==1)
@@ -555,19 +594,48 @@ function DSLTfun(dsltarray){
 	totalpix=dsltarray[2];
 	desiredmean=dsltarray[3];
 	multiDSLT=dsltarray[5];
+	DSLTver=dsltarray[6];
 	
 	if(autothre==0){//DSLT
 		
-		if(bitd==8)
-		//	run("DSLT ", "radius_r_max=4 radius_r_min=2 radius_r_step=2 rotation=6 weight=14 filter=GAUSSIAN close=None noise=5px");
-		run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=6 weight=3 filter=GAUSSIAN close=None noise=7px");
+		run("Anisotropic Diffusion 2D", "number=6 smoothings=7 keep=20 a1=0.50 a2=0.90 dt=20 edge=2 threads=1");
 		
+		//		updateDisplay();
+		//		setBatchMode(false);
+		//		a
+		
+		if(bitd==8){
+			if(DSLTver=="Line")
+			run("DSLT3D LINE2 Multi", "radius_r_max=15 radius_r_min=1 radius_r_step=3 rotation=8 weight=1.5 filter=MEAN close=None noise=5px");
+			else
+			run("DSLT ", "radius_r_max=15 radius_r_min=1 radius_r_step=4 rotation=8 weight=3 filter=MEAN close=None noise=7px");
+		}		
 		if(bitd==16){
-			run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=6 weight=130 filter=GAUSSIAN close=None noise=9px");
+			
+			//		updateDisplay();
+			//		setBatchMode(false);
+			//		a
+			getMinAndMax(min,max);
+			run("A4095 normalizer", "subtraction=0 max="+max+" start=1 end=1");
+			
+			//		updateDisplay();
+			//		setBatchMode(false);
+			//		a
+			if(DSLTver=="Line")
+			run("DSLT3D LINE2 Multi", "radius_r_max=15 radius_r_min=1 radius_r_step=3 rotation=8 weight=60 filter=MEAN close=None noise=5px");
+			else
+			run("DSLT ", "radius_r_max=15 radius_r_min=1 radius_r_step=4 rotation=8 weight=60 filter=MEAN close=None noise=5px");
 			
 			run("16-bit");
 			run("Mask255 to 4095");
+			
+			//		updateDisplay();
+			//				setBatchMode(false);
+			//				a
 		}
+		
+		
+		
 		rename("test.tif");//new window from DSLT
 	}//if(autothre==0){//DSLT
 	
@@ -606,11 +674,16 @@ function DSLTfun(dsltarray){
 		presize=0.0001;
 		print("Equal");
 	}
-	print("Area 1st time;  "+area1+"   mean; "+mean+"  totalpix; "+totalpix+"   presize; "+presize+"   bitd; "+bitd);
+	print("Area 1st time;  "+area1+"   mean; "+mean+"  totalpix; "+totalpix+"   presize; "+presize*100+" %   bitd; "+bitd);
 	realArea=area1;
 	
-	if(multiDSLT==1){
-		if(presize<0.05){// set DSLT more sensitive, too dim images, less than 5%
+	//	setBatchMode(false);
+	//		updateDisplay();
+	//		a
+	
+	multiDSLT=0;
+	if(multiDSLT==1 || bitd==16){
+		if(presize<0.3){// set DSLT more sensitive, too dim images, less than 5%
 			selectWindow("test.tif");//new window from DSLT
 			close();
 			
@@ -626,13 +699,20 @@ function DSLTfun(dsltarray){
 			//	a
 			
 			if(bitd==8){
-				//run("DSLT ", "radius_r_max=4 radius_r_min=2 radius_r_step=2 rotation=6 weight=5 filter=GAUSSIAN close=None noise=10px");
-				run("DSLT ", "radius_r_max=8 radius_r_min=2 radius_r_step=2 rotation=8 weight=2 filter=GAUSSIAN close=None noise=7px");
-				
+				if(DSLTver=="Line")
+				run("DSLT3D LINE2 Multi", "radius_r_max=15 radius_r_min=1 radius_r_step=3 rotation=8 weight=1 filter=MEAN close=None noise=5px");
+				else
+				run("DSLT ", "radius_r_max=15 radius_r_min=1 radius_r_step=4 rotation=8 weight=2 filter=MEAN close=None noise=7px");
 			}
-			if(bitd==16)
-			run("DSLT ", "radius_r_max=10 radius_r_min=2 radius_r_step=2 rotation=8 weight=60 filter=GAUSSIAN close=None noise=9px");
-			
+			if(bitd==16){
+				getMinAndMax(min,max);
+				run("A4095 normalizer", "subtraction=0 max="+max+" start=1 end=1");
+				
+				if(DSLTver=="Line")
+				run("DSLT3D LINE2 Multi", "radius_r_max=15 radius_r_min=1 radius_r_step=3 rotation=8 weight=30 filter=MEAN close=None noise=5px");
+				else
+				run("DSLT ", "radius_r_max=15 radius_r_min=1 radius_r_step=4 rotation=8 weight=30 filter=MEAN close=None noise=5px");
+			}			
 			run("Create Selection");
 			getStatistics(area2, mean, min, max, std, histogram);
 			if(area2!=totalpix){
@@ -685,7 +765,7 @@ function DSLTfun(dsltarray){
 					desiredmean=desiredmean+(desiredmean/7)*weight;
 					desiredmean=round(desiredmean);
 					
-					if(desiredmean>225)
+					if(desiredmean>204)
 					desiredmean=secondjump;
 					
 					print("desiredmean; 	"+desiredmean+"	 sizediff; "+sizediff+"	 weight *25%;"+(desiredmean/4)*weight);
@@ -720,8 +800,8 @@ function applyVcalculation(applyvv){
 		
 		if(applyV==0)
 		applyV=255;
-		else if(applyV<20)
-		applyV=20;
+		else if(applyV<10)
+		applyV=10;
 	}else if(bitd==16){
 		
 		if(max<=4095)
@@ -732,8 +812,8 @@ function applyVcalculation(applyvv){
 		
 		if(applyV==0)
 		applyV=max;
-		else if(applyV<150)
-		applyV=1500;
+		else if(applyV<100)
+		applyV=100;
 	}
 	applyvv[0]=applyV;
 }
@@ -756,9 +836,10 @@ function stackconcatinate(){
 	run("Reverse");
 }
 
-function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
+function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir,secondjump){
 	stacktoApply=getTitle();
 	
+	print("brightnessapply start, applyV; "+applyV);
 	
 	if(bitd==8){
 		if(applyV<255){
@@ -769,6 +850,7 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 				MIPapply=getTitle();
 				
 				setMinAndMax(0, applyV);
+				if(applyV!=255)
 				run("Apply LUT");
 				
 				if(getHeight==512 || getHeight==592){
@@ -782,6 +864,23 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 						tissue="VNC";
 						BackgroundMask (tissue,MaskDir,MIPapply,bitd);
 					}
+				}else if(getHeight>getWidth){
+					
+					newImage("MaskMIP.tif", "8-bit black", getWidth, getHeight, 1);
+					setForegroundColor(255, 255, 255);
+					
+					makeRectangle(229, 105, 828, 2023);
+					makeRectangle(round(getWidth*(229/1292)), round(getHeight*(105/2583)), round(getWidth*(828/1292)), round(getHeight*(2023/2583)));
+					run("Make Inverse");
+					run("Fill", "slice");
+					
+					imageCalculator("Max", MIPapply,"MaskMIP.tif");
+					
+					selectWindow("MaskMIP.tif");
+					close();
+					
+					selectWindow(MIPapply);
+					
 				}//	if(getHeight==512 && getWidth==1024){
 				
 				if(lowthreM=="Peak Histogram"){//lowthre measurement
@@ -815,14 +914,20 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 					changelower=lower*lowerweight;
 				}
 				
+				changelower=round(changelower);
+				//		if(changelower>100)
+				//		changelower=100;
+				
 				selectWindow(MIPapply);
 				close();
 				
 				selectWindow(stacktoApply);
 				setMinAndMax(0, applyV);//brightness adjustment
+				
+				if(applyV!=255)
 				run("Apply LUT", "stack");
 				
-				
+				print("926 ok  "+changelower);
 				if(changelower>0){
 					changelower=round(changelower);
 					
@@ -830,6 +935,7 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 					run("Apply LUT", "stack");
 				}else
 				changelower=0;
+				
 				print("  lower threshold; 	"+changelower);
 			}
 		}
@@ -860,11 +966,11 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 		selectImage(MIP2);//MIP
 		close();
 		selectImage(stack);
+		stackSt=getTitle();
 		
 		run("Histgram stretch", "lower=0 higher="+applyV2-minus+" 3d");//histogram stretch
 		
-		
-		countregion=65500;
+		selectImage(stack);
 		
 		run("Z Project...", "projection=[Max Intensity]");
 		MIPthresholding=getTitle();
@@ -882,31 +988,70 @@ function brightnessapply(applyV, bitd,lowerweight,lowthreM,stack,MaskDir){
 				tissue="VNC";
 				BackgroundMask (tissue,MaskDir,MIPthresholding,bitd);
 			}
-		}//	if(getHeight==512 && getWidth==1024){
+		}else{//	if(getHeight==512 && getWidth==1024){
+			
+			newImage("MaskMIP.tif", "16-bit", getWidth, getHeight, 1);
+			setForegroundColor(255, 255, 255);
+			makeRectangle(round(getWidth*(162/1499)), round(getHeight*(131/833)), round(getWidth*(1150/1499)), round(getHeight*(508/833)));
+			run("Make Inverse");
+			run("Fill", "slice");
+			
+			
+			//		setBatchMode(false);
+			//			updateDisplay();
+			//			a
+			
+			imageCalculator("Max", MIPthresholding,"MaskMIP.tif");
+			
+			selectWindow("MaskMIP.tif");
+			close();
+			
+			selectWindow(MIPthresholding);
+			
+		}
 		
-		maxi=0;
+		
+		//// lower thresholding //////////////////////////////////	
+		maxi=0;			 		countregion=50500;
 		if(lowthreM=="Peak Histogram"){
-			maxcounts=0;
+			
+			maxcounts=0;	 medianNum=400; 
 			getHistogram(values, counts,  65530);
-			for(i3=5; i3<countregion; i3++){
+			
+			for(i3=5; i3<countregion-medianNum; i3++){
 				
 				sumVal20=0; 
-				if(i3<countregion-20){
-					for(aveval=i3; aveval<i3+20; aveval++){
-						Val20=counts[aveval];
-						
-						sumVal20=sumVal20+Val20;
-					}
-					AveVal20=sumVal20/20;
+				
+				for(aveval=i3; aveval<i3+medianNum; aveval++){
+					Val20=counts[aveval];
+					sumVal20=sumVal20+Val20;
+				}
+				AveVal20=sumVal20/medianNum;
 					
-					if(AveVal20>maxcounts){
-						maxcounts=AveVal20;
-						maxi=i3+10;
+				if(AveVal20>maxcounts){
+					maxcounts=AveVal20;
+					maxi=i3+(medianNum/2);
 					}
-				}//if(i3<280){
-			}
-			changelower=maxi*lowerweight;
+			}//		for(i3=5; i3<countregion-medianNum; i3++){
+			
+			
+			changelower = 0;
+			if (maxi>9000)
+			changelower=maxi*0.9;
+			else if (maxi>6000 && maxi<=9000)
+			changelower=maxi*0.6;
+			else if (maxi>3500 && maxi<=6000)
+			changelower=maxi*0.2;
+			
+			if(applyV>1000 && maxi>9000)
+			changelower=0;
+			
 			print("lower threshold; 	"+changelower+"   maxi; "+maxi);
+			
+			//		setBatchMode(false);
+			//		updateDisplay();
+			//		a
+			
 		}//if(lowthreM=="Peak Histogram"){
 		
 		if(lowthreM=="Auto-threshold"){
