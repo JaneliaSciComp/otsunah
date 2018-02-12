@@ -635,112 +635,234 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		int masksize = maskposi.length;
 		int negmasksize = nip1 != null ? negmaskposi.length : 0;
 
+		int maskpos_st = negmaskposi != null ? Math.min(maskposi[0], negmaskposi[0])*3 : maskposi[0]*3;
+		int maskpos_ed = negmaskposi != null ? Math.max(maskposi[masksize-1], negmaskposi[negmasksize-1])*3 : maskposi[masksize-1]*3;
+		int stripsize = maskpos_ed-maskpos_st+3;
+
 		long start, end;
 		start = System.nanoTime();
+
+		HashMap<String,Integer>smap = new HashMap<String,Integer>(1000);
+		HashMap<String,Long>smapl = new HashMap<String,Long>(1000);
 
 		//IJ.log(" masksize;"+String.valueOf(masksize));
 		
 		try{
 			if (st3.isVirtual()) {
-				FileInfo fi = idata.getOriginalFileInfo();
-				if (fi.directory.length()>0 && !(fi.directory.endsWith(Prefs.separator)||fi.directory.endsWith("/")))
-					fi.directory += Prefs.separator;
-				String datapath = fi.directory + fi.fileName;
-				RandomAccessFile f = new RandomAccessFile(datapath, "r");
-				long size = fi.width*fi.height*fi.getBytesPerPixel();
-				long loffset = fi.getOffset();
-				int maskpos_st = negmaskposi != null ? Math.min(maskposi[0], negmaskposi[0])*3 : maskposi[0]*3;
-				int maskpos_ed = negmaskposi != null ? Math.max(maskposi[masksize-1], negmaskposi[negmasksize-1])*3 : maskposi[masksize-1]*3;
-				int stripsize = maskpos_ed-maskpos_st+3;
-				byte [] impxs = new byte[(int)size];
+				VirtualStack vst = (VirtualStack)st3;
+				if (vst.getDirectory() == null) {
+					FileInfo fi = idata.getOriginalFileInfo();
+					if (fi.directory.length()>0 && !(fi.directory.endsWith(Prefs.separator)||fi.directory.endsWith("/")))
+						fi.directory += Prefs.separator;
+					String datapath = fi.directory + fi.fileName;
+					RandomAccessFile f = new RandomAccessFile(datapath, "r");
+					long size = fi.width*fi.height*fi.getBytesPerPixel();
+					long loffset = fi.getOffset();
+					byte [] impxs = new byte[(int)size];
+				
+					for (int islice=1; islice<=slicenumber ; islice++){
+						if(IJ.escapePressed())
+							break;
 			
-				for (int islice=1; islice<=slicenumber ; islice++){
-					if(IJ.escapePressed())
-						break;
-		
-					loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages) + maskpos_st;
-					f.seek(loffset);
-					f.read(impxs, maskpos_st, stripsize);
-					
-					IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
-					IJ.showProgress((double)islice/(double)slicenumber);
-					
-					ColorProcessor ipnew = new ColorProcessor(width, height);
-					linename=st3.getSliceLabel(islice);
-					
-					int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, ShowCo ? ipnew : null);
-					double posipersent= (double) posi/ (double) masksize;
-					
-					if (nip1 != null) {
-						int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
-						double negapersent= (double) nega/ (double) negmasksize;
-						posipersent -= negapersent;
-						posi = (int)Math.round((double)posi*(1.0-negapersent));
-					}
-					
-					if(posipersent<=pixThresdub){
-						if (logon==true && logNan==true)
-						IJ.log("NaN");
-					}else if(posipersent>pixThresdub){
-						loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages);
+						loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages) + maskpos_st;
 						f.seek(loffset);
-						f.read(impxs, 0, maskpos_st);
-						f.seek(loffset+maskpos_ed+3);
-						f.read(impxs, maskpos_ed+3, impxs.length-maskpos_ed-3);
-						ColorProcessor cp = new ColorProcessor(width, height);
-						for (int i = 0, id = 0; i < size; i+=3,id++) {
-							int red2 = impxs[i] & 0xff;//data
-							int green2 = impxs[i+1] & 0xff;//data
-							int blue2 = impxs[i+2] & 0xff;//data
-							int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
-							cp.set(id, pix2);
+						f.read(impxs, maskpos_st, stripsize);
+						
+						IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
+						IJ.showProgress((double)islice/(double)slicenumber);
+						
+						ColorProcessor ipnew = null;
+						if (ShowCo) ipnew = new ColorProcessor(width, height);
+						
+						linename=st3.getSliceLabel(islice);
+						
+						int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, ipnew);
+						double posipersent= (double) posi/ (double) masksize;
+						
+						if (nip1 != null) {
+							int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
+							double negapersent= (double) nega/ (double) negmasksize;
+							posipersent -= negapersent;
+							posi = (int)Math.round((double)posi*(1.0-negapersent));
 						}
 						
-						ip3 = (ImageProcessor)cp;
+						if(posipersent<=pixThresdub){
+							if (logon==true && logNan==true)
+							IJ.log("NaN");
+						}else if(posipersent>pixThresdub){
+							loffset = fi.getOffset() + (islice-1)*(size+fi.gapBetweenImages);
+							ColorProcessor cp = new ColorProcessor(width, height);
+							for (int i = maskpos_st, id = maskpos_st/3; i < size; i+=3,id++) {
+								int red2 = impxs[i] & 0xff;//data
+								int green2 = impxs[i+1] & 0xff;//data
+								int blue2 = impxs[i+2] & 0xff;//data
+								int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+								cp.set(id, pix2);
+							}
+							
+							ip3 = (ImageProcessor)cp;
+							
+							double posipersent3=posipersent*100;
+							double pixThresdub3=pixThresdub*100;
+							
+							posipersent3 = posipersent3*100;
+							posipersent3 = Math.round(posipersent3);
+							posipersent2 = posipersent3 /100;
 						
-						double posipersent3=posipersent*100;
-						double pixThresdub3=pixThresdub*100;
-						
-						posipersent3 = posipersent3*100;
-						posipersent3 = Math.round(posipersent3);
-						posipersent2 = posipersent3 /100;
-						
-						pixThresdub3 = pixThresdub3*100;
-						pixThresdub3 = Math.round(pixThresdub3);
-						pixThresdub2 = pixThresdub3 /100;
-						
-						if(logon==true && logNan==true)// sort by name
-						IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
-						
-						if(NumberSTint==0){
-							String numstr = getZeroFilledNumString(posipersent2, 3, 2);
-							if(labelmethod==0 || labelmethod==1){// on top of labeling
-								dcStackOrigi.addSlice(numstr+"_"+linename, ip3);
-								if(ShowCo==true)
-									dcStack.addSlice(numstr+"_"+linename, ipnew);
-							}else{// at bottom labeling
-								dcStackOrigi.addSlice(linename+"_"+numstr, ip3);
-								if(ShowCo==true)
-									dcStack.addSlice(linename+"_"+numstr, ipnew);
-							}//if(labelmethod==0){
-						}//if(NumberSTint==0){
-						
-						if(NumberSTint==1){
-							String posiST=getZeroFilledNumString(posi, 4);
-							if(labelmethod==0 || labelmethod==1){// on top of labeling
-								dcStackOrigi.addSlice(posiST+"_"+linename, ip3);
-								if(ShowCo==true)
-									dcStack.addSlice(posiST+"_"+linename, ipnew);
-							}else{// at bottom labeling
-								dcStackOrigi.addSlice(linename+"_"+posiST, ip3);
-								if(ShowCo==true)
-									dcStack.addSlice(linename+"_"+posiST, ipnew);
-							}//if(labelmethod==0){
-						}//if(NumberSTint==1){
-						posislice=posislice+1;
-					}//if(posipersent>pixThresdub){
+							pixThresdub3 = pixThresdub3*100;
+							pixThresdub3 = Math.round(pixThresdub3);
+							pixThresdub2 = pixThresdub3 /100;
+							
+							if(logon==true && logNan==true)// sort by name
+							IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
+							
+							if(NumberSTint==0){
+								String numstr = getZeroFilledNumString(posipersent2, 3, 2);
+								if(labelmethod==0 || labelmethod==1){// on top of labeling
+									String title = numstr+"_"+linename;
+									dcStackOrigi.addSlice(title, ip3);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}else{// at bottom labeling
+									String title = linename+"_"+numstr;
+									dcStackOrigi.addSlice(title, ip3);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}//if(labelmethod==0){
+							}//if(NumberSTint==0){
+							
+							if(NumberSTint==1){
+								String posiST=getZeroFilledNumString(posi, 4);
+								if(labelmethod==0 || labelmethod==1){// on top of labeling
+									String title = posiST+"_"+linename;
+									dcStackOrigi.addSlice(title, ip3);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}else{// at bottom labeling
+									String title = linename+"_"+posiST;
+									dcStackOrigi.addSlice(title, ip3);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}//if(labelmethod==0){
+							}//if(NumberSTint==1){
+							posislice=posislice+1;
+						}//if(posipersent>pixThresdub){
 					
-				}//for (int islice=1; islice<=slicenumber ; islice++){
+					}//for (int islice=1; islice<=slicenumber ; islice++){
+					f.close();
+					
+				} else {
+					String directory = vst.getDirectory();
+					if (directory.length()>0 && !(directory.endsWith(Prefs.separator)||directory.endsWith("/")))
+						directory += Prefs.separator;
+					long size = width*height*3;
+					byte [] impxs = new byte[(int)size];
+				
+					for (int islice=1; islice<=slicenumber ; islice++){
+						if(IJ.escapePressed())
+							break;
+						String datapath = directory + vst.getFileName(islice);
+						RandomAccessFile f = new RandomAccessFile(datapath, "r");
+						TiffDecoder tfd = new TiffDecoder(directory, vst.getFileName(islice));
+						FileInfo[] fi_list = tfd.getTiffInfo();
+						long loffset = fi_list[0].getOffset();
+
+						f.seek(loffset+(long)maskpos_st);
+						f.read(impxs, maskpos_st, stripsize);
+						
+						IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
+						IJ.showProgress((double)islice/(double)slicenumber);
+						
+						ColorProcessor ipnew = null;
+						if (ShowCo) ipnew = new ColorProcessor(width, height);
+						
+						linename=st3.getSliceLabel(islice);
+						
+						int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, ipnew);
+						double posipersent= (double) posi/ (double) masksize;
+						
+						if (nip1 != null) {
+							int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
+							double negapersent= (double) nega/ (double) negmasksize;
+							posipersent -= negapersent;
+							posi = (int)Math.round((double)posi*(1.0-negapersent));
+						}
+						
+						if(posipersent<=pixThresdub){
+							if (logon==true && logNan==true)
+							IJ.log("NaN");
+						}else if(posipersent>pixThresdub){
+							ColorProcessor cp = new ColorProcessor(width, height);
+							for (int i = maskpos_st, id = maskpos_st/3; i < size; i+=3,id++) {
+								int red2 = impxs[i] & 0xff;//data
+								int green2 = impxs[i+1] & 0xff;//data
+								int blue2 = impxs[i+2] & 0xff;//data
+								int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+								cp.set(id, pix2);
+							}
+							
+							ip3 = (ImageProcessor)cp;
+							
+							double posipersent3=posipersent*100;
+							double pixThresdub3=pixThresdub*100;
+							
+							posipersent3 = posipersent3*100;
+							posipersent3 = Math.round(posipersent3);
+							posipersent2 = posipersent3 /100;
+						
+							pixThresdub3 = pixThresdub3*100;
+							pixThresdub3 = Math.round(pixThresdub3);
+							pixThresdub2 = pixThresdub3 /100;
+							
+							if(logon==true && logNan==true)// sort by name
+							IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
+							
+							if(NumberSTint==0){
+								String numstr = getZeroFilledNumString(posipersent2, 3, 2);
+								if(labelmethod==0 || labelmethod==1){// on top of labeling
+									String title = numstr+"_"+linename;
+									dcStackOrigi.addSlice(title, ip3);
+									smap.put(title, islice);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}else{// at bottom labeling
+									String title = linename+"_"+numstr;
+									dcStackOrigi.addSlice(title, ip3);
+									smap.put(title, islice);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}//if(labelmethod==0){
+							}//if(NumberSTint==0){
+							
+							if(NumberSTint==1){
+								String posiST=getZeroFilledNumString(posi, 4);
+								if(labelmethod==0 || labelmethod==1){// on top of labeling
+									String title = posiST+"_"+linename;
+									dcStackOrigi.addSlice(title, ip3);
+									smap.put(title, islice);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}else{// at bottom labeling
+									String title = linename+"_"+posiST;
+									dcStackOrigi.addSlice(title, ip3);
+									smap.put(title, islice);
+									smapl.put(title, loffset);
+									if(ShowCo==true)
+										dcStack.addSlice(title, ipnew);
+								}//if(labelmethod==0){
+							}//if(NumberSTint==1){
+							posislice=posislice+1;
+						}//if(posipersent>pixThresdub){
+						f.close();
+					}//for (int islice=1; islice<=slicenumber ; islice++){
+				}
 		
 			} else {
 				for (int islice=1; islice<=slicenumber ; islice++){
@@ -816,9 +938,6 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			e.printStackTrace();
 		}	
 		
-		end = System.nanoTime();
-		IJ.log("time: "+((float)(end-start)/1000000.0)+"msec");
-
 		IJ.log(" positive slice No.;"+String.valueOf(posislice));
 		
 		int PositiveSlices=posislice;
@@ -1386,6 +1505,87 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 					}
 				}
 			}//}else{//dupline==0
+
+			try {
+				if (st3.isVirtual()) {
+					VirtualStack vst = (VirtualStack)st3;
+					long size = width*height*3;
+					byte [] impxs = new byte[(int)size];
+					if (vst.getDirectory() == null) {
+						int ostnum = OrigiStackfinal.size();
+						FileInfo fi = idata.getOriginalFileInfo();
+						if (fi.directory.length()>0 && !(fi.directory.endsWith(Prefs.separator)||fi.directory.endsWith("/")))
+							fi.directory += Prefs.separator;
+						String datapath = fi.directory + fi.fileName;
+						RandomAccessFile f = new RandomAccessFile(datapath, "r");
+						for (int s = 1; s <= ostnum; s++) {
+							ColorProcessor cp = (ColorProcessor)OrigiStackfinal.getProcessor(s);
+							String label = OrigiStackfinal.getSliceLabel(s);
+							Long offset  = smapl.get(label);
+							if (offset != null) {
+								long loffset = offset.longValue();
+								f.seek(loffset);
+								f.read(impxs, 0, maskpos_st);
+								f.seek(loffset+(long)maskpos_ed+3L);
+								f.read(impxs, maskpos_ed+3, impxs.length-maskpos_ed-3);
+								for (int i = 0, id = 0; i < maskpos_st; i+=3,id++) {
+									int red2 = impxs[i] & 0xff;//data
+									int green2 = impxs[i+1] & 0xff;//data
+									int blue2 = impxs[i+2] & 0xff;//data
+									int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+									cp.set(id, pix2);
+								}
+								for (int i = maskpos_ed+3, id = maskpos_ed/3+1; i < size; i+=3,id++) {
+									int red2 = impxs[i] & 0xff;//data
+									int green2 = impxs[i+1] & 0xff;//data
+									int blue2 = impxs[i+2] & 0xff;//data
+									int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+									cp.set(id, pix2);
+								}
+							}
+						}
+						f.close();
+					} else {
+						int ostnum = OrigiStackfinal.size();
+						String directory = vst.getDirectory();
+						if (directory.length()>0 && !(directory.endsWith(Prefs.separator)||directory.endsWith("/")))
+							directory += Prefs.separator;
+						for (int s = 1; s <= ostnum; s++) {
+							ColorProcessor cp = (ColorProcessor)OrigiStackfinal.getProcessor(s);
+							String label = OrigiStackfinal.getSliceLabel(s);
+							Integer sidx  = smap.get(label);
+							Long offset  = smapl.get(label);
+							if (sidx != null && offset != null) {
+								int sliceid = sidx.intValue();
+								long loffset = offset.longValue();
+								String datapath = directory + vst.getFileName(sliceid);
+								RandomAccessFile f = new RandomAccessFile(datapath, "r");
+								f.seek(loffset);
+								f.read(impxs, 0, maskpos_st);
+								f.seek(loffset+(long)maskpos_ed+3L);
+								f.read(impxs, maskpos_ed+3, impxs.length-maskpos_ed-3);
+								for (int i = 0, id = 0; i < maskpos_st; i+=3,id++) {
+									int red2 = impxs[i] & 0xff;//data
+									int green2 = impxs[i+1] & 0xff;//data
+									int blue2 = impxs[i+2] & 0xff;//data
+									int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+									cp.set(id, pix2);
+								}
+								for (int i = maskpos_ed+3, id = maskpos_ed/3+1; i < size; i+=3,id++) {
+									int red2 = impxs[i] & 0xff;//data
+									int green2 = impxs[i+1] & 0xff;//data
+									int blue2 = impxs[i+2] & 0xff;//data
+									int pix2 = 0xff000000 | (red2 << 16) | (green2 << 8) | blue2;
+									cp.set(id, pix2);
+								}
+								f.close();
+							}
+						}
+					}
+				}
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
 			
 			if(thremethodSTR=="Combine"){
 				ImageStack combstack=new ImageStack(width*2, height, OrigiStackfinal.getColorModel());
@@ -1420,9 +1620,13 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			}
 			
 		}//if(posislice>0){
+
+		end = System.nanoTime();
+		IJ.log("time: "+((float)(end-start)/1000000.0)+"msec");
+		
 		if(posislice==0)
 		IJ.log("No positive slice");
-		
+
 		imask.unlock();
 		idata.unlock();
 		
@@ -1431,9 +1635,11 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		int numdcstack=dcStackOrigi.size();
 		for(int deleleslice=1; deleleslice<=numdcstack; deleleslice++){
 			if(ShowCo==true)
-			dcStack.deleteSlice(1);
+				dcStack.deleteSlice(1);
 			dcStackOrigi.deleteSlice(1);
 		}
+
+		
 		
 		//	System.gc();
 	} //public void run(ImageProcessor ip){
