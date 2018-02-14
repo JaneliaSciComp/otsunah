@@ -464,7 +464,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		boolean ShowCo=(boolean)Prefs.get("ShowCo.boolean",true);
 		int NumberSTint=(int)Prefs.get("NumberSTint.int",0);
 		
-		if(datafile > imageno){
+		if(datafile >= imageno){
 			int singleslice=0; int Maxsingleslice=0; int MaxStack=0;
 			
 			for(int isliceSearch=0; isliceSearch<wList.length; isliceSearch++){
@@ -478,7 +478,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			datafile=MaxStack;
 		}
 		
-		if(Mask > imageno){
+		if(Mask >= imageno){
 			int singleslice=0; int isliceSearch=0;
 			
 			while(singleslice!=1){
