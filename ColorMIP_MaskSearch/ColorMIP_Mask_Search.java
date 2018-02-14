@@ -419,7 +419,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			IJ.showMessage("There should be at least two windows open");
 			return;
 		}
-		int imageno = 0;
+		int imageno = 0; int SingleSliceMIPnum=0; int MultiSliceStack=0;
 		String titles [] = new String[wList.length];
 		int slices [] = new int[wList.length];
 		
@@ -429,11 +429,13 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 				titles[i] = imp.getTitle();//Mask.tif and Data.tif
 				slices[i] = imp.getStackSize();
 				
-				if(slices[i]>1)
-				titles[i] = titles[i]+"  ("+slices[i]+") slices";
-				else
-				titles[i] = titles[i]+"  ("+slices[i]+") slice";
-				
+				if(slices[i]>1){
+					titles[i] = titles[i]+"  ("+slices[i]+") slices";
+					MultiSliceStack = i;
+				}else{
+					titles[i] = titles[i]+"  ("+slices[i]+") slice";
+					SingleSliceMIPnum = i;
+				}
 				imageno = imageno +1;
 			}else
 			titles[i] = "";
@@ -462,7 +464,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		boolean ShowCo=(boolean)Prefs.get("ShowCo.boolean",true);
 		int NumberSTint=(int)Prefs.get("NumberSTint.int",0);
 		
-		if(datafile >= imageno){
+		if(datafile > imageno){
 			int singleslice=0; int Maxsingleslice=0; int MaxStack=0;
 			
 			for(int isliceSearch=0; isliceSearch<wList.length; isliceSearch++){
@@ -476,7 +478,7 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 			datafile=MaxStack;
 		}
 		
-		if(Mask >= imageno){
+		if(Mask > imageno){
 			int singleslice=0; int isliceSearch=0;
 			
 			while(singleslice!=1){
@@ -493,7 +495,24 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 
 		if(NegMask >= imageno+1)
 			NegMask = 0;
-
+		
+		
+		ImagePlus impMask = WindowManager.getImage(wList[Mask]);
+		int MaskSliceNum = impMask.getStackSize();
+		
+		ImagePlus impData = WindowManager.getImage(wList[datafile]);
+		int DataSliceNum = impData.getStackSize();
+		
+		if(MaskSliceNum!=1){
+			Mask=SingleSliceMIPnum;
+		}
+		
+		
+		if(DataSliceNum==1){
+			datafile=MultiSliceStack;
+		}
+		
+		
 		//	IJ.log("mask; "+String.valueOf(Mask)+"datafile; "+String.valueOf(datafile)+"imageno; "+String.valueOf(imageno)+"wList.length; "+String.valueOf(wList.length));
 		if(labelmethod>1)
 		labelmethod=1;
@@ -635,11 +654,13 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		
 		if(IJ.escapePressed())
 			return;
-			
+		
+	
 		IJ.showProgress(0.0);
 		
 		//	IJ.log("maxvalue; "+maxvalue2+"	 gap;	"+gap);
-				
+		
+		
 		ImageStack st3 = idata.getStack();
 		int posislice = 0;
 		
@@ -650,7 +671,8 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		
 		int [] maskposi = get_mskpos_array(ip1, Thresm);
 		int [] negmaskposi = nip1 != null ? get_mskpos_array(nip1, NegThresm) : null;
-		int masksize = maskposi.length;
+		
+int masksize = maskposi.length;
 		int negmasksize = nip1 != null ? negmaskposi.length : 0;
 
 		int maskpos_st = negmaskposi != null ? Math.min(maskposi[0], negmaskposi[0])*3 : maskposi[0]*3;
@@ -1391,7 +1413,8 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 										srlabels.remove(slicelabel-1);
 									}else{//NegativeExist==1
 										srlabels.remove(slicelabel-1);
-										if(DUPlogon==true)
+										
+if(DUPlogon==true)
 											IJ.log(dupdel+" Duplicated & deleted; 	"+weightposi[wposi]);
 										dupdel=dupdel+1;
 									}
@@ -1576,7 +1599,8 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		idata.unlock();
 		
 		//	IJ.log("Done; "+increment+" mean; "+mean3+" Totalmaxvalue; "+totalmax+" desiremean; "+desiremean);
-		
+		
+
 		//	System.gc();
 	} //public void run(ImageProcessor ip){
 } //public class Two_windows_mask_search implements PlugInFilter{
