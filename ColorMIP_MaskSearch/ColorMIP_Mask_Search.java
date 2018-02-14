@@ -759,64 +759,70 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 						byte [] impxs = new byte[(int)size];
 						byte [] colocs = null;
 						if (ShowCo) colocs = new byte[(int)size];
-						
 						String datapath = directory + vst.getFileName(islice);
-						RandomAccessFile f = new RandomAccessFile(datapath, "r");
-						TiffDecoder tfd = new TiffDecoder(directory, vst.getFileName(islice));
-						FileInfo[] fi_list = tfd.getTiffInfo();
-						long loffset = fi_list[0].getOffset();
 
-						f.seek(loffset+(long)maskpos_st);
-						f.read(impxs, maskpos_st, stripsize);
-						
-						IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
-						IJ.showProgress((double)islice/(double)slicenumber);
-						
-						linename=st3.getSliceLabel(islice);
-						
-						int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, colocs);
-						double posipersent= (double) posi/ (double) masksize;
-						
-						if (nip1 != null) {
-							int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
-							double negapersent= (double) nega/ (double) negmasksize;
-							posipersent -= negapersent;
-							posi = (int)Math.round((double)posi*(1.0-negapersent));
+						try {
+							RandomAccessFile f = new RandomAccessFile(datapath, "r");
+							TiffDecoder tfd = new TiffDecoder(directory, vst.getFileName(islice));
+							if (tfd == null) continue;
+							FileInfo[] fi_list = tfd.getTiffInfo();
+							if (fi_list == null) continue;
+							long loffset = fi_list[0].getOffset();
+	
+							f.seek(loffset+(long)maskpos_st);
+							f.read(impxs, maskpos_st, stripsize);
+							
+							IJ.showStatus("Color MIP Mask_search; "+posislice+" / positive slices");
+							IJ.showProgress((double)islice/(double)slicenumber);
+							
+							linename=st3.getSliceLabel(islice);
+							
+							int posi = calc_score(ip1, impxs, maskposi, Thres, pixfludub, colocs);
+							double posipersent= (double) posi/ (double) masksize;
+							
+							if (nip1 != null) {
+								int nega = calc_score(nip1, impxs, negmaskposi, Thres, pixfludub, null);
+								double negapersent= (double) nega/ (double) negmasksize;
+								posipersent -= negapersent;
+								posi = (int)Math.round((double)posi*(1.0-negapersent));
+							}
+							
+							if(posipersent<=pixThresdub){
+								if (logon==true && logNan==true)
+								IJ.log("NaN");
+							}else if(posipersent>pixThresdub){
+								double posipersent3=posipersent*100;
+								double pixThresdub3=pixThresdub*100;
+								
+								posipersent3 = posipersent3*100;
+								posipersent3 = Math.round(posipersent3);
+								posipersent2 = posipersent3 /100;
+							
+								pixThresdub3 = pixThresdub3*100;
+								pixThresdub3 = Math.round(pixThresdub3);
+								pixThresdub2 = pixThresdub3 /100;
+							
+								if(logon==true && logNan==true)// sort by name
+									IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
+								
+								String title="";
+								if(NumberSTint==0){
+									String numstr = getZeroFilledNumString(posipersent2, 3, 2);
+									title = (labelmethod==0 || labelmethod==1) ? numstr+"_"+linename : linename+"_"+numstr;
+								}
+								else if(NumberSTint==1){
+									String posiST=getZeroFilledNumString(posi, 4);
+									title = (labelmethod==0 || labelmethod==1) ? posiST+"_"+linename : linename+"_"+posiST;
+								}
+								srlabels.add(title);
+								srdict.put(title, new SearchResult(title, islice, loffset, impxs, colocs, null, null));
+								
+								posislice=posislice+1;
+							}//if(posipersent>pixThresdub){
+							f.close();
+						} catch (IOException e) {
+							continue;
 						}
-						
-						if(posipersent<=pixThresdub){
-							if (logon==true && logNan==true)
-							IJ.log("NaN");
-						}else if(posipersent>pixThresdub){
-							double posipersent3=posipersent*100;
-							double pixThresdub3=pixThresdub*100;
-							
-							posipersent3 = posipersent3*100;
-							posipersent3 = Math.round(posipersent3);
-							posipersent2 = posipersent3 /100;
-						
-							pixThresdub3 = pixThresdub3*100;
-							pixThresdub3 = Math.round(pixThresdub3);
-							pixThresdub2 = pixThresdub3 /100;
-							
-							if(logon==true && logNan==true)// sort by name
-								IJ.log("Positive linename; 	"+linename+" 	"+String.valueOf(posipersent2));
-							
-							String title="";
-							if(NumberSTint==0){
-								String numstr = getZeroFilledNumString(posipersent2, 3, 2);
-								title = (labelmethod==0 || labelmethod==1) ? numstr+"_"+linename : linename+"_"+numstr;
-							}
-							else if(NumberSTint==1){
-								String posiST=getZeroFilledNumString(posi, 4);
-								title = (labelmethod==0 || labelmethod==1) ? posiST+"_"+linename : linename+"_"+posiST;
-							}
-							srlabels.add(title);
-							srdict.put(title, new SearchResult(title, islice, loffset, impxs, colocs, null, null));
-							
-							posislice=posislice+1;
-						}//if(posipersent>pixThresdub){
-						f.close();
 					}//for (int islice=1; islice<=slicenumber ; islice++){
 				}
 		
