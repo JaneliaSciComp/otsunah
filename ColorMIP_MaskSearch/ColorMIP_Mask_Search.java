@@ -523,13 +523,13 @@ public class ColorMIP_Mask_Search implements PlugInFilter
 		
 		gd.setInsets(20, 0, 0);
 		gd.addChoice("Negative Mask", negtitles, negtitles[NegMask]); //Negative Mask
-		gd.addSlider("1.Threshold for negative mask", 0, 255, NegThresm);
+		gd.addSlider("2.Threshold for negative mask", 0, 255, NegThresm);
 		
 		gd.setInsets(20, 0, 0);
 		gd.addChoice("Data for the ColorMIP", titles, titles[datafile]); //Data
 		
 		//gd.addNumericField("Threshold", slicenumber,0);
-		gd.addSlider("2.Threshold for data", 0, 255, Thres);
+		gd.addSlider("3.Threshold for data", 0, 255, Thres);
 		gd.addMessage("");
 		//	gd.addSlider("100x % of Positive PX Threshold", (double) 0, (double) 10000, pixThres);
 		gd.addNumericField("% of Positive PX Threshold 0-100 %", pixThres, 2);
