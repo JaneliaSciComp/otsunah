@@ -42,6 +42,10 @@ RESX=$INPUT1_RESX
 RESY=$INPUT1_RESY
 RESZ=$INPUT1_RESZ
 
+# special parameters
+ZFLIP=$ZFLIP
+GENDER=$GENDER
+
 # tools
 Vaa3D=`readItemFromConf $CONFIGFILE "Vaa3D"`
 JBA=`readItemFromConf $CONFIGFILE "JBA"`
@@ -50,7 +54,6 @@ WARP=`readItemFromConf $CONFIGFILE "WARP"`
 CMTK=`readItemFromConf $CONFIGFILE "CMTK"`
 FIJI=`readItemFromConf $CONFIGFILE "Fiji"`
 VNCScripts=`readItemFromConf $CONFIGFILE "VNCScripts"`
-# add CMTK tools here
 
 Vaa3D=${TOOLDIR}"/"${Vaa3D}
 JBA=${TOOLDIR}"/"${JBA}
@@ -184,34 +187,54 @@ Unaligned_Neuron_Separator_Result_RAW=${Unaligned_Neuron_Separator_Dir}"Consolid
 CONSLABEL_FN="ConsolidatedLabel.v3draw"
 Aligned_Consolidated_Label_V3DPBD=${OUTPUT}"/"${CONSLABEL_FN}
 
-V3DPBD2NRRD=$VNCScripts"VNC_preImageProcessing_Plugins_pipeline/v3dpbd2nrrd.ijm"
-Reformatted_Separator_result_v3draw=$OUTPUT"/Reformatted_Separator_Result.v3draw"
 NRRD2V3DRAW_NS=$VNCScripts"VNC_preImageProcessing_Plugins_pipeline/nrrd2v3draw_N_separator_result.ijm"
-PREALIGNEDVNC=${OUTPUT}"/PreAlignedVNC.v3draw"
 
-# Make sure the .lsm file exists
+# Make sure the input file exists
 if [ -e $SUBVNC ]
 then
-echo "Input file exists: "$SUBVNC
+   echo "Input file exists: "$SUBVNC
 else
-echo -e "Error: image $SUBVNC does not exist"
-exit -1
+  echo -e "Error: image $SUBVNC does not exist"
+  exit -1
 fi
+
+### temporary subject
+TEMPSUBJECT=${OUTPUT}"/tempsubjectsx.v3draw"
+if ( is_file_exist "$TEMPSUBJECT" )
+then
+echo "TEMPSUBJECT: $TEMPSUBJECT exists"
+else
+
+if [[ $ZFLIP =~ "zflip" ]]
+then
+#---exe---#
+message " Flipping subject along z-axis "
+time $Vaa3D -x ireg -f zflip -i ${SUBVNC} -o ${TEMPSUBJECT}
+else
+#---exe---#
+message " Creating a symbolic link to 63x subject "
+ln -s ${SUBVNC} ${TEMPSUBJECT}
+fi
+
+fi
+SUBVNC=$TEMPSUBJECT
 
 # Ensure existence of required inputs from unaligned neuron separation.
 UNSR_TO_DEL="sentinel_nonexistent_file"
 UNALIGNED_NEUSEP_EXISTS=1
-if [ ! -e $Unaligned_Neuron_Separator_Result_RAW ]
-then
-if [ -e $Unaligned_Neuron_Separator_Result_V3DPBD ]
-then
-# Now I need to translate to raw version.
-$Vaa3D -cmd image-loader -convert $Unaligned_Neuron_Separator_Result_V3DPBD $Unaligned_Neuron_Separator_Result_RAW
-UNSR_TO_DEL=$Unaligned_Neuron_Separator_Result_RAW
-else
-echo -e "Warning: neither unaligned neuron separation result $Unaligned_Neuron_Separator_Result_V3DPBD nor $Unaligned_Neuron_Separator_Result_RAW exists. Perhaps user has deleted neuron separations?"
-UNALIGNED_NEUSEP_EXISTS=0
+if [ ! -e $Unaligned_Neuron_Separator_Result_V3DPBD ]; then
+    echo -e "Warning: unaligned neuron separation result $Unaligned_Neuron_Separator_Result_V3DPBD nor $Unaligned_Neuron_Separator_Result_RAW exists. Perhaps user has deleted neuron separations?"
+    UNALIGNED_NEUSEP_EXISTS=0
 fi
+
+if [ $UNALIGNED_NEUSEP_EXISTS == 1 ]; then
+    NEURONSZFLIP=${OUTPUT}"/ConsolidatedLabel_zflip.v3draw"
+    if [[ $ZFLIP =~ "zflip" ]]; then
+        #---exe---#
+        message " Flipping the neurons along z-axis "
+        time $Vaa3D -x ireg -f zflip -i $Unaligned_Neuron_Separator_Result_V3DPBD -o $NEURONSZFLIP
+        Unaligned_Neuron_Separator_Result_V3DPBD=$NEURONSZFLIP
+    fi
 fi
 
 STARTDIR=`pwd`
@@ -225,7 +248,7 @@ START=`date '+%F %T'`
 # Expect to take far less than 1 hour
 if [ ! -e $Unaligned_Neuron_Separator_Result_RAW ]
 then
-echo "Warning: $PREPROCIMG will be given a nonexistent $Unaligned_Neuron_Separator_Result_V3DPBD"
+  echo "Warning: $PREPROCIMG will be given a nonexistent $Unaligned_Neuron_Separator_Result_V3DPBD"
 fi
 timeout --preserve-status 60m $FIJI -macro $PREPROCIMG "$OUTPUT/,preprocResult,$LATTIF,$SUBVNC,ssr,$RESX,$RESY,$GENDER,$Unaligned_Neuron_Separator_Result_V3DPBD,$NSLOTS"
 STOP=`date '+%F %T'`
@@ -242,18 +265,31 @@ echo "Otsuna preprocessing stop: $STOP"
 #STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_bg_nrrd ]
 then
-echo -e "Error: Otsuna preprocessing step failed"
-exit -1
+  echo -e "Error: Otsuna preprocessing step failed"
+
+  META=${FINALOUTPUT}"/AlignedFlyVNC.properties"
+  echo "alignment.error=Otsuna preprocessing step failed" >> $META
+  echo "alignment.stack.filename=" >> $META
+  echo "alignment.image.area=VNC" >> $META
+  echo "alignment.image.channels=$INPUT1_CHANNELS" >> $META
+  echo "alignment.image.refchan=$INPUT1_REF" >> $META
+  if [[ $GENDER =~ "m" ]]
+  then
+    # male fly brain
+    echo "alignment.space.name=MaleVNC2016_20x" >> $META
+  else
+    # female fly brain
+    echo "alignment.space.name=FemaleVNCSymmetric2017_20x" >> $META
+  fi
+  echo "alignment.resolution.voxels=0.52x0.52x1.00" >> $META
+  echo "alignment.image.size=512x1024x185" >> $META
+  echo "alignment.objective=20x" >> $META
+  echo "default=true" >> $META
+
+  exit -1
 fi
 #/usr/local/pipeline/bin/add_operation -operation raw_nrrd_conversion -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$FIJI" -version '1.47q' -parm imagej_macro="$LSMR"
 sleep 2
-
-#  This is added mainly to make it obvious that this output file was supposed to have been created.
-if [ ! -e $PREALIGNEDVNC ]
-then
-echo -e "Warning: pre aligned image VNC raw file "${PREALIGNEDVNC}" not created.  Listing directory below."
-ls -l ${OUTPUT}
-fi
 
 #
 #  The preprocessing step reverses the order from what is
@@ -262,23 +298,23 @@ fi
 #
 if [ -e $registered_pp_sg3_nrrd ]
 then
-echo "+---------------------------------------------------------------------------------------+"
-echo "| Reordering sgwarp3 nrrd wih sgwarp1 nrrd.                                             |"
-echo "+---------------------------------------------------------------------------------------+"
-
-# Switching ordering of channels between 3 and 1.
-registered_pp_sg3_nrrd=$OUTPUT"/preprocResult_02.nrrd"
-registered_pp_sg2_nrrd=$OUTPUT"/preprocResult_03.nrrd"
-registered_pp_sg1_nrrd=$OUTPUT"/preprocResult_04.nrrd"
+  echo "+---------------------------------------------------------------------------------------+"
+  echo "| Reordering sgwarp3 nrrd wih sgwarp1 nrrd.                                             |"
+  echo "+---------------------------------------------------------------------------------------+"
+  
+  # Switching ordering of channels between 3 and 1.
+  registered_pp_sg3_nrrd=$OUTPUT"/preprocResult_02.nrrd"
+  registered_pp_sg2_nrrd=$OUTPUT"/preprocResult_03.nrrd"
+  registered_pp_sg1_nrrd=$OUTPUT"/preprocResult_04.nrrd"
 elif [ -e $registered_pp_sgwarp2_nrrd ]
 then
-echo "+---------------------------------------------------------------------------------------+"
-echo "| Reordering sgwarp2 nrrd wih sgwarp1 nrrd.                                             |"
-echo "+---------------------------------------------------------------------------------------+"
-
-# Switching ordering of channels between 2 and 1.
-registered_pp_sg2_nrrd=$OUTPUT"/preprocResult_02.nrrd"
-registered_pp_sg1_nrrd=$OUTPUT"/preprocResult_03.nrrd"
+  echo "+---------------------------------------------------------------------------------------+"
+  echo "| Reordering sgwarp2 nrrd wih sgwarp1 nrrd.                                             |"
+  echo "+---------------------------------------------------------------------------------------+"
+  
+  # Switching ordering of channels between 2 and 1.
+  registered_pp_sg2_nrrd=$OUTPUT"/preprocResult_02.nrrd"
+  registered_pp_sg1_nrrd=$OUTPUT"/preprocResult_03.nrrd"
 fi
 
 # Pre-processing
@@ -301,8 +337,8 @@ $CMTK/make_initial_affine --principal_axes $Tfile $registered_pp_bg_nrrd $regist
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_initial_xform ]
 then
-echo -e "Error: CMTK make initial affine failed"
-exit -1
+  echo -e "Error: CMTK make initial affine failed"
+  exit -1
 fi
 echo "cmtk_initial_affine start: $START"
 echo "cmtk_initial_affine stop: $STOP"
@@ -317,8 +353,8 @@ $CMTK/registration --initial $registered_pp_initial_xform --dofs 6,9 --auto-mult
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_affine_xform ]
 then
-echo -e "Error: CMTK registration failed"
-exit -1
+  echo -e "Error: CMTK registration failed"
+  exit -1
 fi
 echo "cmtk_registration start: $START"
 echo "cmtk_registration stop: $STOP"
@@ -326,15 +362,15 @@ echo "cmtk_registration stop: $STOP"
 # CMTK warping
 echo "+----------------------------------------------------------------------+"
 echo "| Running CMTK warping                                                 |"
-echo "| $CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 8 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd |"
+echo "| $CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 4 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd |"
 echo "+----------------------------------------------------------------------+"
 START=`date '+%F %T'`
-$CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 8 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd
+$CMTK/warp --threads $NSLOTS -o $registered_pp_warp_xform --grid-spacing 80 --exploration 30 --coarsest 4 --accuracy 0.8 --refine 4 --energy-weight 1e-1 --initial $registered_pp_affine_xform $Tfile $registered_pp_bg_nrrd
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_warp_xform ]
 then
-echo -e "Error: CMTK warping failed"
-exit -1
+  echo -e "Error: CMTK warping failed"
+  exit -1
 fi
 echo "cmtk_warping start: $START"
 echo "cmtk_warping stop: $STOP"
@@ -349,8 +385,8 @@ $CMTK/reformatx -o $registered_pp_bgwarp_nrrd --floating $registered_pp_bg_nrrd 
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_bgwarp_nrrd ]
 then
-echo -e "Error: CMTK reformatting failed"
-exit -1
+  echo -e "Error: CMTK reformatting failed"
+  exit -1
 fi
 echo "cmtk_reformatting start: $START"
 echo "cmtk_reformatting stop: $STOP"
@@ -367,8 +403,8 @@ $PYTHON $QUAL2 $registered_pp_bgwarp_nrrd $Tfile $registered_pp_warp_qual
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_warp_qual ]
 then
-echo -e "Error: quality check failed"
-exit -1
+  echo -e "Error: quality check failed"
+  exit -1
 fi
 echo "alignment_qc start: $START"
 echo "alignment_qc stop: $STOP"
@@ -384,96 +420,96 @@ $CMTK/reformatx -o $registered_pp_sgwarp1_nrrd --floating $registered_pp_sg1_nrr
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_sgwarp1_nrrd ]
 then
-echo -e "Error: CMTK reformatting sg1 failed"
-exit -1
+  echo -e "Error: CMTK reformatting sg1 failed"
+  exit -1
 fi
 echo "cmtk_reformatting start: $START"
 echo "cmtk_reformatting stop: $STOP"
 
 if [ -e $registered_pp_sg2_nrrd ]
 then
-#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
-# -------------------------------------------------------------------------------------------                                                                                                                                                   
-# CMTK reformatting
-echo "+----------------------------------------------------------------------+"
-echo "| Running CMTK reformatting                                            |"
-echo "| $CMTK/reformatx -o $registered_pp_sgwarp2_nrrd --floating $registered_pp_sg2_nrrd $Tfile $registered_pp_warp_xform |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
-$CMTK/reformatx -o $registered_pp_sgwarp2_nrrd --floating $registered_pp_sg2_nrrd $Tfile $registered_pp_warp_xform
-STOP=`date '+%F %T'`
-if [ ! -e $registered_pp_sgwarp2_nrrd ]
-then
-echo -e "Error: CMTK reformatting sg2 failed"
-exit -1
-fi
-echo "cmtk_reformatting start: $START"
-echo "cmtk_reformatting stop: $STOP"
+	#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
+	# -------------------------------------------------------------------------------------------                                                                                                                                                   
+	# CMTK reformatting
+	echo "+----------------------------------------------------------------------+"
+	echo "| Running CMTK reformatting                                            |"
+	echo "| $CMTK/reformatx -o $registered_pp_sgwarp2_nrrd --floating $registered_pp_sg2_nrrd $Tfile $registered_pp_warp_xform |"
+	echo "+----------------------------------------------------------------------+"
+	START=`date '+%F %T'`
+	$CMTK/reformatx -o $registered_pp_sgwarp2_nrrd --floating $registered_pp_sg2_nrrd $Tfile $registered_pp_warp_xform
+	STOP=`date '+%F %T'`
+	if [ ! -e $registered_pp_sgwarp2_nrrd ]
+	then
+		echo -e "Error: CMTK reformatting sg2 failed"
+		exit -1
+	fi
+    echo "cmtk_reformatting start: $START"
+    echo "cmtk_reformatting stop: $STOP"
 fi
 
 if [ -e $registered_pp_sg3_nrrd ]
 then
-#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
-# -------------------------------------------------------------------------------------------                                                                                                                                                   
-# CMTK reformatting
-echo "+----------------------------------------------------------------------+"
-echo "| Running CMTK reformatting                                            |"
-echo "| $CMTK/reformatx -o $registered_pp_sgwarp3_nrrd --floating $registered_pp_sg3_nrrd $Tfile $registered_pp_warp_xform |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
-$CMTK/reformatx -o $registered_pp_sgwarp3_nrrd --floating $registered_pp_sg3_nrrd $Tfile $registered_pp_warp_xform
-STOP=`date '+%F %T'`
-if [ ! -e $registered_pp_sgwarp3_nrrd ]
-then
-echo -e "Error: CMTK reformatting3 failed"
-exit -1
-fi
-echo "cmtk_reformatting start: $START"
-echo "cmtk_reformatting stop: $STOP"
+	#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
+	# -------------------------------------------------------------------------------------------                                                                                                                                                   
+	# CMTK reformatting
+	echo "+----------------------------------------------------------------------+"
+	echo "| Running CMTK reformatting                                            |"
+	echo "| $CMTK/reformatx -o $registered_pp_sgwarp3_nrrd --floating $registered_pp_sg3_nrrd $Tfile $registered_pp_warp_xform |"
+	echo "+----------------------------------------------------------------------+"
+	START=`date '+%F %T'`
+	$CMTK/reformatx -o $registered_pp_sgwarp3_nrrd --floating $registered_pp_sg3_nrrd $Tfile $registered_pp_warp_xform
+	STOP=`date '+%F %T'`
+	if [ ! -e $registered_pp_sgwarp3_nrrd ]
+	then
+		echo -e "Error: CMTK reformatting3 failed"
+		exit -1
+	fi
+    echo "cmtk_reformatting start: $START"
+    echo "cmtk_reformatting stop: $STOP"
 fi
 
 if [ $UNALIGNED_NEUSEP_EXISTS == 1 ]
 then
-#/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
-# -------------------------------------------------------------------------------------------
-# CMTK reformatting for neuron separator result
-
-Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
-if [ -e $Neuron_Separator_ResultNRRD ]
-then
-echo "+----------------------------------------------------------------------+"
-echo "| Running CMTK reformatting for Neuron separator result                |"
-echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
-
-Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
-
-$CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
-STOP=`date '+%F %T'`
-echo "neuron_reformatting start: $START"
-echo "neuron_reformatting stop: $STOP"
-if [ ! -e $Reformatted_Separator_result_nrrd ]
-then
-echo -e "Error: CMTK reformatting Neuron separation failed"
-exit -1
-fi
-echo "+----------------------------------------------------------------------+"
-echo "| Running nrrd -> v3draw conversion                                    |"
-echo "| $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/" |"
-echo "+----------------------------------------------------------------------+"
-START=`date '+%F %T'`
-$FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
-STOP=`date '+%F %T'`
-if [ ! -e $Aligned_Consolidated_Label_V3DPBD ]
-then
-echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
-exit -1
-fi
-echo "neuron_conversion start: $START"
-echo "neuron_conversion stop: $STOP"
-
-fi
+        #/usr/local/pipeline/bin/add_operation -operation alignment_qc -name "$SAGE_IMAGE" -start "$START" -stop "$STOP" -operator $USERID -program "$QUAL" -version '1.0' -parm alignment_target="$Tfile"
+        # -------------------------------------------------------------------------------------------
+        # CMTK reformatting for neuron separator result
+ 
+        Neuron_Separator_ResultNRRD=${OUTPUT}"/ConsolidatedLabel.nrrd"
+        if [ -e $Neuron_Separator_ResultNRRD ]
+        then
+                echo "+----------------------------------------------------------------------+"
+                echo "| Running CMTK reformatting for Neuron separator result                |"
+                echo "| $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform |"
+                echo "+----------------------------------------------------------------------+"
+                START=`date '+%F %T'`
+ 
+                Reformatted_Separator_result_nrrd=${OUTPUT}"/Reformatted_Separator_Result.nrrd"
+ 
+                $CMTK/reformatx --nn -o $Reformatted_Separator_result_nrrd --floating $Neuron_Separator_ResultNRRD $Tfile $registered_pp_warp_xform
+                STOP=`date '+%F %T'`
+                echo "neuron_reformatting start: $START"
+                echo "neuron_reformatting stop: $STOP"
+                if [ ! -e $Reformatted_Separator_result_nrrd ]
+                then
+                        echo -e "Error: CMTK reformatting Neuron separation failed"
+                        exit -1
+                fi
+                echo "+----------------------------------------------------------------------+"
+                echo "| Running nrrd -> v3draw conversion                                    |"
+                echo "| $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/" |"
+                echo "+----------------------------------------------------------------------+"
+                START=`date '+%F %T'`
+                $FIJI -macro $NRRD2V3DRAW_NS ${OUTPUT}"/"
+                STOP=`date '+%F %T'`
+                if [ ! -e $Aligned_Consolidated_Label_V3DPBD ]
+                then
+                        echo -e "Error: nrrd -> v3draw conversion of Neuron separator failed"
+                        exit -1
+                fi
+                echo "neuron_conversion start: $START"
+                echo "neuron_conversion stop: $STOP"
+ 
+        fi
 fi
 
 
@@ -488,8 +524,8 @@ $FIJI -macro $NRRDCONV $registered_pp_warp_v3draw
 STOP=`date '+%F %T'`
 if [ ! -e $registered_pp_warp_v3draw ]
 then
-echo -e "Error: NRRD -> raw conversion failed"
-exit -1
+  echo -e "Error: NRRD -> raw conversion failed"
+  exit -1
 fi
 echo "nrrd_raw_conversion start: $START"
 echo "nrrd_raw_conversion stop: $STOP"
@@ -520,8 +556,8 @@ $FIJI -macro $POSTSCORE "$registered_pp_bgwarp_nrrd,PostScore,$OUTPUT/,$Tfile,$P
 STOP=`date '+%F %T'`
 if [ ! -e $registered_otsuna_qual ]
 then
-echo -e "Error: Otsuna ObjPearsonCoeff score failed"
-exit -1
+  echo -e "Error: Otsuna ObjPearsonCoeff score failed"
+  exit -1
 fi
 echo "Otsuna_scoring start: $START"
 echo "Otsuna_scoring stop: $STOP"
@@ -537,14 +573,28 @@ echo "Otsuna_scoring stop: $STOP"
 # -------------------------------------------------------------------------------------------                                                                                                                                                                                                    
 if [ ! -e $registered_pp_warp_v3draw ]
 then
-echo -e "Error: Final v3draw conversion failed"
-exit -1
+  echo -e "Error: Final v3draw conversion failed"
+  exit -1
 fi
+
 echo "+----------------------------------------------------------------------+"
 echo "| Copying file to final destination                                    |"
-echo "| cp -R $OUTPUT/* $FINALOUTPUT/.                                       |"
 echo "+----------------------------------------------------------------------+"
-cp -R $OUTPUT/* $FINALOUTPUT/.
+cp -R $OUTPUT/AlignedFlyVNC* $FINALOUTPUT
+cp -R $OUTPUT/ConsolidatedLabel.v3draw $FINALOUTPUT
+
+FINALDEBUG=$FINALOUTPUT/debug
+mkdir $FINALDEBUG
+cp -R $OUTPUT/Hideo_OBJPearsonCoeff.txt $FINALDEBUG
+cp -R $OUTPUT/VNC-PP-initial.xform $FINALDEBUG
+cp -R $OUTPUT/VNC-PP-affine.xform $FINALDEBUG
+cp -R $OUTPUT/VNC-PP-warp.xform $FINALDEBUG
+cp -R $OUTPUT/VNC-PP-warp_qual.csv $FINALDEBUG
+cp -R $OUTPUT/*log.txt $FINALDEBUG
+cp -R $OUTPUT/Shape_problem $FINALDEBUG
+cp -R $OUTPUT/High_background_cannot_segment_VNC $FINALDEBUG
+cp -R $OUTPUT/preprocResult_Lateral.png $FINALDEBUG
+cp -R $OUTPUT/preprocResult.png $FINALDEBUG
 
 if [[ -f "$registered_pp_warp_v3draw" ]]; then
 OVERLAP_COEFF=`grep Overlap $registered_pp_warp_qual | awk -F"," '{print $1}'`
@@ -555,6 +605,7 @@ OTSUNA_PEARSON_COEFF=`cat $registered_otsuna_qual | awk '{print $1}'`
 
 META=${FINALOUTPUT}"/AlignedFlyVNC.properties"
 echo "alignment.stack.filename="${registered_pp_warp_v3draw_filename} >> $META
+echo "alignment.image.area=VNC" >> $META
 echo "alignment.image.channels=$INPUT1_CHANNELS" >> $META
 echo "alignment.image.refchan=$INPUT1_REF" >> $META
 if [[ $GENDER =~ "m" ]]
@@ -573,22 +624,22 @@ echo "alignment.image.size=512x1024x185" >> $META
 echo "alignment.objective=20x" >> $META
 if [ -e $Aligned_Consolidated_Label_V3DPBD ]
 then
-	echo "neuron.masks.filename=$CONSLABEL_FN" >> $META
-	else
-	echo "WARNING: No $CONSLABEL_FN produced.  Not picked up by warped-result alignment step."
-	fi
-	echo "default=true" >> $META
-	fi
-	
-	# Cleanup
-	# tar -zcf $registered_pp_warp_xform.tar.gz $registered_pp_warp_xform                                                                                                                                                                                
-	#x/bin/rm -rf $lsmname*-PP-*.xform $lsmname*-PP.raw $lsmname*.nrrd                                                                                                                                                                                    
-	#x/bin/rm -rf *-PP-*.xform *-PP.raw $registered_pp_sgwarp_nrrd $registered_pp_sg_nrrd $registered_pp_bgwarp_nrrd
-	
-	# Check whether a temp file needs to be deleted.
-	if [ -e $UNSR_TO_DEL ]
-	then
-	rm -rf $UNSR_TO_DEL
-	fi
-	echo "Job completed at "`date`
-	#xtrap "rm -f $0" 
+  echo "neuron.masks.filename=$CONSLABEL_FN" >> $META
+else
+  echo "WARNING: No $CONSLABEL_FN produced.  Not picked up by warped-result alignment step."
+fi
+echo "default=true" >> $META
+fi
+
+# Cleanup
+# tar -zcf $registered_pp_warp_xform.tar.gz $registered_pp_warp_xform                                                                                                                                                                                
+#x/bin/rm -rf $lsmname*-PP-*.xform $lsmname*-PP.raw $lsmname*.nrrd                                                                                                                                                                                    
+#x/bin/rm -rf *-PP-*.xform *-PP.raw $registered_pp_sgwarp_nrrd $registered_pp_sg_nrrd $registered_pp_bgwarp_nrrd
+
+# Check whether a temp file needs to be deleted.
+if [ -e $UNSR_TO_DEL ]
+then
+  rm -rf $UNSR_TO_DEL
+fi
+echo "Job completed at "`date`
+#xtrap "rm -f $0"           
