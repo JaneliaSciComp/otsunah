@@ -23,7 +23,7 @@ argstr=0;
 
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
-argstr="/test/VNC_pipeline/,tempsubjectsx.v3draw,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_Test/tempsubjectsx.v3draw,sssr,0.45,0.45,f,???,4"//for test
+//argstr="/test/VNC_pipeline/,tempsubjectsx.v3draw,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_Test/tempsubjectsx.v3draw,sssr,0.45,0.45,f,???,4"//for test
 
 //argstr="/test/VNC_Test/PreAligned/,GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,sr,0.62,0.62,f,???,6"//for test
 
