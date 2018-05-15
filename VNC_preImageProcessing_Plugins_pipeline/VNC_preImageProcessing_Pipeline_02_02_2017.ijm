@@ -23,7 +23,7 @@ argstr=0;
 
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
-//argstr="/test/VNC_pipeline/,tempsubjectsx.v3draw,/Users/otsunah/Dropbox (HHMI)/VNC_project/VNC_Lateral_F.tif,/test/VNC_Test/tempsubjectsx.v3draw,sssr,0.45,0.45,f,???,4"//for test
+//argstr="/test/VNC_pipeline/,tempsubjectsx.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/tempsubjectsx.v3dpbd,sssr,0.45,0.45,f,???,4"//for test
 
 //argstr="/test/VNC_Test/PreAligned/,GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,sr,0.62,0.62,f,???,6"//for test
 
@@ -1698,9 +1698,16 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						selectImage(realVNC);
 						getVoxelSize(widthVXsmall, heightVXsmall, depthVXsmall, unitVX);
+						v3dExt = lastIndexOf(noext, ".v3d");
 						
-						if(depthVXsmall==0){
+						if(depthVXsmall==0 || v3dExt!=-1){
+							print("Original depthVXsmall = 0");
+							
+							if(widthVXsmall<0.5)
+							depthVXsmall=widthVXsmall;
+							else
 							depthVXsmall=1;
+							
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width="+widthVXsmall+" pixel_height="+heightVXsmall+" voxel_depth=1");//setting property, voxel size 1,1,1 for later translation.
 						}
 						
@@ -1739,7 +1746,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							//sampWidth; 153   sampHeight; 1024   nImages;158   defaultWidth; 17.4321
 							//defaultWidth; 17.4321
 							
-							
+				//			setBatchMode(false);
+				//			updateDisplay();
+				//			"do"
+				//			exit();
 							
 							defaultWidth=(sampWidth*depthVXsmall)/(sampHeight/100);//309*0.2965/18  = 5
 							startWidth=defaultWidth;
@@ -1793,12 +1803,12 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Minimum 3D...", "x=2 y=2 z=1");
 								run("Maximum 3D...", "x=2 y=2 z=1");
 								
-								//	if(startW==30){
-								//		setBatchMode(false);
-								//		updateDisplay();
-								//		"do"
-								//		exit();
-								//	}
+							//		if(startW==14){
+							//			setBatchMode(false);
+							//			updateDisplay();
+							//			"do"
+							//			exit();
+							//		}
 								
 								run("Subtract Background...", "rolling=10 disable");
 								
@@ -2409,6 +2419,8 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 	MvxwidthA=newArray(120-round((sampHeight/heightSizeRatio)/2)+1);
 	MvxheightA=newArray(120-round((sampHeight/heightSizeRatio)/2)+1);
 	
+	print("sampHeight; "+sampHeight+"   heightSizeRatio; "+heightSizeRatio);
+	
 	tryN=0;
 	maxW=0; maxOBJ=0; nonmaxOBJtime=0; MinusRot=15; PlusRot=15; maxrotation=0; MaxShiftABS=10; NextRotation=0;
 	for(startH=round((sampHeight/heightSizeRatio)/2); startH<120; startH++){
@@ -2423,6 +2435,11 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 		//	run("Size...", "width=18 height=80 depth=100 constrain average interpolation=Bilinear");
 		//run("Median...", "radius=10 stack");
 		
+	//	setBatchMode(false);
+	//	updateDisplay();
+	//	"do"
+	//	exit();
+		
 		Dupstack=getImageID();
 		DupstackST=getTitle();
 		
@@ -2436,10 +2453,12 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 		
 		run("16-bit");
 		
-		//	setBatchMode(false);
-		//			updateDisplay();
-		//			"do"
-		//			exit();
+	//	if(startH==85){
+	//		setBatchMode(false);
+	//				updateDisplay();
+	//				"do"
+	//					exit();
+	//	}
 		
 		run("Canvas Size...", "width=60 height=100 position=Center zero");
 		rename("DUPnc82.tif");
@@ -2520,6 +2539,12 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 	print("maxH+3; "+maxHA[maximax]+3);
 	ElongArray[0]=maxHA[maximax]+3;
 	ElongArray[1]=MvxheightA[maximax];
+	
+	//	setBatchMode(false);
+	//			updateDisplay();
+	//			"do"
+	//			exit();
+	
 }
 
 function rotationF(rotation,unit,vxwidth,vxheight,depth,xTrue,yTrue,StackWidth,StackHeight){
