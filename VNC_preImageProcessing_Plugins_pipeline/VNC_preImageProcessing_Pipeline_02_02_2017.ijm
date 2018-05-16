@@ -133,7 +133,7 @@ origi=getTitle();
 //		C1C20102Takeout(takeout);
 noext = prefix;
 
-God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,LateralDir,PathConsolidatedLabel,numCPU);
+God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,LateralDir,PathConsolidatedLabel,numCPU,path);
 
 //nrrd2v3draw(savedir, noext);
 
@@ -150,7 +150,7 @@ print("line 100; log file saved");
 run("Quit");
 
 
-function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,LateralDir,PathConsolidatedLabel,numCPU){
+function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,temptype,AdvanceDepth,LateralDir,PathConsolidatedLabel,numCPU,path){
 	
 	bitd=bitDepth();
 	CLAHEwithMASK=0;
@@ -1698,7 +1698,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 						
 						selectImage(realVNC);
 						getVoxelSize(widthVXsmall, heightVXsmall, depthVXsmall, unitVX);
-						v3dExt = lastIndexOf(noext, ".v3d");
+						v3dExt = lastIndexOf(path, ".v3d");
 						
 						if(depthVXsmall==0 || v3dExt!=-1){
 							print("Original depthVXsmall = 0");
