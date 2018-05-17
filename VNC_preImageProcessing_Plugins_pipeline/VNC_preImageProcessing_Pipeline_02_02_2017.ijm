@@ -23,7 +23,7 @@ argstr=0;
 
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/groups/jacs/jacsDev/devstore/flylight/Sample/012/200/2386405464612012200/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
-//argstr="/test/VNC_pipeline/,tempsubjectsx.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/tempsubjectsx.v3dpbd,sssr,0.45,0.45,f,???,4"//for test
+//argstr="/test/VNC_pipeline/,tempsubjectsx.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/tempsubjectsx.v3dpbd,sssr,0.45,0.45,f,/test/VNC_Test/ConsolidatedLabel.v3dpbd,4"//for test
 
 //argstr="/test/VNC_Test/PreAligned/,GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/GMR_38A05_AE_01_01-fA01v_C081220_20081227121104665.zip,sr,0.62,0.62,f,???,6"//for test
 
@@ -2129,6 +2129,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							addingslice(slicePosition);
 							previousnSlice=slicePosition[5];
 							
+							if(Rendslice>nSlices)
+							Rendslice=nSlices;
+							
 							run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
 							realNeuron=getImageID();//substack, duplicated
 							
@@ -2226,8 +2229,11 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							selectedNeuron=getImageID();
 							run("Select All");
 							
-							slicePosition=newArray(startslice,endslice,slices,0,0);
+							slicePosition=newArray(startslice,endslice,slices,0,0,previousnSlice);
 							addingslice(slicePosition);
+							
+							if(Rendslice>nSlices)
+							Rendslice=nSlices;
 							
 							run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
 							realNeuron=getImageID();//substack, duplicated
@@ -2239,8 +2245,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							if(UPsideDown!=0)
 							run("Rotate... ", "angle=180 grid=1 interpolation=None stack");
 							
-							print("1850; nSlices; "+nSlices+"  rotation; "+rotation+"  vxwidth; "+vxwidth+"  vxheight; "+vxheight+"  depth; "+depth+"  xTrue; "+xTrue+"  yTrue; "+yTrue);
-							print("1851; StackWidth; "+StackWidth+"  StackHeight; "+StackHeight);
+							print("2242; nSlices; "+nSlices+"  rotation; "+rotation+"  vxwidth; "+vxwidth+"  vxheight; "+vxheight+"  depth; "+depth+"  xTrue; "+xTrue+"  yTrue; "+yTrue);
+							print("2243; StackWidth; "+StackWidth+"  StackHeight; "+StackHeight);
 							
 							
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
@@ -2249,7 +2255,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+vxwidth+" pixel_height="+vxheight+" voxel_depth="+depth+"");
 							
 							if(AdvanceDepth){
-								print("1859 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation; "+maxrotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
+								print("2252 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation; "+maxrotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
 								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
 								LatarlBigVNC=getImageID();
@@ -2286,6 +2292,10 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							close();
 							selectImage(selectedNeuron);
 							close();
+							
+							print("ConsolidatedLabel save Done");
+							logsum=getInfo("log");
+							File.saveString(logsum, filepath);
 							
 						}else{//if(ConsoliExi==1){
 							print("There is no ConsolidatedLabel.v3dpbd!!; "+PathConsolidatedLabel);
