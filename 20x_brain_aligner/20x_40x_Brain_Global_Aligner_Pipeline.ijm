@@ -44,7 +44,7 @@ testArg=0;
 //testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,BJD_103A02_AE_01_40x.h5j,/test/20x_brain_alignment/Pipeline_Test_Sample/BJD_103A02_AE_01_40x.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.44,0.44,7,40x"
 
 //for 20x
-testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,tile-2557020508642082837.v3draw,/Registration/JRC2018_align_test/tile-2557020508642082837.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.62,1,7,20x,JRC2018,Unknown,???"
+//testArg= "/test/20x_brain_alignment/pre_Align_Test_Vol,tile-2557020508642082837.v3draw,/Registration/JRC2018_align_test/tile-2557020508642082837.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.62,1,7,20x,JRC2018,Unknown,???"
 
 if(testArg!=0)
 args = split(testArg,",");
