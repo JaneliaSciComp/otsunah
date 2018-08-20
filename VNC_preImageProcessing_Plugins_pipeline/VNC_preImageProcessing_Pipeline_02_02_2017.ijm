@@ -2261,7 +2261,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 					//		"do"
 					//		exit();
 							
-							if(AdvanceDepth){
+							if(AdvanceDepth==true){
 								print("2252 AdvanceDepth ON; sampleLongLength; "+sampleLongLength+"  maxrotation; "+maxrotation+"  sampWidth; "+sampWidth+"  sampHeight; "+sampHeight);
 								print("widthVXsmall; "+widthVXsmall+"   heightVXsmall; "+heightVXsmall+"   realdepthVal; "+realdepthVal);
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
@@ -2277,7 +2277,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								run("Translate...", "x="+XlateralTrans+" y="+YlateralTrans+" interpolation=None stack");
 								run("Canvas Size...", "width="+sampWidth+" height="+sampHeight+" position=Center zero");
 								run("Reslice [/]...", "output=1 start=Left rotate avoid");
-								setVoxelSize(widthVXsmall, heightVXsmall, realdepthVal, unitVX);
+								run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+realHeightVal+" pixel_height="+realHeightVal+" voxel_depth="+realdepthVal+"");
+
 								realNeuron2=getImageID();
 							}//if(AdvanceDepth){
 							
