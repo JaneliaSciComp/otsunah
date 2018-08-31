@@ -4,7 +4,7 @@
 //The input data is the signal of nc82 of 20x VNC (aligned)
 //This macro will generate .avi movie; template: purple, sample: green
 
-
+run("Misc...", "divide=Infinity save");
 scoreT1=0; SampleDup=0;
 setForegroundColor(65535, 65535, 65535);
 
@@ -19,9 +19,10 @@ if (lengthOf(args)>1) {
 	path = args[0];// full file path for Open
 	DataName = args[1];//Name for save
 	savedir = args[2];//save directory
-	templocation=args[3];//Female template full file path
-	tempMasklocation= args[4];//Female template mask full file path
-	temptype= args[5];//"f" or "Male"
+	templocation =args[3];//Female template full file path
+	tempMasklocation = args[4];//Female template mask full file path
+	temptype = args[5];//"f" or "Male"
+	NSLOTS = args[6];
 }
 
 print("path; "+path);
@@ -32,16 +33,7 @@ print("Gender; "+temptype);
 filepath=savedir+"Hideo_OBJPearsonCoeff.txt";
 setBatchMode(true);
 
-TempMaskPlace=File.exists(tempMasklocation);
-if(TempMaskPlace==1)
 open(tempMasklocation);
-else{
-	print("Mask file is not existing!! "+tempMasklocation);
-	logsum=getInfo("log");
-	filepath2=savedir+"VNC_Score_log.txt";
-	File.saveString(logsum, filepath2);
-	run("Quit");
-}
 
 OrigiMask2=getImageID();// Template Mask
 tempMaskName=getTitle();
@@ -60,7 +52,7 @@ if(nSlices==220){
 
 open(templocation);
 if(temptype=="f"){
-	tempAve=60.83;
+	tempAve=60.56;
 }else{
 	tempAve=49.18;
 }
@@ -203,7 +195,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	if(temptype=="f"){
 		Threweight=1;
 		incriweight=0.03;
-		maxGap=2;
+		maxGap=3;
 	}else{
 		Threweight=2;
 		incriweight=0.06;
@@ -310,13 +302,17 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		close();
 	}
 	
+	selectWindow("MaskSampleTitle.tif");
+	
 	if(mean5>0){
-		run("ObjPearson Coeff", "template="+tempMaskName+" sample=MaskSampleTitle.tif show change");
+	//	run("ObjPearson Coeff", "template="+tempMaskName+" sample=MaskSampleTitle.tif show change");
+		run("ObjPearson Coeff", "template="+tempMaskName+" sample=MaskSampleTitle.tif show change weight=[Equal weight (temp and sample)] parallel="+NSLOTS+"");
 		
-		scorearray=newArray(0, 0);
-		scoreCal(scorearray);
-		
-		scoreT=scorearray[0];
+		scoreT=getTitle();
+		scoreT=parseFloat(scoreT);//Chaneg string to number
+	//	scorearray=newArray(0, 0);
+	//	scoreCal(scorearray);
+	//	scoreT=scorearray[0];
 		
 	}else
 	scoreT=0;
@@ -340,7 +336,7 @@ if(nSlices==220){// aligned VNC should have 220 slices
 	if(ScoreT<0)
 	ScoreT=abs(ScoreT);
 
-	ScoreT=round(ScoreT);
+//	ScoreT=round(ScoreT);
 	
 	/////// test ///////////////////////////////////////////
 	selectImage(TempOri);
@@ -406,6 +402,7 @@ if(nImages>3){// incase, if Fiji has bug. The opened images will accumulate
 
 "Done"
 setBatchMode(false);
+run("Misc...", "divide=Infinity save");
 run("Quit");
 
 
