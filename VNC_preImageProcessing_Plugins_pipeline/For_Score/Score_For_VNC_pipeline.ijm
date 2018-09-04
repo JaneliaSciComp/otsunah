@@ -349,6 +349,21 @@ if(nSlices==220){// aligned VNC should have 220 slices
 		drawString("Score; "+scoreT, width2*0.05, height2-height2*0.03);
 	}
 	
+	selectWindow("Samp.tif");
+	
+	run("Z Project...", "projection=[Max Intensity]");
+	getStatistics(area, mean, minSample, maxSample, std, histogram);
+	close();
+	
+	selectWindow("Samp.tif");
+	setSlice(round(nSlices/2));
+	run("Enhance Contrast", "saturated=2");
+	getMinAndMax(min, max);
+	setMinAndMax(min, max);
+	
+	if(max!=maxSample)
+	run("Apply LUT", "stack");
+	
 	run("Merge Channels...", "c1=Temp.tif c2=Samp.tif c3=Temp.tif");
 	run("AVI... ", "compression=JPEG frame=25 save="+savedir+ScoreT+"_"+DataName+".avi");
 	
