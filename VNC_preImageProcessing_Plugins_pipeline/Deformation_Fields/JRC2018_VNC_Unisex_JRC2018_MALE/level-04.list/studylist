@@ -1,0 +1,11 @@
+! TYPEDSTREAM 2.4
+
+studylist {
+	num_sources 2
+}
+source {
+	studyname "/Registration/JRC2018_VNC_align_test/Template/JRC2018_VNC_UNISEX_447_G15.nrrd"
+}
+source {
+	studyname "images/JRC2018VNCMALE_447_G15_01.nrrd"
+}

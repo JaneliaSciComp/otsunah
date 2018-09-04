@@ -1,0 +1,12 @@
+! TYPEDSTREAM 2.4
+
+time_level 592.2300000000
+time_total 871.6100000000
+walltime_level 145.0000000000
+walltime_total 202.0000000000
+thread_time_level 592.2300000000
+thread_time_total 871.6100000000
+number_of_threads 8
+number_of_cpus 8
+host "gaba-2.local"
+system "Darwin"
