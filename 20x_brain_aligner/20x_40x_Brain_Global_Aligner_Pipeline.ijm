@@ -1633,8 +1633,8 @@ if(SizeM!=0){
 			}
 			
 			if(NRRD_02_ext==0){
-				startNeuronNum=1;
-				AdjustingNum=-1;
+				startNeuronNum=2;
+				AdjustingNum=0;
 				
 				if(MCFOYN==false)
 				maxvalue1=newArray(channels);
