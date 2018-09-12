@@ -22,7 +22,7 @@ argstr=0;
 //argstr="D:"+File.separator+",I1_ZB49_T1,D:"+File.separator+"Dropbox (HHMI)"+File.separator+"VNC_project"+File.separator+"VNC_Lateral_F.tif,C:"+File.separator+"I2_ZB50_T1.v3draw,sr,0.2965237,0.2965237,f"//for test
 
 //argstr="/nrs/scicompsoft/otsuna/VNC_pipeline_error/,Out_PUT,/nrs/scicompsoft/otsuna/VNC_Lateral_F.tif,/nrs/jacs/jacsData/filestore/flylight/Sample/624/412/2389599578052624412/stitch/stitched-2377239301013373026.v3draw,ssr,0.44,0.44,f,/groups/jacs/jacsDev/devstore/flylight/Separation/122/600/2379727076623122600/separate/ConsolidatedLabel.v3dpbd,4"//for test
-//argstr="/test/VNC_pipeline/,tempsubjectsx.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/Volumes/otsuna/VNC_Aligner/tile-2577638050540552213.v3draw,ssr,0.52,0.52,m,??,11"//for test
+//argstr="/test/VNC_pipeline/,tile-2577638111085330453new.v3draw,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/Volumes/otsuna/VNC_Aligner/tile-2577638111085330453new.v3draw,ssr,0.52,0.52,m,??,11"//for test
 //argstr="/test/VNC_pipeline/,tempsubjectsx.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/tempsubjectsx.v3dpbd,sssr,0.45,0.45,f,/test/VNC_Test/ConsolidatedLabel.v3dpbd,4"//for test
 
 //argstr="/test/VNC_Test/PreAligned/,stitched-2469965973508063377.v3dpbd,/Users/otsunah/Dropbox (HHMI)/VNC_project/,/test/VNC_Test/Sample/stitched-2469965973508063377.v3dpbd,sr,0.44,0.44,f,/test/VNC_Test/Sample/ConsolidatedLabel.v3dpbd,8"//for test
@@ -1420,13 +1420,13 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 				CLEAR_MEMORY();
 				selectImage(DUP);
 				
-	//			if(Rstartslice<Rendslice)
-	//			run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+				//			if(Rstartslice<Rendslice)
+				//			run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
 				
-				//			setBatchMode(false);
-				//		updateDisplay();
-				//			"do"
-				//			exit();
+				//				setBatchMode(false);
+				//			updateDisplay();
+				//				"do"
+				//				exit();
 				
 				realVNC=getImageID();
 				realVNCtitle=getTitle();
@@ -1771,9 +1771,6 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							print("  defaultWidth; "+defaultWidth+"  startWidth; "+startWidth);
 							heightSizeRatio=6.3828/heightVXsmall;//6.3828 is template's px hight size
 							
-							//ElongArray=newArray(0,0,2);
-							//Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempimg);
-							
 							maxH=round((sampHeight/heightSizeRatio)*0.7);//ElongArray[0];
 							OBJScorePre=0;
 							
@@ -1822,16 +1819,17 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 								
 								run("Canvas Size...", "width=60 height=100 position=Center zero");
 								
-						//		if(startW==round(startWidth)*4-1){
-						//			setBatchMode(false);
-						//			updateDisplay();
-						//			"do"
-						//			exit();
-						//		}
+								//		if(startW==12){
+								//			setBatchMode(false);
+								//			updateDisplay();
+								//			"do"
+								//			exit();
+								//		}
 								
 								if(isOpen("DUPnc82.tif")){
 									// for new jar version
 									run("Image Correlation Atomic", "samp=DUPnc82.tif temp="+tempimg+" +="+PlusRot+" -="+MinusRot+" overlap="+100-MaxShiftABS-10+" parallel=4 rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
+									wait(10);
 									
 									totalLog=getInfo("log");
 									
@@ -1853,6 +1851,15 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 									XPosi=lastIndexOf(totalLog, "shiftx;");
 									ShiftX=substring(totalLog, XPosi+7, YPosi-2);
 									ShiftX=parseFloat(ShiftX);
+									
+									Zeroosi=lastIndexOf(totalLog, "value is");
+									if(Zeroosi!=-1){
+										OBJScore=0;
+									//	setBatchMode(false);
+								//		updateDisplay();
+								//		"do"
+								//		exit();
+									}
 									
 									if(OBJScorePre==0){
 										OBJScorePre=OBJScore;
@@ -1942,6 +1949,9 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							realdepthVal=6.4/Mvxwidth;//*depth
 							realHeightVal=(6.3828/Mvxheight)*vxheight;
+							
+							if(realHeightVal<vxheight*0.9 || realHeightVal>vxheight*1.2)
+							realHeightVal=vxheight;
 							
 							maxrotation=maxrotation/(realdepthVal/widthVXsmall);
 							
@@ -2139,7 +2149,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							if(Rendslice>nSlices)
 							Rendslice=nSlices;
 							
-					//		run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+							//		run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
 							realNeuron=getImageID();//substack, duplicated
 							
 							run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=pixels pixel_width=1 pixel_height=1 voxel_depth=1");
@@ -2203,8 +2213,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							selectImage(realNeuron);
 							close();
 							
-				//			selectImage(selectedNeuron);
-				//			close();
+							//			selectImage(selectedNeuron);
+							//			close();
 						}//for(exportchannel=1; exportchannel<=titlelist.length; exportchannel++){
 						
 						run("Close All");
@@ -2243,7 +2253,7 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							if(Rendslice>nSlices)
 							Rendslice=nSlices;
 							
-					//		run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
+							//		run("Make Substack...", "  slices="+Rstartslice+"-"+Rendslice+"");
 							realNeuron=getImageID();//substack, duplicated
 							
 							if(FrontAndBack>0){
@@ -2304,8 +2314,8 @@ function God(savedir, noext,origi,Batch,myDir0,chanspec,Xresolution,Yresolution,
 							
 							selectImage(realNeuron);
 							close();
-					//		selectImage(selectedNeuron);
-					//		close();
+							//		selectImage(selectedNeuron);
+							//		close();
 							
 							print("ConsolidatedLabel save Done");
 							logsum=getInfo("log");
@@ -2459,10 +2469,10 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 		//	run("Size...", "width=18 height=80 depth=100 constrain average interpolation=Bilinear");
 		//run("Median...", "radius=10 stack");
 		
-	//		setBatchMode(false);
-	//		updateDisplay();
-	//		"do"
-	//		exit();
+		//		setBatchMode(false);
+		//		updateDisplay();
+		//		"do"
+		//		exit();
 		
 		Dupstack=getImageID();
 		DupstackST=getTitle();
@@ -2477,12 +2487,12 @@ function Helongate (ElongArray,sampHeight,heightSizeRatio,lateralNC82stack,tempi
 		
 		run("16-bit");
 		
-	//		if(startH==65){
-	//			setBatchMode(false);
-	//					updateDisplay();
-	//		"do"
-	//						exit();
-	//		}
+		//		if(startH==65){
+		//			setBatchMode(false);
+		//					updateDisplay();
+		//		"do"
+		//						exit();
+		//		}
 		
 		run("Canvas Size...", "width=60 height=100 position=Center zero");
 		rename("DUPnc82.tif");
