@@ -13,7 +13,7 @@ nrrdEx=true;
 revstack=false;
 
 cropWidth=1400;
-cropHeight=850;
+cropHeight=800;
 ChannelInfo = "01 02 nrrd files";
 blockposition=1;
 totalblock=1;
@@ -48,9 +48,9 @@ testArg=0;
 
 //for 20x
 //<<<<<<< HEAD
-//testArg= "/test/20x_brain_alignment/,tile-2577640000216629269.v3draw,/test/20x_brain_alignment/tile-2577640000216629269.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.62,1,7,20x,JRC2018,Unknown,/test/20x_brain_alignment/ConsolidatedLabel.v3dpbd"
+//testArg= "/test/20x_brain_alignment/,JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Downloads/Workstation/JRC_SS04948/JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
 //=======
-//testArg= "/test/20x_brain_alignment/TwoChannel/,tile-2562429413983518741.v3dpbd,/test/20x_brain_alignment/TwoChannel/tile-2562429413983518741.v3dpbd,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.62,1,7,20x,JRC2018,Unknown,/test/20x_brain_alignment/TwoChannel/ConsolidatedLabel.v3dpbd"
+//testArg= "/test/20x_brain_alignment/TwoChannel/,GMR_MB433B_20121003_31_A1_tile-2586697527118004258.v3draw,/Users/otsunah/Downloads/Workstation/GMR_MB433B/GMR_MB433B_20121003_31_A1_tile-2586697527118004258.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.56,1,7,20x,JRC2018,Unknown,??"
 //>>>>>>> origin/master
 
 if(testArg!=0)
