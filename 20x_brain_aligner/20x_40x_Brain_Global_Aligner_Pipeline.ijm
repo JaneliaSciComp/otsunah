@@ -132,7 +132,7 @@ String.resetBuffer;
 myDir0 = savedir+"Shape_problem"+File.separator;
 File.makeDirectory(myDir0);
 
-myDir4 = savedir+"High_background_cannot_segment_VNC"+File.separator;
+myDir4 = savedir+"High_background_cannot_segment"+File.separator;
 File.makeDirectory(myDir4);
 
 logsum=getInfo("log");
@@ -2113,7 +2113,6 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 	//			"do"
 	//		exit();
 	
-//	run("Image Correlation Atomic", "samp=SampMIP.tif temp=JFRC2010_50pxMIP.tif +=179 -=180 overlap=80 parallel="+NumCPU+" rotation=1 calculation=[OBJ peasonCoeff] weight=[Equal weight (temp and sample)]");
 	run("Image Correlation Atomic EQ", "samp=SampMIP.tif temp=JFRC2010_50pxMIP.tif +=179 -=180 overlap=80 parallel="+NumCPU+" rotation=1 show calculation=OBJPeasonCoeff");
 	
 	run("Merge Channels...", "c1=JFRC2010_50pxMIP.tif c2=DUP_SampMIP.tif  c3=JFRC2010_50pxMIP.tif keep");
@@ -2127,7 +2126,6 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 	
 	totalLog=getInfo("log");
 	OBJindex = lastIndexOf(totalLog, "score;");
-	
 	xindex = lastIndexOf(totalLog,"shiftx");
 	yindex = lastIndexOf(totalLog,"shifty");
 	rotindex = lastIndexOf(totalLog,"rotation");
@@ -2136,7 +2134,7 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 	OBJScore=parseFloat(OBJScore);//Chaneg string to number
 	
 	Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
-	Rot=parseFloat(maxrotation);//Chaneg string to number
+	Rot=parseFloat(Rot);//Chaneg string to number
 	
 	maxX= substring(totalLog,xindex+7, yindex-2);//getResult("shiftx", 0);
 	maxX=parseFloat(maxX);//Chaneg string to number
@@ -2185,7 +2183,6 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 			
 			totalLog=getInfo("log");
 			OBJindex = lastIndexOf(totalLog, "score;");
-			
 			xindex = lastIndexOf(totalLog,"shiftx");
 			yindex = lastIndexOf(totalLog,"shifty");
 			rotindex = lastIndexOf(totalLog,"rotation");
@@ -2202,7 +2199,7 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 				MaxinSlice=inSlice;
 				MaxOBJ3Dscan=OBJScore;
 				Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
-				Rot=parseFloat(maxrotation);//Chaneg string to number
+				Rot=parseFloat(Rot);//Chaneg string to number
 				
 				elipsoidAngle=parseFloat(Rot);
 				if (elipsoidAngle>90) 
@@ -2242,7 +2239,6 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 				
 				totalLog=getInfo("log");
 				OBJindex = lastIndexOf(totalLog, "score;");
-				
 				xindex = lastIndexOf(totalLog,"shiftx");
 				yindex = lastIndexOf(totalLog,"shifty");
 				rotindex = lastIndexOf(totalLog,"rotation");
@@ -2257,7 +2253,7 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU){
 				if(OBJScore>PreMaxOBJ){
 					PreMaxOBJ=OBJScore;
 					Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
-					Rot=parseFloat(maxrotation);//Chaneg string to number
+					Rot=parseFloat(Rot);//Chaneg string to number
 					elipsoidAngle=parseFloat(Rot);
 					if (elipsoidAngle>90) 
 					elipsoidAngle = -(180 - elipsoidAngle);
@@ -2487,11 +2483,16 @@ function ImageCorrelation2 (sample, templateImg, rotSearch,ImageCarray,overlap,N
 	rename(sample);
 	
 	totalLog=getInfo("log");
+	OBJindex = lastIndexOf(totalLog, "score;");
+	xindex = lastIndexOf(totalLog,"shiftx");
+	yindex = lastIndexOf(totalLog,"shifty");
+	rotindex = lastIndexOf(totalLog,"rotation");
+	
 	OBJScore=substring(totalLog,OBJindex+6, lengthOf(totalLog));//getResult("OBJ score", 0);
 	OBJScore=parseFloat(OBJScore);//Chaneg string to number
 	
 	Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
-	Rot=parseFloat(maxrotation);//Chaneg string to number
+	Rot=parseFloat(Rot);//Chaneg string to number
 	
 	maxX= substring(totalLog,xindex+7, yindex-2);//getResult("shiftx", 0);
 	maxX=parseFloat(maxX);//Chaneg string to number
@@ -2787,7 +2788,6 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		
 		totalLog=getInfo("log");
 		OBJindex = lastIndexOf(totalLog, "score;");
-		
 		xindex = lastIndexOf(totalLog,"shiftx");
 		yindex = lastIndexOf(totalLog,"shifty");
 		rotindex = lastIndexOf(totalLog,"rotation");
@@ -2800,7 +2800,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 			//		print(OBJScoreL);
 			MaxOBJL=OBJScoreL;
 			Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
-			Rot=parseFloat(maxrotation);//Chaneg string to number
+			Rot=parseFloat(Rot);//Chaneg string to number
 
 			elipsoidAngle=parseFloat(Rot);
 			if (elipsoidAngle>90) 
