@@ -1525,7 +1525,7 @@ if(SizeM!=0){
 				run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
 				run("Reslice [/]...", "output=1.000 start=Left rotate avoid");
 				rename("resliceN.tif");
-				print("Reslice nc82 Done 1967");
+				print("Reslice nc82 Done 1967, Not translated lateral, LateralYtrans; "+LateralYtrans+"   LateralXtrans; "+LateralXtrans);
 				if(bitDepth==8)
 				run("16-bit");
 				
@@ -2740,7 +2740,7 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 	//	exit();
 	
 	startiWidth=40;
-	endiWidth=180;
+	endiWidth=200;
 	
 	if(VxDepthF<0.3){
 		startiWidth=15;
@@ -2778,12 +2778,9 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 			
 		run("Image Correlation Atomic EQ", "samp=smallMIP.tif temp=Lateral_JFRC2010_5time_smallerMIP.tif +=10 -=10 overlap=90 parallel="+NumCPU+" rotation=1 show calculation=OBJPeasonCoeff");
 		
-		run("Merge Channels...", "c1=Lateral_JFRC2010_5time_smallerMIP.tif c2=DUP_smallMIP.tif  c3=Lateral_JFRC2010_5time_smallerMIP.tif keep");
-		saveAs("PNG", savedir+noext+"_JFRC2010_50pxMIP.png");
-		close();
+
 		
-		selectWindow("DUP_smallMIP.tif");
-		close();
+		
 		
 		
 		totalLog=getInfo("log");
@@ -2797,6 +2794,11 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		print(OBJScoreL+"  "+iWidth);
 		
 		if(OBJScoreL>MaxOBJL){
+			
+			run("Merge Channels...", "c1=Lateral_JFRC2010_5time_smallerMIP.tif c2=DUP_smallMIP.tif  c3=Lateral_JFRC2010_5time_smallerMIP.tif keep");
+			saveAs("PNG", savedir+noext+"_JFRC2010_50pxMIP.png");
+			close();
+			
 			//		print(OBJScoreL);
 			MaxOBJL=OBJScoreL;
 			Rot= substring(totalLog,rotindex+9, OBJindex-6);//getResult("rotation", 0);
@@ -2817,10 +2819,13 @@ function lateralDepthAdjustment(op1center,op2center,lateralArray,nc82,templateBr
 		}else{
 			negativeOBJ=negativeOBJ+1;
 		}
+		selectWindow("DUP_smallMIP.tif");
+		close();
+		
 		
 		//	if(negativeOBJ==20)
 		//	iWidth=350;
-		
+		selectWindow("smallMIP.tif");
 		run("Paste");
 	}
 	
