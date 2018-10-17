@@ -60,7 +60,7 @@ testArg=0;
 
 //-Lop
 //testArg= "/test/20x_brain_alignment/NoLop/,GMR_13D08_AE_01_13-fA01b_C080304_20080305233708703.zip,/test/20x_brain_alignment/pre_Align_Test_Vol/-Lop/GMR_13D08_AE_01_13-fA01b_C080304_20080305233708703.zip,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.46,1,7,20x,JRC2018,Unknown,??"
-flipchannel=1;
+flipchannel=0;
 
 //-Rop
 
@@ -1119,7 +1119,7 @@ if(SizeM!=0){
 						xgapleft=cropWidth/2-xcenter;
 						
 						print("finalshiftX; "+round(finalshiftX)+"   round(maxX*MaxZoom*Zoomratio); "+round(maxX*MaxZoom*Zoomratio)+"  finalshiftY; "+round(finalshiftY)+"   round(maxY*20/Zoomratio); "+round(maxY*20/Zoomratio)+"maxX; "+maxX+"   maxY; "+maxY+"  Zoomratio; "+Zoomratio);
-						print("1069 cropWidth*Zoomratio*MaxZoom; "+rounf(cropWidth*Zoomratio*MaxZoom)+"   cropHeight*Zoomratio*MaxZoom; "+round(cropHeight*Zoomratio*MaxZoom)+"   Zoomratio; "+Zoomratio);
+						print("1069 cropWidth*Zoomratio*MaxZoom; "+round(cropWidth*Zoomratio*MaxZoom)+"   cropHeight*Zoomratio*MaxZoom; "+round(cropHeight*Zoomratio*MaxZoom)+"   Zoomratio; "+Zoomratio);
 						
 						
 						selectImage(ID20xMIP);
