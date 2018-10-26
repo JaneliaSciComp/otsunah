@@ -52,7 +52,7 @@ testArg=0;
 //<<<<<<< HEAD
 //testArg= "/test/20x_brain_alignment/,JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Downloads/Workstation/JRC_SS04948/JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
 //=======
-testArg= "/test/20x_brain_alignment/TwoChannel/,JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Downloads/Workstation/JRC_SS21203/JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
+//testArg= "/test/20x_brain_alignment/TwoChannel/,JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Downloads/Workstation/JRC_SS21203/JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
 
 //0.46
 //testArg= "/test/20x_brain_alignment/046sample/,sample046.zip ,/test/20x_brain_alignment/sample046.zip,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.46,1,7,20x,JRC2018,Unknown,??"
@@ -430,6 +430,7 @@ open(JFRC2010MedProPath);
 //	exit();
 
 rotSearch=55; 	MaxZoom=1; 	setForegroundColor(0, 0, 0);
+ImageAligned=0;
 
 if(objective=="40x")
 BrainShape="Both_OL_missing (40x)";
@@ -956,19 +957,20 @@ if(BrainShape=="Intact"){
 	else
 	elipsoidAngle=angle;
 	
-	ImageAligned=0;
-	
 	print("MaxOBJScore; "+MaxOBJScore+"   MaxRot; "+angle);
 }else{//if(BrainShape=="Intact"){ // if brain is not intact
 	maxY = OriginalYshift/2;
 	maxX = OriginalXshift/2;
+	
+	finalshiftX=round(maxX*20*Zoomratio);
+	finalshiftY=round(maxY*20*Zoomratio);
 	ID20xMIP=1;
 	ImageAligned=1;// this means, xy shift + rotation are already known
 	finalMIP="Max projection";
 	SizeM=1; 
 }//	if(BrainShape=="Intact"){
 if(ID20xMIP==0){
-	print("could not segment by normal method, ImageAligned; "+ImageAligned);
+	print("could not segment by normal method, ImageAligned; "+ImageAligned+"   OBJScoreOri; "+OBJScoreOri);
 	/// rescue code with Image correlation ////////////////////////////
 //	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
 //	ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
@@ -978,10 +980,13 @@ if(ID20xMIP==0){
 	//		elipsoidAngle=ImageCorrelationArray[4];
 //	OBJScore=ImageCorrelationArray[5];
 	
-	setBatchMode(false);
-		updateDisplay();
-		"do"
-		exit();
+	if(OBJScoreOri>0.7)
+	ImageAligned=1;
+	
+//	setBatchMode(false);
+//		updateDisplay();
+//		"do"
+//		exit();
 	
 	if(ImageAligned==1){// if rescued
 		
@@ -994,6 +999,8 @@ if(ID20xMIP==0){
 		
 		maxY = OriginalYshift/2;
 		maxX = OriginalXshift/2;
+		finalshiftX=round(maxX*20*Zoomratio);
+		finalshiftY=round(maxY*20*Zoomratio);
 		
 		ID20xMIP=1;
 		finalMIP="Max projection";
@@ -1176,9 +1183,6 @@ if(SizeM!=0){
 					run("16-bit");
 					run("Rotation Hideo", "rotate="+elipsoidAngle+" in=InMacro");
 					
-					finalshiftX=round(maxX*20*Zoomratio);
-					finalshiftY=round(maxY*20*Zoomratio);
-					
 					run("Translate...", "x="+finalshiftX+" y="+finalshiftY+" interpolation=None");
 					setVoxelSize(LVxWidth*MaxZoom, LVxHeight*MaxZoom, LVxDepth, LVxUnit);//reslice
 					run("Canvas Size...", "width="+round(cropWidth*Zoomratio)+" height="+round(cropHeight*Zoomratio)+" position=Center zero");
@@ -1191,10 +1195,10 @@ if(SizeM!=0){
 				}//if(ImageAligned==1){
 				
 				
-				//	setBatchMode(false);
-				//	updateDisplay();
-				//	"do"
-				//	exit();
+		//			setBatchMode(false);
+		//			updateDisplay();
+		//			"do"
+		//			exit();
 				
 				
 				//print("1404 shiftY; "+shiftY);
@@ -2563,7 +2567,7 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGs
 			
 			setForegroundColor(0, 0, 0);
 			//0.75-1.3
-			for(iZoom=0.99; iZoom<=1; iZoom+=0.03){
+			for(iZoom=0.75; iZoom<=1.3; iZoom+=0.03){
 				
 				if(tempSD==0){
 					selectWindow("SampMIP.tif");
