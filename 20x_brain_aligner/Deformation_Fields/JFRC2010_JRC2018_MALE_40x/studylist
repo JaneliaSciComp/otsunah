@@ -1,0 +1,11 @@
+! TYPEDSTREAM 2.4
+
+studylist {
+	num_sources 2
+}
+source {
+	studyname "/Registration/JRC2018_align_test/Template/JFRC2010_16bit.nrrd"
+}
+source {
+	studyname "/Registration/JRC2018_align_test/JRC2018M_JFRC2014_63x_DistCorrected_G15_01.nrrd"
+}

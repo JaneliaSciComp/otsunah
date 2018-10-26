@@ -454,7 +454,7 @@ if(BrainShape=="Intact" || BrainShape=="Unknown"){
 	if(objective=="20x"){
 		ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
 		ImageCorrelation(ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);// with zoom adjustment, it was widthVx
-		
+		ImageAligned=ImageCorrelationArray[1];
 		//		OriginalRot=ImageCorrelationArray[4];
 		//		OBJScoreOri=ImageCorrelationArray[5];
 		MaxZoom=ImageCorrelationArray[6];
@@ -636,6 +636,7 @@ while(isOpen("OriginalProjection.tif")){
 }
 
 run("Set Measurements...", "area centroid center perimeter fit shape redirect=None decimal=2");
+print("Zoomratio; "+Zoomratio);
 
 if(BrainShape=="Intact"){
 	firstTime=0; 
@@ -754,6 +755,12 @@ if(BrainShape=="Intact"){
 			
 			updateResults();
 			maxsizeData=0;
+			
+		//	if(ThreTry==2){
+		//		setBatchMode(false);
+		//		updateDisplay();
+		//		aa
+		//	}
 			
 			if(getValue("results.count")>0){
 				numberResults=getValue("results.count");	 ARshape=0;
@@ -961,15 +968,20 @@ if(BrainShape=="Intact"){
 	SizeM=1; 
 }//	if(BrainShape=="Intact"){
 if(ID20xMIP==0){
-	print("could not segment by normal method");
+	print("could not segment by normal method, ImageAligned; "+ImageAligned);
 	/// rescue code with Image correlation ////////////////////////////
-	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
-	ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
-	ImageAligned=ImageCorrelationArray[1];
+//	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
+//	ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
+//	ImageAligned=ImageCorrelationArray[1];
 	//		maxX=ImageCorrelationArray[2];
 	//		maxY=ImageCorrelationArray[3];
 	//		elipsoidAngle=ImageCorrelationArray[4];
-	OBJScore=ImageCorrelationArray[5];
+//	OBJScore=ImageCorrelationArray[5];
+	
+	setBatchMode(false);
+		updateDisplay();
+		"do"
+		exit();
 	
 	if(ImageAligned==1){// if rescued
 		
@@ -2396,7 +2408,7 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGs
 	rename("SampMIP.tif");
 	
 	ZoomratioFun=6.2243/widthVx; //10.5813/widthVx;
-	print("1798 60px ZoomratioFun; "+ZoomratioFun+"   widthVx; "+widthVx+"  getWidth"+getWidth+"   getHeight"+getHeight+"  round(getWidth/ZoomratioFun); "+round(getWidth/ZoomratioFun));
+	print("2406 60px ZoomratioFun; "+ZoomratioFun+"   widthVx; "+widthVx+"  getWidth"+getWidth+"   getHeight"+getHeight+"  round(getWidth/ZoomratioFun); "+round(getWidth/ZoomratioFun));
 	run("Size...", "width="+round(getWidth/ZoomratioFun)+" height="+round(getHeight/ZoomratioFun)+" depth=1 constrain interpolation=None");
 	
 	if(ZoomratioFun==6.2243/widthVx)
@@ -2550,8 +2562,8 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGs
 			PreMaxOBJ=OBJScore; PreOBJ=OBJScore;
 			
 			setForegroundColor(0, 0, 0);
-			
-			for(iZoom=0.75; iZoom<=1.3; iZoom+=0.03){
+			//0.75-1.3
+			for(iZoom=0.99; iZoom<=1; iZoom+=0.03){
 				
 				if(tempSD==0){
 					selectWindow("SampMIP.tif");
