@@ -10,6 +10,7 @@ usingLUT="PsychedelicRainBow2";
 lowerweight=0.7;
 lowthreM="Peak Histogram";
 unsharp="NA";//"NA", "Unsharp", "Max"
+skeleton=0;//skeleton yes
 
 secondjump=245;
 CropYN=false;// crop optic lobe
@@ -123,11 +124,12 @@ function mipfunction(dir,listP, dirCOLOR, AutoBRV,MIPtype,desiredmean,CropYN,usi
 		getDimensions(width, height, channels, slices, frames);
 		getVoxelSize(VxWidth, VxHeight, VxDepth, VxUnit);
 		
-		if(bitd==32){
+		if(bitd==32 || skeleton==1){
 			setMinAndMax(0, 20);
 			run("8-bit");
 			bitd=8;
 			unsharp="Max";//"NA", "Unsharp", "Max"
+			AutoBRV=false;
 		}
 		
 		

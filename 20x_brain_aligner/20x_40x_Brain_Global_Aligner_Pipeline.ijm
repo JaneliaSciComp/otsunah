@@ -1,6 +1,6 @@
 //Pre-Image processing for Brain before CMTK operation
 //Wrote by Hideo Otsuna, Jan 16, 2018
-
+run("Misc...", "divide=Infinity save");
 MIPsave=1;
 ShapeAnalysis=1;//perform shape analysis and kick strange sample
 CLAHEwithMASK=1;
@@ -40,12 +40,12 @@ DesireX=512;
 setBatchMode(true);
 testArg=0;
 
-
+reverseR=0;
 
 // 40x
-//testArg= "/test/20x_brain_alignment/fail/,tile-2580114806669312021.v3draw,/test/20x_brain_alignment/fail/tile-2580114806669312021.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.44,0.44,11,40x,JRC2018,Both_OL_missing (40x),/test/20x_brain_alignment/fail/ConsolidatedLabel.v3dpbd"
+//testArg= "/test/20x_brain_alignment/fail/,tile-2598433930730274853.v3draw,/test/20x_brain_alignment/fail/tile-2598433930730274853.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.44,0.44,11,40x,JRC2018,Both_OL_missing (40x),/test/20x_brain_alignment/fail/ConsolidatedLabel.v3dpbd"
 
-//testArg= "/test/20x_brain_alignment/fail/,GMR_MB630B_20150925_44_B6_FLPO_20160826164626823_74053.lsm,/test/20x_brain_alignment/fail/GMR_MB630B_20150925_44_B6_FLPO_20160826164626823_74053.lsm,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,0.52,11,20x,JRC2018,Unknown,??"
+//testArg= "/test/20x_brain_alignment/fail/,tile-2597686417454792738.v3draw,/Users/otsunah/Dropbox\ \(HHMI\)/40x_project/tile-2597686417454792738.v3draw,/Users/otsunah/Documents/otsunah/20x_brain_aligner,0.44,0.44,11,40x,JRC2018,Both_OL_missing (40x),??"
 
 
 //for 20x
@@ -102,20 +102,24 @@ if(objective=="40x"){
 	cropHeight=750;
 }
 
-print("path;"+path);
+
 print("savedir; "+savedir);
+print("filename; "+filename);
+print("path;"+path);
 print("MatchingFilesDir; "+MatchingFilesDir);
 print("X resolution; "+widthVx+" micron");
+print("depth; "+depth);
+print("NumCPU; "+NumCPU);
+print("objective; "+objective);
+print("templateBr; "+templateBr);
+print("BrainShape; "+BrainShape);
+print("PathConsolidatedLabel; "+PathConsolidatedLabel);
+print("");
+
 print("Frontal50pxPath; "+Frontal50pxPath);
 print("LateralMIPPath; "+LateralMIPPath);
 print("Slice50pxPath; "+Slice50pxPath);
 print("ShapeMatchingMaskPath; "+ShapeMatchingMaskPath);
-
-print("NumCPU; "+NumCPU);
-print("objective; "+objective);
-print("PathConsolidatedLabel; "+PathConsolidatedLabel);
-print("");
-print("BrainShape; "+BrainShape);
 print("cropWidth; "+cropWidth+"   cropHeight; "+cropHeight);
 
 savedirext=File.exists(savedir);
@@ -456,7 +460,7 @@ if(BrainShape=="Intact" || BrainShape=="Unknown"){
 	
 	if(objective=="20x"){
 		ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
-		ImageCorrelation(ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);// with zoom adjustment, it was widthVx
+		ImageCorrelation(ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave,BrainShape);// with zoom adjustment, it was widthVx
 		ImageAligned=ImageCorrelationArray[1];
 		//		OriginalRot=ImageCorrelationArray[4];
 		//		OBJScoreOri=ImageCorrelationArray[5];
@@ -602,6 +606,54 @@ if(BrainShape=="Both_OL_missing (40x)"){
 	
 	finalshiftX=round((OriginalXshift/ZoomratioSmall)/2);
 	finalshiftY=round((OriginalYshift/ZoomratioSmall)/2);
+	
+	ImageCorrelationArray=newArray(nc82, 0,0,0,0,0,0);
+	ImageCorrelation(ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave,BrainShape);// with zoom adjustment, it was widthVx
+	ImageAligned=ImageCorrelationArray[1];
+	OriginalRot=ImageCorrelationArray[4];
+	OriginalRot=OriginalRot*-1;
+	//		OBJScoreOri=ImageCorrelationArray[5];
+	MaxZoom=ImageCorrelationArray[6];
+	OriginalXshift = ImageCorrelationArray[2];
+	OriginalYshift = ImageCorrelationArray[3];
+	
+	OriginalXshift=OriginalXshift*-1;
+	OriginalYshift=OriginalYshift*-1;
+	
+	MaxZoom=parseFloat(MaxZoom);//Chaneg string to number
+	
+	if(MaxZoom!=1){
+		
+		//	Ori_widthVx=Ori_widthVx*MaxZoom;
+		//	Ori_heightVx=Ori_heightVx*MaxZoom;
+		
+		print("MaxZoom is not 1; "+MaxZoom);
+		nc82Ori=0;
+		DupPcreationAndbasicTransArray=newArray(widthVx, heightVx, Ori_widthVx, Ori_heightVx, ZoomratioSmall, Zoomratio, nc82, nc82Ori, OBJScoreOri,OriginalRot,OriginalYshift,OriginalXshift,maxX,maxY);
+		DupPcreationAndbasicTrans (MaxZoom,DupPcreationAndbasicTransArray, NumCPU, bitd, rotSearch,1);
+		
+		//	widthVx=DupPcreationAndbasicTransArray[0];
+		//	heightVx=DupPcreationAndbasicTransArray[1];
+			Ori_widthVx=DupPcreationAndbasicTransArray[2];
+			Ori_heightVx=DupPcreationAndbasicTransArray[3];
+			ZoomratioSmall=DupPcreationAndbasicTransArray[4];
+			Zoomratio=DupPcreationAndbasicTransArray[5];
+		nc82=DupPcreationAndbasicTransArray[6];
+		nc82Ori=DupPcreationAndbasicTransArray[7];
+		OBJScoreOri=DupPcreationAndbasicTransArray[8];
+		//	OriginalRot=DupPcreationAndbasicTransArray[9];
+		//	OriginalYshift=DupPcreationAndbasicTransArray[10];
+		//		OriginalXshift=DupPcreationAndbasicTransArray[11];
+		maxX=DupPcreationAndbasicTransArray[12];
+		maxY=DupPcreationAndbasicTransArray[13];
+		
+		reverseR=1;
+		finalshiftX=round((OriginalXshift/ZoomratioSmall)*MaxZoom);
+		finalshiftY=round((OriginalYshift/ZoomratioSmall)*MaxZoom);
+		print("MaxZoom; "+MaxZoom+"   widthVx; "+Ori_widthVx+"   heightVx; "+Ori_heightVx+"   Zoomratio; "+Zoomratio);
+		print("   OBJScore after Zoom; "+OBJScoreOri+"  OriginalRot; "+OriginalRot+"  finalshiftX; "+finalshiftX+"  finalshiftY; "+finalshiftY+"  OriginalRot; "+OriginalRot);	
+	}//if(MaxZoom!=1){
+	
 	
 	ID20xMIP=1;
 	finalMIP="Max projection";
@@ -759,11 +811,11 @@ if(BrainShape=="Intact"){
 			updateResults();
 			maxsizeData=0;
 			
-		//	if(ThreTry==2){
-		//		setBatchMode(false);
-		//		updateDisplay();
-		//		aa
-		//	}
+			//	if(ThreTry==2){
+			//		setBatchMode(false);
+			//		updateDisplay();
+			//		aa
+			//	}
 			
 			if(getValue("results.count")>0){
 				numberResults=getValue("results.count");	 ARshape=0;
@@ -974,21 +1026,21 @@ if(BrainShape=="Intact"){
 if(ID20xMIP==0){
 	print("could not segment by normal method, ImageAligned; "+ImageAligned+"   OBJScoreOri; "+OBJScoreOri);
 	/// rescue code with Image correlation ////////////////////////////
-//	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
-//	ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
-//	ImageAligned=ImageCorrelationArray[1];
+	//	ImageCorrelationArray=newArray(nc82, ImageAligned,0,0,0,0,0);
+	//	ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
+	//	ImageAligned=ImageCorrelationArray[1];
 	//		maxX=ImageCorrelationArray[2];
 	//		maxY=ImageCorrelationArray[3];
 	//		elipsoidAngle=ImageCorrelationArray[4];
-//	OBJScore=ImageCorrelationArray[5];
+	//	OBJScore=ImageCorrelationArray[5];
 	
 	if(OBJScoreOri>0.7)
 	ImageAligned=1;
 	
-//	setBatchMode(false);
-//		updateDisplay();
-//		"do"
-//		exit();
+	//	setBatchMode(false);
+	//		updateDisplay();
+	//		"do"
+	//		exit();
 	
 	if(ImageAligned==1){// if rescued
 		
@@ -1197,10 +1249,10 @@ if(SizeM!=0){
 				}//if(ImageAligned==1){
 				
 				
-		//			setBatchMode(false);
-		//			updateDisplay();
-		//			"do"
-		//			exit();
+				//			setBatchMode(false);
+				//			updateDisplay();
+				//			"do"
+				//			exit();
 				
 				
 				//print("1404 shiftY; "+shiftY);
@@ -1426,7 +1478,7 @@ if(SizeM!=0){
 					OBJV="";
 					if(ImageAligned2==1){
 						
-						rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
+						rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth,reverseR);
 						
 						OBJV="_"+OBJScore;
 					}
@@ -1471,7 +1523,7 @@ if(SizeM!=0){
 			selectImage(nc82);
 			print("nc82 selected 1837; "+getTitle());
 			
-			rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth);
+			rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth,reverseR);
 			
 			if(ImageAligned==1){
 				sizediff2=OpticLobeSizeGap; sizediff1=OpticLobeSizeGap;
@@ -1576,7 +1628,7 @@ if(SizeM!=0){
 				
 				nc82=getImageID();
 				
-				rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);
+				rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth,reverseR);
 				
 				run("Properties...", "channels=1 slices="+NC82SliceNum+" frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
 				run("Reslice [/]...", "output=1.000 start=Left rotate avoid");
@@ -1803,7 +1855,7 @@ if(SizeM!=0){
 					else if (neuronNum==startNeuronNum+2)
 					neuron3 = getImageID();
 				}
-				rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth);			
+				rotateshift3D (resliceLongLength,finalshiftX,Zoomratio*MaxZoom,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,incredepth,reverseR);			
 				
 				rename("signalCH.tif");
 				signalCH=getImageID();
@@ -2010,6 +2062,7 @@ print("processing time; "+gaptime/60+" min");
 
 logsum=getInfo("log");
 File.saveString(logsum, filepath);
+run("Misc...", "divide=Infinity save");
 
 run("Quit");
 
@@ -2381,7 +2434,7 @@ function VoxSizeADJ (VoxSizeADJArray,DesireX,objective){
 }//function VoxSizeADJ (VoxSizeADJArray){
 
 
-function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGsave){
+function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGsave,BrainShape){
 	nc82=ImageCorrelationArray[0];
 	ImageAligned=ImageCorrelationArray[1];
 	
@@ -2412,6 +2465,9 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGs
 	run("16-bit");
 	run("Grays");
 	rename("SampMIP.tif");
+	
+	run("Enhance Contrast", "saturated=0.35");
+	run("Apply LUT");
 	
 	ZoomratioFun=6.2243/widthVx; //10.5813/widthVx;
 	print("2406 60px ZoomratioFun; "+ZoomratioFun+"   widthVx; "+widthVx+"  getWidth"+getWidth+"   getHeight"+getHeight+"  round(getWidth/ZoomratioFun); "+round(getWidth/ZoomratioFun));
@@ -2487,6 +2543,10 @@ function ImageCorrelation(ImageCorrelationArray,widthVx,NumCPU,projectionSt,PNGs
 	OBJScore=round(OBJScore);
 	MaxZoom=1;
 	MaxinSlice=0;
+	
+	if(BrainShape=="Both_OL_missing (40x)")
+	threasholdOBJ=850;
+	else
 	threasholdOBJ=780;
 	
 	if(OBJScore<threasholdOBJ){
@@ -3417,17 +3477,24 @@ function DupAvePprocessing (nc82,NumCPU,bitd,projectionSt){
 	run("Apply LUT");
 }//function DupAvePprocessing (
 
-function rotateshift3D (resliceLongLength,finalshiftX,Zoomratio,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth){
+function rotateshift3D (resliceLongLength,finalshiftX,Zoomratio,finalshiftY,elipsoidAngle,shrinkTo2010,cropWidth,cropHeight,Ori_widthVx,Ori_heightVx,depth,reverseR){
 	run("Canvas Size...", "width="+resliceLongLength+" height="+resliceLongLength+" position=Center zero");
 	run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
-	
-	print("3311 Translated X; "+round(finalshiftX)+"  Y; "+round(finalshiftY)+", nc82, elipsoidAngle; "+elipsoidAngle+"   Zoomratio; "+Zoomratio+"  Canvas W; "+round(cropWidth/Zoomratio)+"   Canvas H; "+round(cropHeight/Zoomratio));
-	if(bitDepth==8)
-	run("16-bit");
-	run("Rotation Hideo", "rotate="+elipsoidAngle+" 3d in=InMacro");
-	
-	run("Translate...", "x="+round(finalshiftX)+" y="+round(finalshiftY)+" interpolation=None stack");
-	
+	print("3482 Translated X; "+round(finalshiftX)+"  Y; "+round(finalshiftY)+", nc82, elipsoidAngle; "+elipsoidAngle+"   Zoomratio; "+Zoomratio+"  Canvas W; "+round(cropWidth/Zoomratio)+"   Canvas H; "+round(cropHeight/Zoomratio));
+	print("reverseR; true");
+	if(reverseR==0){
+			if(bitDepth==8)
+		run("16-bit");
+		run("Rotation Hideo", "rotate="+elipsoidAngle+" 3d in=InMacro");
+		
+		run("Translate...", "x="+round(finalshiftX)+" y="+round(finalshiftY)+" interpolation=None stack");
+	}else{
+		run("Translate...", "x="+round(finalshiftX)+" y="+round(finalshiftY)+" interpolation=None stack");
+		if(bitDepth==8)
+		run("16-bit");
+		run("Rotation Hideo", "rotate="+elipsoidAngle+" 3d in=InMacro");
+		print("reverseR; true");
+	}
 	run("Properties...", "channels=1 slices="+nSlices+" frames=1 unit=microns pixel_width="+Ori_widthVx+" pixel_height="+Ori_heightVx+" voxel_depth="+depth+"");
 	
 	orizoomratio=Zoomratio;
