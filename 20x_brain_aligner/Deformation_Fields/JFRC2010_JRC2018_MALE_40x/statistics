@@ -1,11 +1,11 @@
 ! TYPEDSTREAM 2.4
 
-time_level 507.5500000000
-time_total 4347.2900000000
-walltime_level 91.0000000000
-walltime_total 2837.0000000000
-thread_time_level 507.5500000000
-thread_time_total 4347.2900000000
+time_level 828.9500000000
+time_total 1751.4000000000
+walltime_level 124.0000000000
+walltime_total 243.0000000000
+thread_time_level 828.9500000000
+thread_time_total 1751.4000000000
 number_of_threads 11
 number_of_cpus 12
 host "gaba-4.local"
