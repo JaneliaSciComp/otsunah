@@ -50,7 +50,7 @@ reverseR=0;
 
 //for 20x
 //<<<<<<< HEAD
-//testArg= "/test/20x_brain_alignment/,JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Downloads/Workstation/JRC_SS04948/JRC_SS04948_20150828_31_F1_tile-2586750767218032674.h5j,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
+//testArg= "/test/20x_brain_alignment/,JRC_SS27970_20161111_28_B6_.v3dpbd,/Users/otsunah/Downloads/Workstation/JRC_SS27970/JRC_SS27970_20161111_28_B6_.v3dpbd,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
 //=======
 //testArg= "/test/20x_brain_alignment/TwoChannel/,JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Downloads/Workstation/JRC_SS21203/JRC_SS21203_20161014_17_B1.v3dpbd,/Users/otsunah/Documents/otsunah/20x_brain_aligner/,0.52,1,7,20x,JRC2018,Unknown,??"
 
@@ -2244,7 +2244,7 @@ function opticlobecheck (rotSearch,NumCPU,opticlobecheckArray,times,JFRC2010MedP
 	ShiftXboth = ImageCarray[3];
 	print("OBJScoreBoth; "+OBJScoreBoth);
 	
-	if(OBJScoreL>OBJScoreR && OBJScoreL>OBJScoreOri-15 && OBJScoreL>OBJScoreBoth){
+	if(OBJScoreL>OBJScoreR && OBJScoreL>OBJScoreOri+30 && OBJScoreL>OBJScoreBoth){
 		OBJScoreOri = OBJScoreL;
 		BrainShape="Left_OL_missing";
 		OriginalRot=RotL;
@@ -2255,7 +2255,7 @@ function opticlobecheck (rotSearch,NumCPU,opticlobecheckArray,times,JFRC2010MedP
 		SizeM=1; 
 		
 	}
-	if(OBJScoreR>OBJScoreL && OBJScoreR>OBJScoreOri-15 && OBJScoreR>OBJScoreBoth){
+	if(OBJScoreR>OBJScoreL && OBJScoreR>OBJScoreOri+30 && OBJScoreR>OBJScoreBoth){
 		OBJScoreOri = OBJScoreR;
 		BrainShape="Right_OL_missing";
 		OriginalRot=RotR;
