@@ -1237,6 +1237,7 @@ if(SizeM!=0){
 					run("16-bit");
 					run("Rotation Hideo", "rotate="+elipsoidAngle+" in=InMacro");
 					
+				//	run("Rotate... ", "angle="+elipsoidAngle+" grid=1 interpolation=None enlarge");//Rotate mask to horizontal
 					run("Translate...", "x="+finalshiftX+" y="+finalshiftY+" interpolation=None");
 					setVoxelSize(LVxWidth*MaxZoom, LVxHeight*MaxZoom, LVxDepth, LVxUnit);//reslice
 					run("Canvas Size...", "width="+round(cropWidth*Zoomratio)+" height="+round(cropHeight*Zoomratio)+" position=Center zero");
@@ -1247,7 +1248,7 @@ if(SizeM!=0){
 				//	setBatchMode(false);
 				//				updateDisplay();
 				//				"do"
-				//				exit();
+				//	exit();
 					
 					xsize=getWidth();
 					ysize=getHeight();
@@ -1281,11 +1282,8 @@ if(SizeM!=0){
 				run("Watershed");// clip optic lobe out
 				
 				run("Analyze Particles...", "size=4000-Infinity display clear");
-				
-				//		setBatchMode(false);
-				//		updateDisplay();
-				//		"do"
-				//		exit();
+				updateResults();
+			
 				
 				sizeDiffOp= newArray(getValue("results.count")); sizediff1=300000; sizediff2=300000;
 				minX1position=10000;
@@ -1305,9 +1303,12 @@ if(SizeM!=0){
 				
 				for(opticL1=0; opticL1<getValue("results.count"); opticL1++){
 					
-					opticlobe1Gap=abs(xdistancearray[opticL1]-((220/1200)*(cropWidth*Zoomratio*MaxZoom)));//  300 220 is average of left optic lobe central X
-					opticlobe2Gap=abs(xdistancearray[opticL1]-((950/1200)*(cropWidth*Zoomratio*MaxZoom)));// 920 981 is average of left optic lobe central X
+					opticlobe1Gap=abs(xdistancearray[opticL1]*(1/Ori_widthVx)-((220/1200)*(cropWidth*Zoomratio*MaxZoom)));//  300 220 is average of left optic lobe central X
 					
+					opticlobe2Gap=abs(xdistancearray[opticL1]*(1/Ori_widthVx)-((950/1200)*(cropWidth*Zoomratio*MaxZoom)));// 920 981 is average of left optic lobe central X
+					
+					print("opticlobe1Gap; "+opticlobe1Gap+"  120*Zoomratio*MaxZoom; "+120*Zoomratio*MaxZoom+"  Zoomratio; "+Zoomratio+"  MaxZoom; "+MaxZoom+"   cropWidth;"+cropWidth+" xdistancearray[opticL1]; "+xdistancearray[opticL1]);
+					print("opticlobe2Gap; "+opticlobe2Gap);
 					if(opticlobe1Gap<120*Zoomratio*MaxZoom)
 					optic1_Area_sum=optic1_Area_sum+AreaArray[opticL1];
 					
@@ -1315,6 +1316,11 @@ if(SizeM!=0){
 					if(opticlobe2Gap<120*Zoomratio*MaxZoom)
 					optic2_Area_sum=optic2_Area_sum+AreaArray[opticL1];
 				}
+				
+			//	setBatchMode(false);
+			//	updateDisplay();
+			//	"do"
+			//	exit();
 				
 				print("optic1_Area_sum; "+optic1_Area_sum+"  optic2_Area_sum; "+optic2_Area_sum);
 				
