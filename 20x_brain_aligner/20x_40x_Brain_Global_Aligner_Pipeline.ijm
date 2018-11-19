@@ -1244,6 +1244,11 @@ if(SizeM!=0){
 					run("Duplicate...", "title=DupMask2D.tif");
 					DupMask=getImageID();
 					
+				//	setBatchMode(false);
+				//				updateDisplay();
+				//				"do"
+				//				exit();
+					
 					xsize=getWidth();
 					ysize=getHeight();
 				}//if(ImageAligned==1){
@@ -1370,7 +1375,7 @@ if(SizeM!=0){
 						wait(100);
 						call("java.lang.System.gc");
 						ImageCorrelationArray=newArray(nc82, ImageAligned2,0,0,0,0,0);
-						ImageCorrelation (ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave);
+						ImageCorrelation(ImageCorrelationArray,Ori_widthVx,NumCPU,projectionSt,PNGsave,BrainShape);
 						ImageAligned2=ImageCorrelationArray[1];
 						
 						print("ImageAligned2; "+ImageAligned2);
