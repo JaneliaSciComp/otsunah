@@ -1236,10 +1236,11 @@ if(SizeM!=0){
 					if(bitDepth==8)
 					run("16-bit");
 					run("Rotation Hideo", "rotate="+elipsoidAngle+" in=InMacro");
+					run("Properties...", "channels=1 slices=1 frames=1 unit=microns pixel_width=1 pixel_height=1 voxel_depth=1");
 					
 				//	run("Rotate... ", "angle="+elipsoidAngle+" grid=1 interpolation=None enlarge");//Rotate mask to horizontal
 					run("Translate...", "x="+finalshiftX+" y="+finalshiftY+" interpolation=None");
-					setVoxelSize(LVxWidth*MaxZoom, LVxHeight*MaxZoom, LVxDepth, LVxUnit);//reslice
+				
 					run("Canvas Size...", "width="+round(cropWidth*Zoomratio)+" height="+round(cropHeight*Zoomratio)+" position=Center zero");
 					
 					run("Duplicate...", "title=DupMask2D.tif");
@@ -1303,12 +1304,12 @@ if(SizeM!=0){
 				
 				for(opticL1=0; opticL1<getValue("results.count"); opticL1++){
 					
-					opticlobe1Gap=abs(xdistancearray[opticL1]*(1/Ori_widthVx)-((220/1200)*(cropWidth*Zoomratio*MaxZoom)));//  300 220 is average of left optic lobe central X
+					opticlobe1Gap=abs(xdistancearray[opticL1]-((220/1200)*(cropWidth*Zoomratio*MaxZoom)));//  300 220 is average of left optic lobe central X
 					
-					opticlobe2Gap=abs(xdistancearray[opticL1]*(1/Ori_widthVx)-((950/1200)*(cropWidth*Zoomratio*MaxZoom)));// 920 981 is average of left optic lobe central X
+					opticlobe2Gap=abs(xdistancearray[opticL1]-((950/1200)*(cropWidth*Zoomratio*MaxZoom)));// 920 981 is average of left optic lobe central X
 					
 					print("opticlobe1Gap; "+opticlobe1Gap+"  120*Zoomratio*MaxZoom; "+120*Zoomratio*MaxZoom+"  Zoomratio; "+Zoomratio+"  MaxZoom; "+MaxZoom+"   cropWidth;"+cropWidth+" xdistancearray[opticL1]; "+xdistancearray[opticL1]);
-					print("opticlobe2Gap; "+opticlobe2Gap);
+					print("opticlobe2Gap; "+opticlobe2Gap+"   1/Ori_widthVx; "+1/Ori_widthVx+"  (xdistancearray[opticL1]*(1/Ori_widthVx))"+(xdistancearray[opticL1]*(1/Ori_widthVx)));
 					if(opticlobe1Gap<120*Zoomratio*MaxZoom)
 					optic1_Area_sum=optic1_Area_sum+AreaArray[opticL1];
 					
